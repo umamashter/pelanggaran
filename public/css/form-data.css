@@ -1,0 +1,324 @@
+@import url(https://fonts.googleapis.com/css?family=Varela);
+
+html {
+  height: 100%;
+}
+
+body {
+  background-image: url("../img/smkn1-darker.jpg");
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-attachment: fixed;
+  background-size: cover;
+  font-family: "Poppins" , sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #333;
+  /* min-height: 100%; */
+  position: relative;
+  /* overflow-y: hidden; */
+}
+
+label {
+  margin-top: 6px;
+  line-height: 17px;
+}
+
+a {
+  color: #fff;
+}
+
+a:focus,
+a:hover {
+  color: #008080;
+}
+
+.checkbox-inline+.checkbox-inline,
+.radio-inline+.radio-inline {
+  margin-top: 6px;
+}
+
+/******* Login Page *******/
+
+body.login {
+  background: rgba(241, 242, 181, 1);
+  background: -moz-radial-gradient(center, ellipse cover, rgba(255, 255, 255, 1) 0%, rgba(19, 80, 88, 1) 100%);
+  background: -webkit-gradient(radial, center center, 0px, center center, 100%, color-stop(0%, rgba(255, 255, 255, 1)), color-stop(100%, rgba(19, 80, 88, 1)));
+  background: -webkit-radial-gradient(center, ellipse cover, rgba(255, 255, 255, 1) 0%, rgba(19, 80, 88, 1) 100%);
+  background: -o-radial-gradient(center, ellipse cover, rgba(255, 255, 255, 1) 0%, rgba(19, 80, 88, 1) 100%);
+  background: -ms-radial-gradient(center, ellipse cover, rgba(255, 255, 255, 1) 0%, rgba(19, 80, 88, 1) 100%);
+  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 1) 0%, rgba(19, 80, 88, 1) 100%);
+  filter: progid: DXImageTransform.Microsoft.gradient( startColorstr='#f1f2b5', endColorstr='#135058', GradientType=1);
+}
+
+.relative {
+  position: relative;
+}
+
+.login-container-wrapper .logo,
+.login-container-wrapper .welcome {
+  margin: 0 0 30px 0;
+  font-size: 30px;
+  font-weight: 600;
+  color: #fff;
+  text-align: center;
+  letter-spacing: .6px;
+}
+
+.login-container-wrapper {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 30px 40px 20px;
+  box-sizing: border-box;
+  background: #fc89058d;
+  backdrop-filter: blur( 7px );
+  -webkit-backdrop-filter: blur( 7px );
+  position: relative;
+  border-radius: 8px;
+  box-shadow: 0 15px 25px rgba(0,0,0,.6);
+}
+
+.logo .fa {
+  font-size: 34.5px;
+}
+.login input:focus + .fa{
+  color:#fff;
+}
+.login-form .all-data {
+    display: flex;
+}
+.login-form .form-group {
+  margin-right: 0;
+  margin-left: 0;
+}
+
+.login-form i {
+  position: absolute;
+  top: 18px;
+  right: 20px;
+  color: #93a5ab;
+}
+
+.float .input-lg {
+  font-family: "Poppins" , sans-serif;
+  font-size: 14px;
+  height: 38px;
+  border-radius: 0;
+  width: 100%;
+  margin: 10px 0 30px;
+  outline: none;
+}
+.float .input-lg:focus ~ label,
+.float .input-lg:valid ~ label {
+  top: -43px;
+  left: -10px;
+  color: #ddd;
+  font-size: 13px;
+}
+.float label {
+  position: absolute;
+  top: -16px;
+  left: 2px;
+  padding: 20px 10px 10px;
+  font-size: 16px;
+  color: #666;
+  pointer-events: none;
+  transition: .5s;
+} 
+.form-control.input-lg:focus {
+  border-color: #fd1414;
+  box-shadow: 0 0 0 0.5px rgba(255, 0, 0, 0.25)
+}
+
+
+input:-webkit-autofill,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  background-color: rgba(241, 43, 8, 0.84)!important;
+  background-image: none;
+  color: rgb(0, 0, 0);
+  border-color: #FAFFBD;
+}
+
+.login .checkbox label,
+.login .checkbox a {
+  color: #ddd;
+}
+
+.btn-success {
+  background-color: transparent;
+  background-image: none;
+  height: 40px;
+  padding: 8px 50px;
+  border-radius: 0;
+  border: 2px solid #ddd;
+  box-shadow: inset 0 5 0 5 silver;
+  -webkit-transition: all ease 0.4s;
+  -moz-transition: all ease 0.4s;
+  transition: all ease 0.4s;
+}
+
+.btn-success:focus,
+.btn-success:hover,
+.btn-success.active,
+.btn-success:active {
+  background-color: transparent;
+  border-color: #fff;
+  box-shadow: inset 0 0 75px 0 #fef0e9, 0 0 15px #fef0e9;
+  color: #353535;
+}
+
+.text-center label a {
+  transition: all ease 0.4s;
+  text-decoration: none;
+  font-weight: 600;
+  color: yellow;
+}
+.text-center label a:hover {
+  transition: all ease 0.4s;
+  text-shadow: 2px 2px 10px rgb(255, 255, 255);
+}
+.text-center label {
+  color: white;
+}
+div.alert.alert-error {
+  color: red;
+  text-shadow: 0 0 5px #333, 0 0 10px #333;
+  width: auto;
+  position: absolute;
+  right: 0;
+  bottom: -22px;
+}
+text-small.alert.alert-error {
+  color: red;
+  text-shadow: 0 0 5px #333, 0 0 10px #333;
+  position: absolute;
+  left: 0;
+  bottom: -8px;
+}
+.btn-lg {
+  padding: 0;
+  font-size: 1rem;
+}
+.inner {
+    display: flex;
+}
+
+.inner .form-group.one{
+    width: 49%;
+    margin-right: 2%;
+}
+.inner .form-group.two{
+    width: 49%;
+}
+.outer .form-group.one{
+  margin-right: 2%;
+}
+.in-btn {
+    display: flex;
+    justify-content: flex-end;
+    padding: 0 15px;
+}
+
+@media (max-width: 991px) {
+    .login-form .all-data {
+        display: block;
+        margin-top: 1rem !important;
+    }
+    .in-btn {
+        justify-content: center;
+    }
+    .outer .form-group.one{
+      margin-right: 0;
+    }
+    .inini {
+      margin-top: 1.5rem;
+    }
+    .password.two {
+      margin-bottom: 1.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .inner {
+        display: block;
+    }
+    .inner .form-group.one{
+        width: 100%;
+    }
+    .inner .form-group.two{
+        width: 100%;
+    }
+    
+}
+
+@media (max-width: 420px) {
+  body {
+    padding: 0 20px;
+  }
+  .login-container-wrapper {
+    margin: 30px auto;
+    padding: 10px;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: blur( 0px );
+    -webkit-backdrop-filter: blur( 0px );
+  }
+
+  .text-center label a {
+    font-weight: 700;
+    color: #fd7014;
+    text-shadow: 1px 1px 2px #111;
+  }
+  text-small.alert.alert-error {
+    color: red;
+    text-shadow: 0 0 5px #111, 0 0 10px #111;
+    position: absolute;
+    left: 0;
+    bottom: -8px;
+  }
+  div.alert.alert-error {
+    color: red;
+    text-shadow: 0 0 5px #111, 0 0 10px #111;
+    width: auto;
+    position: absolute;
+    right: 10px;
+    bottom: 100px;
+  }
+  .form-control,
+  .form-select {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 320px) {
+  body {
+    padding: 0 15px;
+  }
+  .login-container-wrapper {
+    margin: 20px auto;
+    padding: 0 0 15px;
+  }
+
+  .login-container-wrapper .welcome {
+    margin: 0 0 30px 0;
+    font-size: 25px;
+    color: #fff;
+    text-align: center;
+    letter-spacing: .6px;
+  }
+  .form-control,
+  .form-select {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 500px) {
+  div.alert.alert-error {
+    width: auto;
+    position: absolute;
+    right: 0;
+    top: auto;
+    bottom: -22px;
+  }
+}
