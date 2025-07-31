@@ -78,6 +78,25 @@
             Master User
         </li>
     </a>
+    <a href="/kelas">
+        <li class="{{ request()->is('kelas*') ? 'active' : '' }} hp-li" title="kelas">
+            <i class="fas fa-chalkboard"></i>
+            Master Kelas
+        </li>
+    </a>
+    <a href="/peraturan">
+        <li class="{{ request()->is('peraturan*') ? 'active' : '' }} hp-li" title="peraturan">
+            <i class="fas fa-balance-scale"></i>
+            Master Pelanggaran
+        </li>
+    </a>
+    <a href="/tindak-lanjut">
+        <li class="{{ request()->is('tindak-lanjut*') ? 'active' : '' }} hp-li" title="tindak-lanjut">
+            <i class="fas fa-gavel"></i>
+            Tindakan/Sanksi  
+        </li>
+    </a>
+    
     <a href="/master-histori">
         <li class="{{ request()->is('master-histori*') ? 'active' : '' }} hp-li" title="Master Histori">
             <i class="fas fa-calendar-alt"></i>
