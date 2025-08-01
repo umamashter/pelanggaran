@@ -29,6 +29,7 @@ class UserAdminController extends Controller
         $validator = Validator::make($request->all(), [
             'nisn' => 'unique:users,nisn,' . $id,
             'email' => 'unique:users,email,' . $id,
+            'kelas_id' => 'exists:kelas,id', // Tambah validasi kelas
         ]);
 
         if ($validator->fails()) {
@@ -43,6 +44,7 @@ class UserAdminController extends Controller
         $user->email = $request->post('email');
         $user->role = $request->post('role');
         $user->info = $request->post('info');
+        $user->kelas_id = $request->post('kelas_id'); // Tambahkan update kelas
         $user->save();
 
         return response()->json([

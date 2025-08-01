@@ -38,7 +38,7 @@
                                         <p class="mb-1 h6 text-dark ">{{ $history->rule->nama }}</p>
                                         <div class="text-danger d-inline-flex mb-2">
                                             <b>+{{ $history->rule->poin }}</b>
-                                        </div>
+                                        </div>                                        
                                     </div>
                                 </div>
                             </div>

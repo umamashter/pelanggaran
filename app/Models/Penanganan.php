@@ -20,6 +20,10 @@ class Penanganan extends Model
     {
         return $this->belongsTo(Student::class, 'student_id');
     }
+    public function history()
+{
+    return $this->belongsTo(History::class);
+}
 
     public function pesan()
     {

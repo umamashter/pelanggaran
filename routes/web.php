@@ -90,12 +90,16 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/master-guru', [UserAdminController::class, 'daftar_guru']);
         Route::post('/master-guru/store', [UserAdminController::class, 'tambah_guru']);
         Route::post('/master-guru/{id}', [UserAdminController::class, 'hapus_guru']);
+        Route::put('/master-siswa/{id}', [AdminController::class, 'update_siswa'])->name('siswa.update');
+
 
         // Tambah Poin
         Route::get('/pelanggaran/tambah/{siswa:nisn}', [PoinController::class, 'tambah_view']);
         Route::get('/pelanggaran/kurang/{siswa:nisn}', [PoinController::class, 'kurang_view']);
         Route::put('/pelanggaran/{id}', [PoinController::class, 'tambah_poin']);
         Route::put('/pelanggaran/kurang/{id}', [PoinController::class, 'kurang_poin']);
+        Route::delete('/pelanggaran/{id}', [PoinController::class, 'destroy'])->name('poin.destroy');
+
 
         // Histori
         Route::get('/master-histori', [AdminController::class, 'histori_index']);

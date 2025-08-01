@@ -47,4 +47,18 @@ class AdminController extends Controller
         };
         return view('admin.page.histori.history', compact('histories', 'tanggal', 'siswa'));
     }
+
+    public function update_siswa(Request $request, $id)
+    {
+        $request->validate([
+            'kelas_id' => 'required|exists:kelas,id',
+        ]);
+
+        $siswa = Student::findOrFail($id);
+        $siswa->kelas_id = $request->kelas_id;
+        $siswa->save();
+
+        return redirect()->back()->with('success', 'Kelas siswa berhasil diperbarui.');
+    }
+
 }

@@ -60,6 +60,12 @@
                                     class="clickind btn btn-sm btn-success mb-1 animate__animated animate__flip"
                                     style="animation-delay: 3s;">
                                     <i class="fas fa-minus"></i></a>
+                                <a href="#modalEdit{{ $siswa->id }}"
+                                    class="clickind btn btn-sm btn-warning mb-1 animate__animated animate__flip"
+                                    style="animation-delay: 4s;"
+                                    data-bs-toggle="modal">
+                                    <i class="fas fa-edit"></i>
+                                    </a>
                             </td>
                         </tr>
 
@@ -128,6 +134,39 @@
                                 </div>
                             </div>
                         </div>
+                        <!-- Modal Edit Siswa -->
+                        <div class="modal fade" id="modalEdit{{ $siswa->id }}" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <form action="{{ route('siswa.update', $siswa->id) }}" method="POST">
+                                @csrf
+                                @method('PUT')
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Edit Kelas: {{ $siswa->nama }}</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <!-- Dropdown Kelas -->
+                                        <div class="mb-3">
+                                            <label for="kelas_id" class="form-label">Pilih Kelas Baru</label>
+                                            <select name="kelas_id" class="form-select" required>
+                                                @foreach($kelas as $k)
+                                                    <option value="{{ $k->id }}" {{ $siswa->kelas_id == $k->id ? 'selected' : '' }}>
+                                                        {{ $k->nama_kelas }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        </div>
+                        
                     @endforeach
                 </tbody>
             </table>

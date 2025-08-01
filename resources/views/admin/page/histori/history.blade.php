@@ -40,7 +40,7 @@
                                         <p class="mb-1 h6 text-dark ">{{ $history->rule->nama }}</p>
                                         <div class="text-danger d-inline-flex mb-2">
                                             <b>+{{ $history->rule->poin }}</b>
-                                        </div>
+                                        </div>                                        
                                     </div>
                                 </div>
                             </div>
@@ -70,15 +70,45 @@
                                             <a><small>{{ $history->created_at->diffForHumans() }}</small></a>
                                         </div>
                                         <div class="row">
-                                            <div class="col-lg-10">
+                                            <div class="col-lg-10 position-relative">
                                                 <p class="mb-1 h6 text-dark ">{{ $history->rule->nama }}</p>
                                                 <div class="text-danger d-inline-flex mb-2">
                                                     <b>+{{ $history->rule->poin }}</b>
                                                 </div>
+                                                <form action="{{ route('poin.destroy', $history->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus histori ini?')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button class="btn btn-sm btn-outline-danger position-absolute top-0 end-0" data-bs-toggle="modal" data-bs-target="#hapusModal{{ $history->id }}">
+                                                        <i class="fas fa-trash"></i>  Hapus
+                                                    </button>
+                                                </form>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
+                                <!-- Modal Konfirmasi -->
+<div class="modal fade" id="hapusModal{{ $history->id }}" tabindex="-1" aria-labelledby="hapusModalLabel{{ $history->id }}" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="hapusModalLabel{{ $history->id }}">Konfirmasi Hapus</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+      </div>
+      <div class="modal-body">
+        Apakah Anda yakin ingin menghapus histori pelanggaran <strong>{{ $history->rule->nama }}</strong> dari <strong>{{ $history->siswa->nama }}</strong>?
+      </div>
+      <div class="modal-footer">
+        <form action="{{ route('poin.destroy', $history->id) }}" method="POST">
+          @csrf
+          @method('DELETE')
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-danger">Hapus</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
                             @endif
                         @endforeach
                     @empty
