@@ -25,4 +25,9 @@ class History extends Model
             return $q->where('tanggal', 'like', '%' . $tanggal . '%');
         });
     }
+    public function kelasSnapshot()
+    {
+        return $this->belongsTo(Kelas::class, 'kelas_saat_pelanggaran');
+    }
+
 }

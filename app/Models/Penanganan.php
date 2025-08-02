@@ -22,7 +22,7 @@ class Penanganan extends Model
     }
     public function history()
 {
-    return $this->belongsTo(History::class);
+    return $this->belongsTo(History::class, 'history_id');
 }
 
     public function pesan()
@@ -39,4 +39,5 @@ class Penanganan extends Model
     {
         return 'berkas';
     }
+    
 }

@@ -27,7 +27,7 @@
                                     {{ ($penanganan->currentpage() - 1) * $penanganan->perpage() + $loop->index + 1 }}
                                 </td>
                                 <td>{{ $tindak->siswa->nama }}</td>
-                                <td>{{ $tindak->siswa->kelas->nama_kelas }}</td>
+                                <td>{{ $tindak->history->kelasSnapshot->nama_kelas }}</td>
                                 <td>{{ $tindak->pesan->tindak_lanjut }}</td>
                                 <td>
                                     @if ($tindak->pesan->tingkatan == 'Ringan')

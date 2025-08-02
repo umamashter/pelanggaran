@@ -39,10 +39,10 @@ class AdminController extends Controller
     {
         $siswa = Student::findOrFail($id);
         if (request('tanggal')) {
-            $histories = History::with('siswa')->where('tanggal', request('tanggal'))->where('student_id', $id)->filter(request(['tanggal']))->paginate(7)->withQueryString();
+            $histories = History::with('siswa', 'rule', 'kelasSnapshot')->where('tanggal', request('tanggal'))->where('student_id', $id)->filter(request(['tanggal']))->paginate(7)->withQueryString();
             $tanggal = date('d-m-Y', strtotime(request('tanggal')));
         } else {
-            $histories = History::latest()->with('siswa')->where('student_id', $id)->filter(request(['tanggal']))->paginate(7)->withQueryString();
+            $histories = History::latest()->with('siswa', 'rule', 'kelasSnapshot')->where('student_id', $id)->filter(request(['tanggal']))->paginate(7)->withQueryString();
             $tanggal = $histories->unique('tanggal')->pluck('tanggal');
         };
         return view('admin.page.histori.history', compact('histories', 'tanggal', 'siswa'));

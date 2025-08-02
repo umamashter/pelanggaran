@@ -49,7 +49,8 @@ class PoinController extends Controller
             $newHistory = History::create([
                 'student_id' => $siswa->id,
                 'peraturan_id' => $historyId,
-                'tanggal' => date('Y-m-d', time())
+                'tanggal' => date('Y-m-d', time()),
+                'kelas_saat_pelanggaran' => $siswa->kelas_id // ✅ SNAPSHOT!
             ]);
 
             $siswa->poin += $newHistory->rule->poin;

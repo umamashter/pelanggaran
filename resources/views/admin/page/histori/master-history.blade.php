@@ -27,7 +27,7 @@
                                     <a href="/master-histori/{{ $history->siswa->id }}" class="linkind">
                                         <small class="me-1">
                                             <b>{{ $history->siswa->nama }} -
-                                                {{ $history->siswa->kelas->nama_kelas }}
+                                                {{ $history->kelasSnapshot->nama_kelas ?? '-' }}
                                             </b>
                                         </small>
                                     </a>
@@ -61,7 +61,7 @@
                                             <a href="/master-histori/{{ $history->siswa->id }}" class="linkind">
                                                 <small class="me-1">
                                                     <b>{{ $history->siswa->nama }} -
-                                                        {{ $history->siswa->kelas->nama_kelas }}
+                                                        {{ $history->kelasSnapshot->nama_kelas ?? '-' }}
                                                     </b>
                                                 </small>
                                             </a>
