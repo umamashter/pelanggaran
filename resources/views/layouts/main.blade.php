@@ -10,7 +10,24 @@
     <!-- <link rel="stylesheet" href="../css/datatables.css"> -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @stack('css')
-
+    <style>
+        @media print {
+            form, button {
+                display: none !important; /* Sembunyikan form & tombol cetak */
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+            table, th, td {
+                border: 1px solid #000;
+                padding: 5px;
+            }
+            body {
+                background: #fff;
+            }
+        }
+    </style>
 </head>
 
 <body class="sidebar-is-reduced sidebar-is-expanded">

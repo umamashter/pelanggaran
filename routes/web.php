@@ -18,6 +18,8 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\KelasController;
 use App\Http\Controllers\PeraturanController;
 use App\Http\Controllers\TindakLanjutController;
+use App\Http\Controllers\LaporanController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -126,6 +128,12 @@ Route::group(['middleware' => ['auth']], function () {
         Route::delete('/peraturan/{id}', [PeraturanController::class, 'destroy']);
 
         Route::resource('tindak-lanjut', TindakLanjutController::class);
+
+        //rekap History
+        Route::get('/laporan/rekap-periode', [LaporanController::class, 'rekapPeriode'])->name('laporan.rekap-periode');
+        Route::get('/laporan/rekap-periode/export', [LaporanController::class, 'exportPdf'])->name('laporan.exportPdf');
+        
+
     });
 
     // Bk
