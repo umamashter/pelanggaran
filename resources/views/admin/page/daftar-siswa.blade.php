@@ -2,7 +2,7 @@
 @section('title', 'Master Siswa')
 @section('content')
     <div class="card shadow px-0">
-        <div class="card-header bg-gradient bg-success">
+        <div class="card-header bg-secondary bg-primary">
             <h3 class="fw-bolder mt-2 d-inline-flex text-white">List Siswa</h3>
             <div class="dropdown float-right">
                 <button class="btn bg-gradient btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown"
@@ -49,20 +49,20 @@
                             </td>
                             <td data-label="Posisi">
                                 <a href="#modalCenter{{ $siswa->id }}" role="button"
-                                    class="clickind btn btn-sm btn-info mb-1 animate__animated animate__flip"
-                                    style="animation-delay: 1s;" data-bs-toggle="modal">
+                                    class="clickind btn btn-sm btn-info mb-1 "
+                                    style="" data-bs-toggle="modal">
                                     <i class="fas fa-info"></i></a>
                                 <a href="/pelanggaran/tambah/{{ $siswa->nisn }}"
-                                    class="clickind btn btn-sm btn-danger mb-1 animate__animated animate__flip"
-                                    style="animation-delay: 2s;">
+                                    class="clickind btn btn-sm btn-danger mb-1 "
+                                    style="">
                                     <i class="fas fa-plus"></i></a>
                                 <a href="/pelanggaran/kurang/{{ $siswa->nisn }}"
-                                    class="clickind btn btn-sm btn-success mb-1 animate__animated animate__flip"
-                                    style="animation-delay: 3s;">
+                                    class="clickind btn btn-sm btn-success mb-1 "
+                                    style="">
                                     <i class="fas fa-minus"></i></a>
                                 <a href="#modalEdit{{ $siswa->id }}"
-                                    class="clickind btn btn-sm btn-warning mb-1 animate__animated animate__flip"
-                                    style="animation-delay: 4s;"
+                                    class="clickind btn btn-sm btn-warning mb-1 "
+                                    style=""
                                     data-bs-toggle="modal">
                                     <i class="fas fa-edit"></i>
                                     </a>

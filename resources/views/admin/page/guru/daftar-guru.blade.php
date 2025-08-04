@@ -10,22 +10,22 @@
     </style>
 @endpush
 @section('content')
-    <div class="card shadow px-0 animate__animated animate__fadeInDown">
-        <div class="card-header bg-gradient bg-info">
-            <h3 class="fw-bolder mt-2 d-inline-flex text-white animate__animated animate__fadeInRight" style="animation-delay: 0.5s;">List Walikelas</h3>
-            <button type="button" class="btn btn-md btn-light text-info float-end animate__animated animate__fadeInLeft" style="animation-delay: 0.5s;" data-bs-toggle="modal"
+    <div class="card shadow px-0 ">
+        <div class="card-header bg-secondary bg-primary ">
+            <h3 class="fw-bolder mt-2 d-inline-flex text-white " style="">List Walikelas</h3>
+            <button type="button" class="btn btn-md text-secondary  btn-light text-info float-end " style="" data-bs-toggle="modal"
                 data-bs-target="#myModal">
-                <i class="fas fa-user-plus me-1"></i> Tambah
+                <i class="fas fa-user-plus me-1 " style="color: #6c757d;"></i > Tambah
             </button>
         </div>
 
-        <div class="card-body">
+        <div class="card-body ">
             @if (session()->has('errors'))
                 <ul>
                     <li>{{ session('errors') }}</li>
                 </ul>
             @endif
-            <table id="table_data_user" class="table table-bordered display" cellspacing="0" width="100%">
+            <table id="table_data_user " class="table table-bordered display" cellspacing="0" width="100%">
                 <thead class="thead-inverse">
                     <th>No</th>
                     <th>Nama</th>
@@ -41,8 +41,8 @@
                             <td>{{ $guru->name }}</td>
                             <td>{{ $guru->kelas->nama_kelas }}</td>
                             <td>
-                                <button type="submit" class="clickind btn btn-sm btn-danger animate__animated animate__flip"
-                                style="animation-delay: 1s;" id="show_confirm" onclick="deleteGuru({{ $guru->id }})">
+                                <button type="submit" class="clickind btn btn-sm btn-danger"
+                                style="" id="show_confirm" onclick="deleteGuru({{ $guru->id }})">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </td>
@@ -55,7 +55,7 @@
     <div class="modal fade" id="myModal" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-md modal-dialog-centered">
             <div class="modal-content">
-                <div class="modal-header bg-gradient bg-success fs-4 fw-bold text-light py-2">
+                <div class="modal-header bg-secondary bg-primary fs-4 fw-bold text-light py-2">
                     <h4 class="modal-title" id="myModalLabel">Tambah WaliKelas</h4>
                 </div>
                 <div class="modal-body">

@@ -3,8 +3,8 @@
 @section('content')
     <div class="row justify-content-center">
         <div class="card shadow px-0">
-            <div class="card-header bg-gradient bg-warning">
-                <h3 class="fw-bolder text-dark d-inline">
+            <div class="card-header bg-gradient bg-secondary">
+                <h3 class="fw-bolder text-white d-inline">
                     Histori Siswa
                 </h3>
                 <form action="/master-histori" method="get" id="form_history" class="float-end">
@@ -20,8 +20,8 @@
                     </b>
                     @forelse ($histories as $history)
                         <div class="list-group mt-2" style="margin-bottom: 0.75rem">
-                            <div class="border-hover list-group-item list-group-item-action flex-column align-items-start py-0"
-                                style="background-color: #ffd8ab84; border-radius: 6px;">
+                            <div class="bg-light border-hover list-group-item list-group-item-action flex-column align-items-start py-0"
+                                style="background-color: #f2f2f2;">
                                 <div class="d-flex w-100 mt-1 mb-1 align-items-center"
                                     style="justify-content: space-between; flex-wrap: wrap;">
                                     <a href="/master-histori/{{ $history->siswa->id }}" class="linkind">
@@ -55,7 +55,7 @@
                             @if ($history->getAttribute('tanggal') == $tgl)
                                 <div class="list-group mt-2" style="margin-bottom: 0.75rem">
                                     <div class="border-hover list-group-item list-group-item-action flex-column align-items-start py-0"
-                                        style="background-color: #ffd8ab84; border-radius: 6px;">
+                                        style="background-color: #f2f2f2; border-radius: 6px;">
                                         <div class="d-flex w-100 mt-1 mb-1 align-items-center"
                                             style="justify-content: space-between; flex-wrap: wrap;">
                                             <a href="/master-histori/{{ $history->siswa->id }}" class="linkind">

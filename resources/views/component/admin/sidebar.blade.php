@@ -86,7 +86,7 @@
                             <i class="fas fa-gavel"></i> {{-- Icon palu sebagai simbol tindakan --}}
                        </div>
                        <div class="c-menu-item__title animate__backInLeft animate__animated">
-                          <span>Master <br>Tindakan/Sanksi <br></span>
+                          <span>Master <br>Tindakan<br></span>
                        </div>
                    </a>
                  </li>
@@ -112,7 +112,18 @@
                             <span>Penanganan</span>
                         </div>
                     </a>
-                </li>                
+                </li>
+                <li class="c-menu__item {{ request()->is('laporan*') ? 'is-active' : '' }} has-submenu"
+                    data-toggle="tooltip" title="Laporan">
+                    <a class="c-menu__item__inner" href="{{ route('laporan.rekap-periode') }}">
+                        <div class="ic animate__backInLeft animate__animated">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <div class="c-menu-item__title animate__backInLeft animate__animated">
+                            <span>Laporan</span>
+                        </div>
+                    </a>
+                </li>               
             </ul>
         </nav>
     </div>

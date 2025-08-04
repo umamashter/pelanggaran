@@ -10,10 +10,13 @@
     </style>
 @endpush
 @section('content')
-    <div class="card shadow px-0 animate__animated animate__fadeInDown">
-        <div class="card-header bg-gradient bg-primary">
-            <h3 class="fw-bolder mt-2 d-inline-flex text-white animate__animated animate__fadeInRight"
-                style="animation-delay: 0.5s;">List User</h3>
+    <div class="card shadow px-0 ">
+        <div class="card-header bg-secondary bg-primary">
+            <h3 class="fw-bolder mt-2 d-inline-flex text-white "
+                style="">List User</h3>
+                <a href="{{ url('/master-user/create') }}" class="btn btn-sm btn-light text-secondary fw-bold">
+                    <i class="fas fa-user-plus" style="color: #6c757d;"></i> Tambah User
+                </a>
         </div>
 
         <div class="card-body">
@@ -58,15 +61,15 @@
                             @endif
                             <td>
                                 <button
-                                    class="btn clickind btn-sm btn-warning btn-detail open_modal animate__animated animate__flip"
-                                    style="animation-delay: 1s;" value="{{ $user->id }}"><i
+                                    class="btn clickind btn-sm btn-warning btn-detail "
+                                    style="" value="{{ $user->id }}"><i
                                         class="fas fa-pen"></i></button>
                                 {{-- <form action="/master-user/" method="post" id="form"
                                     class="d-inline">
                                     @csrf --}}
                                 <button type="button" onclick="deleteUser({{ $user->id }})"
-                                    class="btn clickind btn-sm btn-danger animate__animated animate__flip"
-                                    style="animation-delay: 2s;" id="show_confirm"><i class="fas fa-trash"></i></button>
+                                    class="btn clickind btn-sm btn-danger "
+                                    style="" id="show_confirm"><i class="fas fa-trash"></i></button>
                                 {{-- </form> --}}
                             </td>
                         </tr>

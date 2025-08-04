@@ -59,4 +59,11 @@ public function scopeFilter($query, array $filters)
                      ->whereYear('tanggal', '<=', $tahun_akhir);
         });
     }
+    // app/Models/History.php
+
+public function student()
+{
+    return $this->belongsTo(Student::class, 'student_id'); // atau 'siswa_id' jika nama kolomnya bukan 'student_id'
+}
+
 }

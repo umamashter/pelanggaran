@@ -19,7 +19,7 @@ use App\Http\Controllers\KelasController;
 use App\Http\Controllers\PeraturanController;
 use App\Http\Controllers\TindakLanjutController;
 use App\Http\Controllers\LaporanController;
-
+use App\Models\Poin;
 
 /*
 |--------------------------------------------------------------------------
@@ -106,6 +106,10 @@ Route::group(['middleware' => ['auth']], function () {
         // Histori
         Route::get('/master-histori', [AdminController::class, 'histori_index']);
         Route::get('/master-histori/{id}', [AdminController::class, 'histori_admin']);
+        //API WA
+        Route::post('/kirim-notifikasi/{id}', [PoinController::class, 'kirimNotifikasi'])->name('history.kirimNotif');
+   
+
 
         // Penanganan
         Route::get('/penanganan', [PenangananController::class, 'index']);

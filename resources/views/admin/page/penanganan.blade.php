@@ -3,7 +3,7 @@
 @section('content')
     <div class="row justify-content-center">
         <div class="card shadow px-0">
-            <div class="card-header bg-gradient bg-danger">
+            <div class="card-header bg-gradient bg-secondary">
                 <h3 class="fw-bolder mt-2 text-white">
                     Penanganan
                 </h3>

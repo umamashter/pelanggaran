@@ -5,7 +5,7 @@ html {
 }
 
 body {
-  background-image: url("../img/smkn1-darker.jpg");;
+  background: color #fff;
   background-repeat: round;
   background-size: cover;
   object-fit: fill;  
@@ -72,7 +72,7 @@ body.login {
   height: 80px;
   left: 39.5%;
   border-radius: 50%;
-  background-color: #fc9105ea;
+  background-color: #333;
   padding: 22.5px 25px 25px;
 }
 
@@ -81,7 +81,7 @@ body.login {
   margin: 60px auto 0;
   padding: 40px;
   box-sizing: border-box;
-  background: #fc8905af;
+  background: rgba(0, 0, 0, 0.7) !important;
   backdrop-filter: blur( 5px );
   -webkit-backdrop-filter: blur( 5px );
   /* box-shadow: 5px 5px 5px #4242424b; */
@@ -114,7 +114,7 @@ body.login {
   height: 38px;
   /* padding: 10px 15px; */
   border-radius: 0;
-  border-color: #fd7014;
+  border-color: #333;
 }
 .form-control.input-lg:focus {
   border-color: #fd1414;
@@ -244,4 +244,20 @@ div.alert.alert-error {
   .form-select {
     font-size: 13px;
   }
+}
+.login-form .input-lg {
+  font-size: 12px;  /* lebih kecil */
+}
+
+.btn-lg {
+  font-size: 13px;  /* lebih ramping */
+}
+
+.text-center label a {
+  font-size: 13px;  /* link register */
+}
+
+.form-control,
+.form-select {
+  font-size: 12px;
 }

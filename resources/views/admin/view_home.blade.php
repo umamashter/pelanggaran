@@ -1,9 +1,9 @@
 <div class="cord col-lg-3 col-md-6">
-    <div class="card animate__animated animate__fadeInDownBig" style="animation-delay: 0s;">
-        <div class="card-body border-left-green">
-            <div class="row">
-                <div class="col">
-                    <p class="card-title text-title">{{ 'SISWA' }}</p>
+    <div class="card " style="">
+        <div class="card-body border-left-green ">
+            <div class="row ">
+                <div class="col ">
+                    <p class="card-title text-title ">{{ 'SISWA' }}</p>
                     <h2 class="card-text text-amount">
                         @if ($siswas->count())
                             {{ $siswas->count() }}
@@ -22,7 +22,7 @@
     </div>
 </div>
 <div class="cord col-lg-3 col-md-6">
-    <div class="card animate__animated animate__fadeInDownBig" style="animation-delay: 0.333s;">
+    <div class="card " style="">
         <div class="card-body border-left-orange">
             <div class="row">
                 <div class="col">
@@ -45,7 +45,7 @@
     </div>
 </div>
 <div class="cord col-lg-3 col-md-6">
-    <div class="card animate__animated animate__fadeInDownBig" style="animation-delay: 0.666s;">
+    <div class="card " style="">
         <div class="card-body border-left-yellow">
             <div class="row">
                 <div class="col">
@@ -64,7 +64,7 @@
     </div>
 </div>
 <div class="cord col-lg-3 col-md-6">
-    <div class="card animate__animated animate__fadeInDownBig" style="animation-delay: 1s;">
+    <div class="card " style="">
         <div class="card-body border-left-blue">
             <div class="row">
                 <div class="col">
@@ -88,8 +88,8 @@
 </div>
 
 {{-- Penanganan Home --}}
-<div class="card col-lg-12 animate__animated animate__fadeInDownBig" style="animation-delay: 1.333s;">
-    <div class="card-header bg-purple">
+<div class="card col-lg-12 " style="">
+    <div class="card-header bg-purple bg-secondary">
         <h3 class="pb-0 mb-0 text-white">Penanganan Terbaru</h3>
     </div>
     <div class="card-body py-2" style="max-width:auto;">
@@ -99,7 +99,7 @@
                 @foreach ($penanganan as $msg)
                     <div class="list-group my-2 px-2">
                         <div class="border-hover list-group-item list-group-item-action flex-column align-items-start py-0 px-3"
-                            style="background-color: #ffd8ab84; border-radius: 6px;">
+                            style="background-color: #f5f5f5; border-radius: 6px;">
                             <div class="d-flex w-100 mt-1 mb-1 align-items-center"
                                 style="justify-content: space-between; flex-wrap: wrap;">
                                 <a href="/master-histori/{{ $msg->siswa->id }}" class="linkind">

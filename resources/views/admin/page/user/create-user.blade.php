@@ -2,43 +2,57 @@
 
 @section('content')
 <div class="container mt-4">
-    <h3>Tambah User Baru</h3>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow border-0">
+                <div class="card-header bg-secondary text-white fw-bold">
+                    <i class="fas fa-user-plus me-2"></i> Tambah User Baru
+                </div>
+                <div class="card-body">
+                    @if(session('success'))
+                        <div class="alert alert-success">{{ session('success') }}</div>
+                    @endif
 
-    @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
+                    <form action="{{ route('user.store') }}" method="POST">
+                        @csrf
 
-    <form action="{{ route('user.store') }}" method="POST">
-        @csrf
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Nama Lengkap</label>
+                            <input type="text" name="name" class="form-control" required placeholder="Masukkan nama lengkap">
+                        </div>
 
-        <div class="form-group mb-3">
-            <label for="name">Nama Lengkap</label>
-            <input type="text" name="name" class="form-control" required placeholder="Masukkan nama lengkap">
+                        <div class="mb-3" id="form-nisn">
+                            <label for="nisn" class="form-label">NISN</label>
+                            <input type="text" name="nisn" class="form-control" maxlength="10" placeholder="Masukkan NISN (maks 10 angka)">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Alamat Email</label>
+                            <input type="email" name="email" class="form-control" required placeholder="Masukkan email aktif">
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="role" class="form-label">Peran / Role</label>
+                            <select name="role" class="form-select" required>
+                                <option value="1">Admin</option>
+                                <option value="2">Guru</option>
+                                <option value="3">Siswa</option>                                
+                            </select>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url('/master-user') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i> Kembali
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save me-1"></i> Simpan
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
-
-        <div class="form-group mb-3">
-            <label for="nisn">NISN</label>
-            <input type="text" name="nisn" class="form-control" required maxlength="Masukan nisn mak10">
-        </div>
-
-        <div class="form-group mb-3">
-            <label for="email">Alamat Email</label>
-            <input type="email" name="email" class="form-control" required placeholder="Masukkan email aktif">
-        </div>
-
-        <div class="form-group mb-3">
-            <label for="role">Peran / Role</label>
-            <select name="role" class="form-control" required>
-                <option value="1">Admin</option>
-                <option value="2">Guru</option>
-                <option value="3">Siswa</option>                                
-            </select>
-        </div>
-        
-
-        <button type="submit" class="btn btn-primary">Simpan</button>
-        <a href="{{ url('/master-user') }}" class="btn btn-secondary">Kembali</a>
-    </form>
+    </div>
 </div>
 @endsection
 <script>

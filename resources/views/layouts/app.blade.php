@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-    <title>E-Book SMK Negeri 1 Surabaya</title>
+    <title>E-Book MIS Nurul Ulum Patapan</title>
     @include('component.head')
     <meta content="" name="description">
     <meta content="" name="keywords">
@@ -65,16 +65,16 @@
     <header id="header" class="fixed-top">
         <div class="container d-flex align-items-center">
 
-            <h1 class="logo me-auto animate__animated animate__fadeInLeft"><a href="/">E-Book</a></h1>
+            <h1 class="logo me-auto animate__animated animate__fadeInLeft" style="color: #333;"><a href="/">E-Book</a></h1>
 
             <nav id="navbar" class="navbar order-last order-lg-0">
                 <ul>
                     <li><a class="nav-link scrollto animate__animated animate__fadeInDownBig"
-                        style="animation-delay: .5s;" href="#">Home</a></li>
+                        style="animation-delay: .5s;" href="#">Beranda</a></li>
                         <li><a class="nav-link scrollto animate__animated animate__fadeInDownBig"
                             style="animation-delay: .4s;" href="#pelanggaran">Pelanggaran</a></li>
                             <li><a class="nav-link scrollto animate__animated animate__fadeInDownBig"
-                                style="animation-delay: .3s;" href="#pelanggaran-harian">Pelanggaran Harian</a></li>
+                                style="animation-delay: .3s;" href="#pelanggaran-harian">Cek Pelanggaran</a></li>
                                 <li><a class="nav-link scrollto animate__animated animate__fadeInDownBig"
                                     style="animation-delay: .2s;" href="#cek-pelanggaran">Cek Poin</a></li>
                                     <li><a class="nav-link scrollto animate__animated animate__fadeInDownBig"
@@ -100,7 +100,7 @@
                             <div class="container text-center">
                                 <h1 class="animate__animated animate__fadeInDown animate__delay-1s"><b>Selamat Datang</b></h1>
                                 <h2 class="animate__animated animate__fadeInDown" style="animation-delay: 0.5s;">Website pencatatan
-                                pelanggaran siswa SMK Negeri 1 Surabaya</h2>
+                                Poin pelanggaran siswa MIS Nurul Ulum Patapan</h2>
                                 <a href="#cek-pelanggaran"
                                 class="btn-get-started scrollto animate__animated animate__pulse fw-bold animate__infinite"
                                 style="animation-delay: 1.5s;">Mulai Sekarang</a>

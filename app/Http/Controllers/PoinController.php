@@ -8,6 +8,14 @@ use App\Models\Penanganan;
 use App\Models\Peraturan;
 use App\Models\Student;
 use RealRashid\SweetAlert\Facades\Alert;
+// WA API
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use App\Helpers\WhatsAppHelper;
+
+
+
+
 
 class PoinController extends Controller
 {
@@ -57,7 +65,12 @@ class PoinController extends Controller
             $siswa->save();
 
             $this->syncPenanganan($siswa, $newHistory->id, $tindak_lanjut);
-        }
+
+            // WhatsApp tidak langsung dikirim. Akan dikirim manual dari halaman riwayat.
+            // $nomor = preg_replace('/^0/', '62', $siswa->no_telp);
+            // $this->kirimNotifikasiWhatsApp($nomor, "Notifikasi: {$siswa->name} mendapat pelanggaran baru. Total poin saat ini: {$siswa->poin}.");
+            
+            }
 
         return redirect('/master-siswa')->with('success', 'Poin berhasil ditambahkan');
     }
@@ -168,4 +181,27 @@ class PoinController extends Controller
             ]);
         }
     }
+
+    // kontrol untuk notifikasi whatsapp
+    public function kirimNotifikasi($id)
+{
+    $history = History::with('student')->findOrFail($id);
+    $siswa = $history->student;
+
+    if (!$siswa) {
+        return response()->json(['status' => 'error', 'message' => 'Data siswa tidak ditemukan.']);
+    }
+
+    $nomor = preg_replace('/^0/', '62', $siswa->no_telp);
+    $pesan = "Notifikasi: {$siswa->name} mendapat pelanggaran. Total poin: {$siswa->poin}.";
+
+    try {
+        WhatsAppHelper::kirim($nomor, $pesan);
+        return response()->json(['status' => 'success', 'message' => 'Pesan berhasil dikirim.']);
+    } catch (\Exception $e) {
+        return response()->json(['status' => 'error', 'message' => 'Gagal mengirim pesan.']);
+    }
+}
+
+
 }

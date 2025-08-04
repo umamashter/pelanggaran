@@ -3,8 +3,8 @@
 @section('content')
     <div class="row justify-content-center">
         <div class="card shadow px-0">
-            <div class="card-header bg-warning">
-                <h3 class="fw-bolder mt-2 d-inline">
+            <div class="card-header bg-secondary">
+                <h3 class="fw-bolder mt-2 d-inline text-white">
                     Histori {{ $siswa->nama }}
                 </h3>
                 @if ($histories)
@@ -23,15 +23,14 @@
                     @forelse ($histories as $history)
                         <div class="list-group mt-2" style="margin-bottom: 0.75rem">
                             <div class="border-hover list-group-item list-group-item-action flex-column align-items-start py-0"
-                                style="background-color: #ffd8ab84; border-radius: 6px;">
+                                style="background-color: #f8f8ff; border-radius: 6px;">
                                 <div class="d-flex w-100 mt-1 mb-1 align-items-center"
                                     style="justify-content: space-between; flex-wrap: wrap;">
                                     <a class="linkind">
                                         <small class="me-1">
-<b>{{ $history->siswa->nama }} -
-    {{ $history->kelasSnapshot->nama_kelas ?? '-' }}
-</b>  
-                                            
+                                            <b>{{ $history->siswa->nama }} -
+                                                {{ $history->kelasSnapshot->nama_kelas ?? '-' }}
+                                            </b>                                              
                                         </small>
                                     </a>
                                     <a><small>{{ $history->created_at->diffForHumans() }}</small></a>
@@ -58,14 +57,14 @@
                             @if ($history->getAttribute('tanggal') == $tgl)
                                 <div class="list-group mt-2" style="margin-bottom: 0.75rem">
                                     <div class="border-hover list-group-item list-group-item-action flex-column align-items-start py-0"
-                                        style="background-color: #ffd8ab84; border-radius: 6px;">
+                                        style="background-color: #f2f2f2; border-radius: 6px;">
                                         <div class="d-flex w-100 mt-1 mb-1 align-items-center"
                                             style="justify-content: space-between; flex-wrap: wrap;">
                                             <a class="linkind">
                                                 <small class="me-1">
                                                     <b>{{ $history->siswa->nama }} -
-    {{ $history->kelasSnapshot->nama_kelas ?? '-' }}
-</b>
+                                                        {{ $history->kelasSnapshot->nama_kelas ?? '-' }}
+                                                    </b>
                                                 </small>
                                             </a>
                                             <a><small>{{ $history->created_at->diffForHumans() }}</small></a>
@@ -75,14 +74,19 @@
                                                 <p class="mb-1 h6 text-dark ">{{ $history->rule->nama }}</p>
                                                 <div class="text-danger d-inline-flex mb-2">
                                                     <b>+{{ $history->rule->poin }}</b>
-                                                </div>
-                                                <form action="{{ route('poin.destroy', $history->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus histori ini?')">
+                                                </div>                                    
+                                                <div class="d-flex align-items-center gap-2 mb-2">            
+                                                <form class="mb-0 p-0 " action="{{ route('poin.destroy', $history->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus histori ini?')">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button class="btn btn-sm btn-outline-danger position-absolute top-0 end-0" data-bs-toggle="modal" data-bs-target="#hapusModal{{ $history->id }}">
-                                                        <i class="fas fa-trash"></i>  Hapus
+                                                    <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#hapusModal{{ $history->id }}">
+                                                        <i class="fas fa-trash"></i>  
                                                     </button>
-                                                </form>
+                                                </form>                                                
+                                                    <button id="wa-btn-{{ $history->id }}" class="btn btn-success btn-sm " onclick="kirimNotif('{{ $history->id }}')">
+                                                        <i class="fab fa-whatsapp"></i>
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -134,3 +138,40 @@
         }
     </script>
 @endpush
+
+<!-- Akhir tabel -->
+</table>
+
+<!-- Script AJAX -->
+<script>
+    function kirimNotif(id) {
+        if (confirm("Kirim notifikasi WhatsApp?")) {
+            fetch(`/kirim-notifikasi/${id}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert(data.message);
+                if (data.status === 'success') {
+                    const btn = document.getElementById(`wa-btn-${id}`);
+                    btn.classList.remove('btn-success');
+                    btn.classList.add('btn-secondary');
+                    btn.disabled = true;
+
+                    // Ganti ikon jadi centang (opsional)
+                    btn.innerHTML = '<i class="fas fa-check-circle"></i>';
+                }
+            })
+            .catch(err => {
+                alert('Terjadi kesalahan saat mengirim notifikasi.');
+            });
+        }
+    }
+</script>
+
+

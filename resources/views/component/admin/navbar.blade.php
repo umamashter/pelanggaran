@@ -87,13 +87,13 @@
     <a href="/peraturan">
         <li class="{{ request()->is('peraturan*') ? 'active' : '' }} hp-li" title="peraturan">
             <i class="fas fa-balance-scale"></i>
-            Master Pelanggaran
+            Pelanggaran
         </li>
     </a>
     <a href="/tindak-lanjut">
         <li class="{{ request()->is('tindak-lanjut*') ? 'active' : '' }} hp-li" title="tindak-lanjut">
             <i class="fas fa-gavel"></i>
-            Tindakan/Sanksi  
+            Sanksi  
         </li>
     </a>
     
@@ -107,6 +107,12 @@
         <li class="{{ request()->is('penanganan*') ? 'active' : '' }} hp-li" title="Penanganan">
             <i class="fas fa-user-cog"></i>
             Penanganan
+        </li>
+    </a>
+    <a href="/laporan/rekap-periode">
+        <li class="{{ request()->is('laporan/rekap-periode*') ? 'active' : '' }} hp-li" title="Laporan">
+            <i class="fas fa-file-alt"></i>
+            Laporan
         </li>
     </a>
 </ul>

@@ -5,7 +5,7 @@ html {
 }
 
 body {
-  background-image: url("../img/smkn1-darker.jpg");
+  background: color #fff;
   background-repeat: no-repeat;
   background-position: center center;
   background-attachment: fixed;

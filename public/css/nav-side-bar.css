@@ -62,7 +62,7 @@ h3 {
   padding: 8px 10px;
   color: white;
   text-align: center;
-  background: linear-gradient(to right, red, #fbcf05);
+  background: linear-gradient(to right, #000, #333);
   text-shadow: 0 2px 5px black;
   font-size: 12px;
   border-radius: 3px;
@@ -277,7 +277,7 @@ a.c-header-icon {
   left: 0;
   top: 0;
   bottom: 0;
-  background: linear-gradient(red, #fbcf05);
+  background: linear-gradient(#000, #333);
   -webkit-transition: width 0.5s ease-in-out;
   -moz-transition: width 0.5s ease-in-out;
   -ms-transition: width 0.5s ease-in-out;
@@ -289,7 +289,7 @@ a.c-header-icon {
   height: 70px;
   display: flex;
   align-items: center;
-  background: linear-gradient(#fbcf05, red);
+  background: #111;
 }
 .logo img {
   margin: 0 17px;
@@ -326,6 +326,7 @@ a.c-header-icon {
 .l-sidebar__content {
   height: 100%;
   position: relative;
+  
 }
 .sidebar-is-expanded .l-sidebar {
   width: 220px;
@@ -334,6 +335,7 @@ a.c-header-icon {
 .c-menu > ul {
   display: flex;
   flex-direction: column;
+  
 }
 .c-menu > ul .c-menu__item {
   color: #184a98;
@@ -356,13 +358,16 @@ a.c-header-icon {
   -o-transition: background-color 0.5s ease-in-out;
   transition: background-color 0.5s ease-in-out;
 }
+.c-menu > ul .c-menu__item__inner:hover {
+  background: #222; /* Hover item sedikit lebih terang */
+}
 .c-menu > ul .c-menu__item__inner:before {
   position: absolute;
   content: " ";
   height: 0;
   width: 3px;
   left: 4px;
-  background-color:red;
+  background-color: #fff; /* Garis aktif putih */
   opacity: 0;
   border-radius: 20px;
   -webkit-transition: all 0.5s ease-in-out;
@@ -382,7 +387,7 @@ a.c-header-icon {
   text-shadow: 0 4px 5px black;
 }
 .c-menu > ul .c-menu__item.is-active .c-menu__item__inner {
-  background: #fbcf05;
+  background: #333;
 }
 .c-menu > ul .c-menu__item.is-active .c-menu__item__inner i {
   color: #fff;
@@ -395,17 +400,18 @@ a.c-header-icon {
   opacity: 1;
 }
 .c-menu > ul .c-menu__item.is-active .c-menu__item__inner:hover {
-  background-color: yellow;
+  background-color: #8b6f6f;
 }
 .c-menu > ul .c-menu__item:not(.is-active):hover {
   color: #fff;
   text-shadow: 0 0 10px black;
 }
 .c-menu > ul .c-menu__item:not(.is-active):hover .c-menu__item__inner {
-  background: #fbcf05;
+  background: #8b6f6f;
 }
 .c-menu > ul .c-menu__item svg {
   flex: 0 0 70px;
+  color: #fff;
   font-size: 16px;
   font-weight: normal;
   text-align: center;
@@ -612,7 +618,7 @@ main.l-main {
   color: #222;
 }
 .name-tag:hover {
-  color: #fd4601;
+  color: #333;
 }
 @media only screen and (max-width: 768px) {
   .lol {
@@ -633,7 +639,7 @@ main.l-main {
   .hp-ul {
     margin: 68px 4.5px 0 0;
     position: fixed;
-    background: linear-gradient(red, #fbcf05);
+    background: linear-gradient(#000, #333);
     display: flex;
     flex-direction: column;
     list-style-type: none;
@@ -656,12 +662,14 @@ main.l-main {
   .l-header{
     padding-left: 0;
     top: -2px;
-    background: linear-gradient(#fbcf05, red);
+    background: linear-gradient(#000, #333);
     z-index: 1000;
     box-shadow: none;
   }
   .l-sidebar {
     display: none;
+    background: linear-gradient(#000, #333); /* Hitam pekat */
+    color: #fff; /* Teks putih */
   }
   .hp-li {
     /*border-right: 1px solid #fff;*/
@@ -672,7 +680,7 @@ main.l-main {
     transition: ease-in-out .3s;
   }
   .hp-ul a:hover {
-    background-color: #fbcf05;
+    background-color: #423131;
     text-shadow: 0 3px 5px #000;
     transition: ease-in-out .3s;
   }
@@ -688,7 +696,7 @@ main.l-main {
     color: #fff;
   }
   .hp-ul .active.hp-li {
-    background-color: #fbcf05;
+    background-color: #222;
   }
   .hp-ul a .active.hp-li {
     text-decoration: none;
@@ -764,3 +772,48 @@ main.l-main {
     display: none;
   }
 }
+/* Sidebar rapat ke atas */
+.l-sidebar__content {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  height: 100%;
+  padding: 5px 0;
+}
+
+.c-menu > ul {
+  padding: 0;
+  margin: 0;
+}
+
+.c-menu > ul .c-menu__item {
+  margin: 0;
+}
+
+.c-menu > ul .c-menu__item__inner {
+  min-height: 50px; /* Atur tinggi baris menu */
+}
+/* Ubah tinggi item menu */
+.hp-ul .hp-li {
+  height: 50px; /* semula 60px */
+  font-size: 14px; /* perkecil teks */
+}
+
+/* Icon di samping teks */
+.hp-ul .hp-li i {
+  width: 30px; /* perkecil lebar icon */
+  font-size: 14px; /* perkecil icon */
+  margin-right: 5px;
+}
+
+/* Jarak padding kiri teks menu */
+.hp-ul .hp-li {
+  padding-left: 10px;
+}
+
+/* Atur max-height & scroll */
+.hp-ul {
+  overflow-y: auto;
+  max-height: calc(100vh - 60px);
+}
+

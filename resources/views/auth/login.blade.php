@@ -2,8 +2,8 @@
 @section('title', 'Login')
 @section('datas')
 <div class="container" style="margin-top: 7.5%; margin-bottom: 7.5%; height:100%;">
-    <div class="animate__animated animate__bounceIn login-container-wrapper clearfix" style="max-width: 325px;">
-        <div class="welcome">Log In</div>
+    <div class="animate__animated animate__bounceIn login-container-wrapper clearfix" style="max-width: 325px; background: linear-gradient(#000, #333);">
+        <div class="welcome">Masuk</div>
 
         <form class="form-horizontal login-form" method="POST" action="{{ route('login') }}">
             @csrf
@@ -12,13 +12,13 @@
                 <input id="nisn" type="text" class="form-control input-lg"
                 name="nisn" value="{{ old('nisn') }}" required
                 autocomplete="nisn">
-                <label>Nisn or Email</label>
+                <label>Nisn atau Email</label>
             </div>
 
             <div class="form-group relative password float">
                 <input id="password" class="form-control input-lg"
                 name="password" type="password" required>
-                <label>Password</label>
+                <label>Kata Sandi</label>
             </div>
 
             @if (session()->has('error'))
@@ -44,12 +44,12 @@
                 <button type="submit" class="btn btn-success btn-lg btn-block">{{ __('Login') }}</button>
             </div>
 
-            <div class="text-center">
+            <!-- <div class="text-center">
                 <label>belum punya akun? <a href="/register">Register</a></label>
-            </div>
+            </div> -->
 
             <div class="text-center">
-                <label><a href="/">Kembali ke Beranda</a></label>
+                <label><a href="/"  style="color: white;">Kembali ke Beranda</a></label>
             </div>
         </form>
     </div>
