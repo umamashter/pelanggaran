@@ -82,10 +82,12 @@
                                                     <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#hapusModal{{ $history->id }}">
                                                         <i class="fas fa-trash"></i>  
                                                     </button>
-                                                </form>                                                
+                                                </form>  
+                                               @if ($history->student->poin >= 56 && $history->penanganan)                                              
                                                     <button id="wa-btn-{{ $history->id }}" class="btn btn-success btn-sm " onclick="kirimNotif('{{ $history->id }}')">
                                                         <i class="fab fa-whatsapp"></i>
                                                     </button>
+                                                @endif
                                                 </div>
                                             </div>
                                         </div>

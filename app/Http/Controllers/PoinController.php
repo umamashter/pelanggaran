@@ -41,6 +41,10 @@ class PoinController extends Controller
     {
         $siswa = Student::findOrFail($id);
         $penanganan = Penanganan::where('student_id', $siswa->id)->get();
+        // ✅ CEK: Apakah poin siswa sudah mencapai batas maksimum
+        if ($siswa->poin >= 149) {
+            return redirect()->back()->with('error', 'Siswa sudah mencapai batas maksimum poin. Tidak dapat menambahkan pelanggaran.');
+        }
 
         if ($request->total == 0 || $request->total == '') {
             return redirect()->back()->with('error', 'Poin tidak valid!');
@@ -62,6 +66,10 @@ class PoinController extends Controller
             ]);
 
             $siswa->poin += $newHistory->rule->poin;
+            // Pastikan poin tidak melebihi 149
+            if ($siswa->poin > 149) {
+                $siswa->poin = 149;
+            }
             $siswa->save();
 
             $this->syncPenanganan($siswa, $newHistory->id, $tindak_lanjut);
@@ -165,35 +173,39 @@ class PoinController extends Controller
             ]);
         }
 
-        if ($poin >= 150 && $poin <= 249 && !in_array('Skorsing', $tindak_lanjut)) {
-            Penanganan::create([
-                'student_id' => $siswa->id,
-                'tindak_lanjut_id' => 6,
-                'history_id' => $historyId
-            ]);
-        }
-
-        if ($poin >= 250 && !in_array('Dikembalikan Orang tua', $tindak_lanjut)) {
-            Penanganan::create([
-                'student_id' => $siswa->id,
-                'tindak_lanjut_id' => 7,
-                'history_id' => $historyId
-            ]);
-        }
+        
+        
     }
 
     // kontrol untuk notifikasi whatsapp
     public function kirimNotifikasi($id)
 {
-    $history = History::with('student')->findOrFail($id);
+    // Ambil data history lengkap dengan relasi student, kelas, dan pelanggaran
+    $history = History::with(['student.kelas', 'pelanggaran'])->findOrFail($id);
     $siswa = $history->student;
+    $pelanggaran = $history->pelanggaran;
 
-    if (!$siswa) {
-        return response()->json(['status' => 'error', 'message' => 'Data siswa tidak ditemukan.']);
+    if (!$siswa || !$pelanggaran) {
+        return response()->json(['status' => 'error', 'message' => 'Data siswa atau pelanggaran tidak ditemukan.']);
     }
 
-    $nomor = preg_replace('/^0/', '62', $siswa->no_telp);
-    $pesan = "Notifikasi: {$siswa->name} mendapat pelanggaran. Total poin: {$siswa->poin}.";
+    // ✅ Tambahkan pengecekan poin minimal 56
+    if ($siswa->poin < 56) {
+        return response()->json([
+            'status' => 'ignored',
+            'message' => 'Poin siswa belum mencapai ambang notifikasi (minimal 56).'
+        ]);
+    }
+    // Format nomor WA (dari 08xxx ke 628xxx)
+    $nomor = preg_replace('/^08/', '62', $siswa->no_telp);
+
+    // Susun isi pesan yang lebih informatif
+    $namaSiswa = $siswa->nama ?? 'Tidak Diketahui';
+    $namaKelas = $siswa->kelas->nama_kelas ?? 'Tidak Diketahui';
+    $namaPelanggaran = $pelanggaran->nama ?? 'Tidak Diketahui';
+    $poin = $siswa->poin ?? 0;
+
+    $pesan = "Notifikasi: {$namaSiswa} (Kelas: {$namaKelas}) melakukan pelanggaran: {$namaPelanggaran}. Total poin: {$poin}.";
 
     try {
         WhatsAppHelper::kirim($nomor, $pesan);

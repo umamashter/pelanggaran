@@ -39,6 +39,16 @@
                         <div class="c-menu-item__title"><span>Pesan</span></div>
                     </a>
                 </li>
+<li class="c-menu__item {{ request()->is('tata-tertib*') ? 'is-active' : '' }}" data-toggle="tooltip" title="Tata Tertib">
+    <a class="c-menu__item__inner" href="{{ route('siswa.peraturan') }}">
+        <div class="ic">
+            <i class="fas fa-gavel"></i>
+        </div>
+        <div class="c-menu-item__title"><span>Tata Tertib</span></div>
+    </a>
+</li>
+
+
             </ul>
 
         </nav>

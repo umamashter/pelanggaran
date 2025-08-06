@@ -10,6 +10,7 @@ use Barryvdh\DomPDF\PDF as DomPDFPDF;
 use Dompdf\Dompdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Http;
 
 class PenangananController extends Controller
 {
@@ -116,4 +117,5 @@ class PenangananController extends Controller
         ]);
         return redirect()->back()->with('success', 'Terkonfirmasi');
     }
+    
 }

@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Peraturan;
 use App\Models\JenisPeraturan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
 
 class PeraturanController extends Controller
 {
@@ -12,6 +14,9 @@ class PeraturanController extends Controller
     {
         // Ambil semua peraturan & jenis_peraturan untuk kebutuhan modal.
         $peraturan = Peraturan::with('jenisPeraturan')->get();
+        if (Auth::user()->role == 3) {
+        return view('siswa.peraturan.index', compact('peraturan'));
+    }
         $jenisPeraturan = JenisPeraturan::all();
 
         return view('admin.peraturan.index', compact('peraturan', 'jenisPeraturan'));
@@ -19,6 +24,10 @@ class PeraturanController extends Controller
 
     public function store(Request $request)
     {
+        if (Auth::user()->role == 3) {
+            abort(403, 'Akses ditolak');
+        }
+
         $request->validate([
             'nama' => 'required|string|max:255',
             'poin' => 'required|numeric',
@@ -36,6 +45,9 @@ class PeraturanController extends Controller
 
     public function update(Request $request, $id)
     {
+        if (Auth::user()->role == 3) {
+            abort(403, 'Akses ditolak');
+        }
         $request->validate([
             'nama' => 'required|string|max:255',
             'poin' => 'required|numeric',
@@ -54,6 +66,11 @@ class PeraturanController extends Controller
 
     public function destroy($id)
     {
+        // Cegah siswa melakukan DELETE
+        if (Auth::user()->role == 3) {
+            abort(403, 'Akses ditolak');
+        }
+        
         $peraturan = Peraturan::findOrFail($id);
         $peraturan->delete();
 

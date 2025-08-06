@@ -64,6 +64,7 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/pesan', [StudentController::class, 'pesan']);
         Route::get('/pesan/{id}', [StudentController::class, 'checkpesan']);
         // Route::get('/tata-tertib', [StudentController::class, 'history']);
+        Route::get('/tata-tertib', [PeraturanController::class, 'index'])->name('siswa.peraturan');
     });
 
     // Guru
@@ -108,6 +109,8 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/master-histori/{id}', [AdminController::class, 'histori_admin']);
         //API WA
         Route::post('/kirim-notifikasi/{id}', [PoinController::class, 'kirimNotifikasi'])->name('history.kirimNotif');
+        
+
    
 
 

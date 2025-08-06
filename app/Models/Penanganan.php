@@ -38,6 +38,5 @@ class Penanganan extends Model
     public function getRouteKeyName()
     {
         return 'berkas';
-    }
-    
+    }    
 }

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Rekap Pelanggaran - PDF</title>
+    <title>Laporan Pelanggaran - PDF</title>
     <style>
         body { font-family: sans-serif; font-size: 12px; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
@@ -11,7 +11,7 @@
     </style>
 </head>
 <body>
-    <h3>Rekap Pelanggaran Tahun Ajaran {{ $tahunAjaran }}</h3>
+    <h3>Data Pelanggaran Tahun Ajaran {{ $tahunAjaran }}</h3>
 
     @if ($bulan)
         <p>Bulan: {{ $bulan }}</p>

@@ -61,9 +61,21 @@ public function scopeFilter($query, array $filters)
     }
     // app/Models/History.php
 
-public function student()
+    public function student()
+    {
+        return $this->belongsTo(Student::class, 'student_id'); // atau 'siswa_id' jika nama kolomnya bukan 'student_id'
+    }
+    // App\Models\History.php
+    public function penanganan()
+    {
+        return $this->hasOne(Penanganan::class, 'history_id');
+    }
+    // app/Models/History.php
+public function pelanggaran()
 {
-    return $this->belongsTo(Student::class, 'student_id'); // atau 'siswa_id' jika nama kolomnya bukan 'student_id'
+    return $this->belongsTo(Peraturan::class, 'peraturan_id');
 }
 
+
 }
+

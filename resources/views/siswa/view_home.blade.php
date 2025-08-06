@@ -1,5 +1,5 @@
 <div class="cord col-lg-4 col-md-6 p-0">
-    <div class="card animate__animated animate__fadeInDownBig" style="animation-delay: 0s;">
+    <div class="card ">
         <div class="card-body border-left-green">
             <div class="row">
                 <div class="col">
@@ -19,13 +19,13 @@
 </div>
 <div class="row px-0">
     <div class="cut col-lg-6 pr-2">
-        <div class="card shadow-lg-3 animate__animated animate__zoomIn animate__delay-1s">
-            <div class="card-header bg-gradient bg-info text-light h5 px-3">
+        <div class="card shadow-lg-3 ">
+            <div class="card-header bg-gradient bg-secondary  text-light h5 px-3">
                 <i class="fas fa-user-graduate mr-2"></i>
                 Data Siswa
                 <div class="float-end">
-                    <button class="btn clickind btn-sm btn-warning btn-detail open_modal animate__animated animate__flip"
-                style="animation-delay: 1s;"><i class="fas fa-pen"></i></button>
+                    <button class="btn clickind btn-sm btn-warning btn-detail open_modal "
+                style=""><i class="fas fa-pen"></i></button>
                 </div>
             </div>
             <div class="card-body py-1 px-3 text-dark">
@@ -70,8 +70,8 @@
         </div>
     </div>
     <div class="cut col-lg-6 pl-2">
-        <div class="card shadow-lg-3 animate__animated animate__zoomIn animate__delay-2s">
-            <div class="card-header bg-gradient bg-info text-light h5 px-3">
+        <div class="card shadow-lg-3 ">
+            <div class="card-header bg-gradient bg-secondary text-light h5 px-3">
                 <i class="fas fa-user mr-2"></i>
                 Data Orang Tua
             </div>

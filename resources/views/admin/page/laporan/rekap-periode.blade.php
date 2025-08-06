@@ -1,9 +1,9 @@
 @extends('layouts.main')
-@section('title', 'Rekap Pelanggaran Tahun Ajaran')
+@section('title', 'Laporan Pelanggaran')
 
 @section('content')
 <div class="container-fluid px-4">
-    <h3 class="mb-4 fw-bold text-center">Rekap Pelanggaran Tahun Ajaran</h3>
+    <h3 class="mb-4 fw-bold text-center">Data Pelanggaran Tahun Ajaran</h3>
 
     {{-- Form Filter --}}
     <div class="card mb-4">

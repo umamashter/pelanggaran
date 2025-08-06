@@ -62,12 +62,12 @@
 
 <body>
     <!-- ======= Header ======= -->
-    <header id="header" class="fixed-top">
+    <header id="header" class="fixed-top bg-gradient bg-secondary text-white">
         <div class="container d-flex align-items-center">
 
-            <h1 class="logo me-auto animate__animated animate__fadeInLeft" style="color: #333;"><a href="/">E-Book</a></h1>
+            <h1 class="logo me-auto " style="color: #333;"><a href="/">E-Book</a></h1>
 
-            <nav id="navbar" class="navbar order-last order-lg-0">
+            <nav id="navbar" class="navbar order-last order-lg-0 ">
                 <ul>
                     <li><a class="nav-link scrollto animate__animated animate__fadeInDownBig"
                         style="animation-delay: .5s;" href="#">Beranda</a></li>
@@ -102,7 +102,7 @@
                                 <h2 class="animate__animated animate__fadeInDown" style="animation-delay: 0.5s;">Website pencatatan
                                 Poin pelanggaran siswa MIS Nurul Ulum Patapan</h2>
                                 <a href="#cek-pelanggaran"
-                                class="btn-get-started scrollto animate__animated animate__pulse fw-bold animate__infinite"
+                                class="btn-get-started scrollto animate__animated animate__pulse fw-bold animate__infinite bg-gradient bg-secondary"
                                 style="animation-delay: 1.5s;">Mulai Sekarang</a>
                             </div>
                         </section>
@@ -132,14 +132,14 @@
 
                                         <div class="reveal">
                                             <div class="icon-box my-2">
-                                                <div class="icon"><i class="bx bx-history"></i></div>
+                                                <div class="icon bg-gradient bg-secondary"><i class="bx bx-history"></i></div>
                                                 <h4 class="title"><a href="">Histori Pelanggaran</a></h4>
                                                 <p class="description">Orang Tua Siswa dapat langsung melihat pelanggaran yang
                                                 dilakukan oleh Anaknya setelah melakukan Login</p>
                                             </div>
 
                                             <div class="icon-box my-2">
-                                                <div class="icon"><i class="bx bx-paste"></i></div>
+                                                <div class="icon bg-gradient bg-secondary"><i class="bx bx-paste"></i></div>
                                                 <h4 class="title"><a href="">Penanganan</a></h4>
                                                 <p class="description">Pelanggaran yang dilakukan oleh Siswa dapat ditangani lewat
                                                 Fitur Penanganan dan langsung disampaikan ke Orang Tua Siswa</p>
@@ -161,34 +161,34 @@
                                 <h2>Jenis-jenis Pelanggaran</h2>
                             </div>
 
-                            <div class="row">
-                                <div class="col-lg-4 col-md-6 d-flex align-items-stretch">
-                                    <div class="icon-box reveal">
-                                        <div class="icon"><i class="fa-solid fa-pen-ruler"></i></div>
-                                        <h4><a href="">Sikap Perilaku</a></h4>
-                                        <p>Kategori <b>Sikap Prilaku</b> ini memiliki banyak sekali pelanggaran dengan rentang
-                                            <b>10-250 poin</b>, mulai dari membuat kegaduhan sampai dengan Tindakan Kriminal
+                            <div class="row justify-content-center">
+                                <div class="col-lg-4 col-md-6 d-flex align-items-stretch ">
+                                    <div class="icon-box reveal bg-gradient bg-secondary">
+                                        <div class="icon text-whte"><i class="fa-solid fa-pen-ruler"></i></div>
+                                        <h4><a href="" class="text-whte">Sikap Perilaku</a></h4>
+                                        <p>Kategori <b>Sikap Prilaku</b> ini memiliki banyak sekali pelanggaran berat dengan rentang
+                                            <b>5-50 poin</b>.
                                         </p>
                                     </div>
                                 </div>
 
                                 <div class="col-lg-4 col-md-6 d-flex align-items-stretch mt-4 mt-md-0">
-                                    <div class="icon-box reveal">
+                                    <div class="icon-box reveal bg-gradient bg-secondary">
                                         <div class="icon"><i class="bx bxs-time-five"></i></div>
                                         <h4><a href="">Kerajinan</a></h4>
-                                        <p>Kategori <b>Kerajinan</b> ini termasuk pelanggaran ringan dengan rentang <b>10-20
-                                        poin</b>, mulai dari Datang Terlambat sampai Tidak mengikuti Pramuka wajib</p>
+                                        <p>Kategori <b>Kerajinan</b> ini termasuk pelanggaran ringan dan sedang<b>10-20
+                                        poin</b>, mulai dari Datang Terlambat sampai Tidak mengikuti kegiatan keagamaan</p>
                                     </div>
                                 </div>
 
-                                <div class="col-lg-4 col-md-6 d-flex align-items-stretch mt-4 mt-lg-0">
+                                <!-- <div class="col-lg-4 col-md-6 d-flex align-items-stretch mt-4 mt-lg-0">
                                     <div class="icon-box reveal">
                                         <div class="icon"><i class="fa-brands fa-black-tie"></i></div>
                                         <h4><a href="">Kerapian</a></h4>
                                         <p>Kategori <b>Kerapian</b> ini termasuk pelanggaran ringan dengan rentang <b>10-30
                                         poin</b>, mulai dari Atribut seragam tidak lengkap sampai dengan Memakai make-up
                                     berlebihan(putri)</p>
-                                </div>
+                                </div> -->
                             </div>
                         </div>
 
@@ -226,9 +226,9 @@
                                     value="{{ request('tanggal') }}">
                                 </form>
                             </div>
-                            <div class="col-lg-12 table-responsive mt-2">
-                                <table class="table table-hover table-stripped" id="tbl_history">
-                                    <thead style="color:#fff; background-color: #fb6240d6;">
+                            <div class="col-lg-12 table-responsive mt-2 ">
+                                <table class="table table-hover table-stripped " id="tbl_history">
+                                    <thead style="color:#fff; " class="bg-gradient bg-secondary">
                                         <tr>
                                             <th>No.</th>
                                             <th>Nama</th>
@@ -293,7 +293,7 @@
 
                             {{-- After Input --}}
                             <div class="card shadow-lg-3 mt-0 mb-2">
-                                <div class="card-header text-light h5 px-3" style="background: #fd795b;">
+                                <div class="card-header text-light h5 px-3 bg-gradient bg-secondary" style="background: #fd795b;">
                                     <i class="fas fa-user-graduate mr-2"></i>
                                     Data Siswa
                                 </div>
@@ -401,13 +401,12 @@
                 <li class="reveal" data-aos-delay="300">
                     <i class="bx bx-help-circle icon-help"></i> <a data-bs-toggle="collapse"
                     data-bs-target="#faq-list-4" class="collapsed">Apakah poin pelanggaran dapat
-                    <b>dikurangi</b>? <i class="bx bx-chevron-down icon-show"></i><i
+                    <b>direset</b>? <i class="bx bx-chevron-down icon-show"></i><i
                     class="bx bx-chevron-up icon-close"></i></a>
                     <div id="faq-list-4" class="collapse" data-bs-parent=".faq-list">
                         <p>
-                            <b>Benar.</b> Total skor pelanggaran dapat dikurangi dengan mendapatkan
-                            <b>penghargaan/prestasi</b>, oleh karena itu kurangi bermalas-malasan dan raihlah
-                            prestasi setinggi langit.
+                            <b>Benar.</b> Total poin pelanggaran dapat diatur ulang jika poin sudah mencapai batas yang sudah ditentukan
+                            <b>dan pergantian periode tahun ajaran</b>, oleh karena itu kurangi bermalas-malasan 
                         </p>
                     </div>
                 </li>
@@ -431,13 +430,10 @@
                 <div class="col-lg-5 col-md-6 footer-contact">
                     <h3 class="reveal">E-Book</h3>
                     <p class="reveal">
-                        Jl. Smea No.4, Wonokromo, Kec. Wonokromo<br>
-                        Kota SBY, Jawa Timur 60243<br><br>
-                        <strong>Phone :</strong><a href="tel:+031 8292038"> 031 8292038</a><br>
-                        <strong>Email :</strong><a href="mailto:info@smkn1-sby.sch.id">
-                        info@smkn1-sby.sch.id</a><br>
-                        <strong>Website :</strong><a href="http://www.smkn1-sby.sch.id/">
-                        http://www.smkn1-sby.sch.id/</a><br>
+                        Jl. Datuk Idris, Patapan, Kec. Guluk Guluk<br>
+                        Sumenep, Jawa Timur 69463<br><br>
+                        <strong>Phone :</strong><a href="#"> 083848122859</a><br>
+                        
                     </p>
                 </div>
 
@@ -463,7 +459,7 @@
     <div class="container d-md-flex py-4" style="z-index: 5;">
         <div class="me-md-auto text-center text-md-start">
             <div class="copyright">
-                &copy; Copyright <strong><span>San</span></strong>. All Rights Reserved
+                &copy; <strong><span>Nurul Ulum</span></strong>.
             </div>
         </div>
     </div>
