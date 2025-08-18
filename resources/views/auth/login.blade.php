@@ -3,7 +3,14 @@
 @section('datas')
 <div class="container" style="margin-top: 7.5%; margin-bottom: 7.5%; height:100%;">
     <div class="animate__animated animate__bounceIn login-container-wrapper clearfix" style="max-width: 325px; background: linear-gradient(#000, #333);">
-        <div class="welcome">Masuk</div>
+        <!-- Logo -->
+        <div class="text-center mt-3">
+            <img src="{{ asset('img/logo1.png') }} " style="width: 80px; height: auto;">
+
+            <h4 class="text-white">NURUL ULUM</h4>
+        </div>
+        
+        <p style="color: white; font-size: 12px;">Masukkan data login anda untuk memulai bersama kami</p>
 
         <form class="form-horizontal login-form" method="POST" action="{{ route('login') }}">
             @csrf

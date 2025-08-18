@@ -308,7 +308,7 @@ tr.table-trr td:nth-child(2){
 }
 
 #header .logo a {
-  background: linear-gradient(270deg, #ff4800, #fbc040);
+  background: linear-gradient(270deg, #f1edeb, #fbc040);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -622,14 +622,14 @@ tr.table-trr td:nth-child(2){
   word-spacing: 5px;
   text-transform: uppercase;
   color: #fbfbfb;
-  text-shadow: 5px 5px 10px #222;
+  
   font-weight: 700;
   font-family: "Raleway", sans-serif;
 }
 
 #hero h2 {
   color: #fbfbfb;
-  text-shadow: 3px 3px 4px #111;
+  
   margin: 10px 0 0 0;
   font-size: 24px;
   /* font-family: "Raleway", sans-serif; */

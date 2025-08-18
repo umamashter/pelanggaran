@@ -30,7 +30,7 @@
                                 <td>{{ $tindak->history->kelasSnapshot->nama_kelas }}</td>
                                 <td>{{ $tindak->pesan->tindak_lanjut }}</td>
                                 <td>
-                                    @if ($tindak->pesan->tingkatan == 'Ringan')
+                                    @if ($tindak->pesan->tingkatan == 'Ringan' || $tindak->pesan->tingkatan == 'Sedang')
                                         @if ($tindak->status == 0)
                                             <form action="/penanganan/{{ $tindak->id }}" method="post">
                                                 @csrf
@@ -58,6 +58,7 @@
                                         @endif
                                     @endif
                                 </td>
+                                
                                 <td>
                                     @if ($tindak->berkas)
                                         <a href="/storage/surat/{{ $tindak->berkas }} " target="_blank"
@@ -124,6 +125,7 @@
                 pagingType: 'simple_numbers',
                 responsive: true,
                 processing: true,
+                scrollX: true,
                 "language": {
                     "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Indonesian.json",
                     paginate: {

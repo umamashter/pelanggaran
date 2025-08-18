@@ -9,7 +9,7 @@
         }
     </style>
     <div class="container mb-5" style="margin-top: 2%; margin-bottom: 2%; height:100%;">
-        <div class="animate__animated animate__fadeInDown login-container-wrapper clearfix">
+        <div class="animate__animated animate__fadeInDown login-container-wrapper clearfix bg-secondary">
             <div class="welcome">Data Siswa</div>
             <form class="form-horizontal login-form" method="POST" action="{{ route('siswa') }}">
                 @csrf

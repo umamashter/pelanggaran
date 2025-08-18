@@ -114,7 +114,7 @@
                             <div>
                                 <div class="col-lg-10 row" style="margin-top: .2rem;">
                                     <p class="mb-1 mt-1 h6 text-dark px-0">{{ $msg->pesan->tindak_lanjut }}</p>
-                                    @if ($msg->pesan->tingkatan == 'Ringan')
+                                    @if ($msg->pesan->tingkatan == 'Ringan' || $msg->pesan->tingkatan == 'Sedang')
                                         @if ($msg->status == 0)
                                             <a href="/penanganan" class="px-0 mb-2 linkred">Belum Terkonfirmasi</a>
                                         @else

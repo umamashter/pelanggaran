@@ -23,7 +23,7 @@
                                     <div class="col-lg-10">
                                         <p class="mb-1 mt-2 h6 text-dark ">{{ $msg->pesan->tindak_lanjut }}</p>
                                         <div class="text-danger d-inline-flex">
-                                            @if ($msg->pesan->tingkatan == 'Ringan')
+                                            @if ($msg->pesan->tingkatan == 'Ringan' || $msg->pesan->tingkatan == 'Sedang')
                                                 @if ($msg->status == 0)
                                                     <p class="mb-0">Belum Terkonfirmasi</p>
                                                 @else

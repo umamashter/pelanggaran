@@ -8,13 +8,14 @@ use App\Models\WaliKelas;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class UserAdminController extends Controller
 {
     public function daftar_user()
     {
         return view('admin.page.user.daftar-user', [
-            'users' => User::paginate(null)
+            'users' => User::paginate(100)
         ]);
     }
 
@@ -24,34 +25,45 @@ class UserAdminController extends Controller
     }
 
     public function update(Request $request, $id)
-    {
-        $user = User::findOrFail($id);
-        $validator = Validator::make($request->all(), [
-            'nisn' => 'unique:users,nisn,' . $id,
-            'email' => 'unique:users,email,' . $id,
-            'kelas_id' => 'exists:kelas,id', // Tambah validasi kelas
-        ]);
+{
+    $user = User::findOrFail($id);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 400,
-                'errors' => $validator->getMessageBag()
-            ]);
-        }
+    $rules = [
+        'name' => 'required|string|max:255',
+        'email' => [
+            'required',
+            'email',
+            Rule::unique('users', 'email')->ignore($id),
+        ],
+        'role'  => 'required|in:1,2,3', // 1 = admin, 2 = guru, 3 = siswa
+        'info'  => 'required|in:0,1',   // 0 = belum terdaftar, 1 = terdaftar
+    ];
 
-        $user->nisn = $request->post('nisn');
-        $user->name = $request->post('name');
-        $user->email = $request->post('email');
-        $user->role = $request->post('role');
-        $user->info = $request->post('info');
-        $user->kelas_id = $request->post('kelas_id'); // Tambahkan update kelas
-        $user->save();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'User Berhasil diubah.'
-        ]);
+    // Jika role siswa (3), NISN wajib dan harus 10 digit
+    if ($request->role == 3) {
+        $rules['nisn'] = [
+            'required',
+            'size:10',
+            Rule::unique('users', 'nisn')->ignore($id),
+        ];
+    } else {
+        // Jika role bukan siswa, NISN boleh kosong, tapi kalau diisi tetap harus unik
+        $rules['nisn'] = [
+            'nullable',
+            'string',
+            'size:10', // hanya divalidasi kalau diisi
+            Rule::unique('users', 'nisn')->ignore($id),
+        ];
     }
+
+    $validatedData = $request->validate($rules);
+
+    $user->update($validatedData);
+
+    return response()->json(['success' => true]);
+
+}
+
 
     public function update_pass(Request $request, $id)
     {
@@ -126,23 +138,32 @@ class UserAdminController extends Controller
 
     // Menyimpan data user baru
     public function store(Request $request)
-    {
-        $request->validate([
-            'nisn' => 'required|unique:users,nisn',
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'role' => 'required|in:1,2,3',
-        ]);
+{
+    $rules = [
+        'name' => 'required|string|max:255',
+        'email' => 'required|email|unique:users,email',
+        'role' => 'required|in:1,2,3',
+        'nisn' => 'nullable|size:10|unique:users,nisn',
+    ];
 
-        User::create([
-            'nisn' => $request->nisn,
-            'name' => $request->name,
-            'email' => $request->email,
-            'role' => (int) $request->role, // CAST ke int (opsional tapi aman)
-            'registrasi' => 'Sudah',
-            'password' => bcrypt('default123'),
-        ]);
+    // Jika role == 3 (siswa), maka NISN wajib diisi
+    if ($request->role == 3) {
+        $rules['nisn'] = 'required|size:10|unique:users,nisn';
+    } 
 
-        return redirect('/master-user')->with('success', 'User berhasil ditambahkan!');
-    }
+    $validated = $request->validate($rules);
+
+    User::create([
+        'name' => $validated['name'],
+        'email' => $validated['email'],
+        'role' => $validated['role'],
+        'nisn' => $validated['nisn'] ?? null,
+        'password' => bcrypt('password'), // ganti dengan logika password kamu
+    ]);
+
+    return redirect()->route('user.index')->with('success', 'User berhasil ditambahkan.');
+}
+
+
+
 }

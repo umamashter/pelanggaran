@@ -12,13 +12,23 @@
                     @if(session('success'))
                         <div class="alert alert-success">{{ session('success') }}</div>
                     @endif
+                    @if ($errors->any())
+                        <div class="alert alert-danger">
+                            <ul class="mb-0">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
 
                     <form action="{{ route('user.store') }}" method="POST">
                         @csrf
 
                         <div class="mb-3">
                             <label for="name" class="form-label">Nama Lengkap</label>
-                            <input type="text" name="name" class="form-control" required placeholder="Masukkan nama lengkap">
+                            <input type="text" name="name" class="form-control" required value="{{ old('name') }}" required placeholder="Masukkan nama lengkap">
                         </div>
 
                         <div class="mb-3" id="form-nisn">
@@ -56,13 +66,20 @@
 </div>
 @endsection
 <script>
-document.querySelector('select[name="role"]').addEventListener('change', function () {
-    const nisnInput = document.getElementById('form-nisn');
-    if (this.value == 3) {
-        nisnInput.style.display = 'block';
-    } else {
-        nisnInput.style.display = 'none';
-    }
-});
+document.addEventListener('DOMContentLoaded', function () {
+        const roleSelect = document.querySelector('select[name="role"]');
+        const nisnField = document.getElementById('form-nisn');
+
+        function toggleNISNField() {
+            if (roleSelect.value == '3') {
+                nisnField.style.display = 'block';
+            } else {
+                nisnField.style.display = 'none';
+            }
+        }
+
+        roleSelect.addEventListener('change', toggleNISNField);
+        toggleNISNField(); // Panggil sekali saat halaman dimuat
+    });
 </script>
 

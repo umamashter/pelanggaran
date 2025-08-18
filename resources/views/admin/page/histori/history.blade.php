@@ -83,8 +83,10 @@
                                                         <i class="fas fa-trash"></i>  
                                                     </button>
                                                 </form>  
-                                               @if ($history->student->poin >= 56 && $history->penanganan)                                              
-                                                    <button id="wa-btn-{{ $history->id }}" class="btn btn-success btn-sm " onclick="kirimNotif('{{ $history->id }}')">
+                                               @if ($history->student->poin >= 50 && optional($history->penanganan)->status == 0)
+                                                    <button id="wa-btn-{{ $history->id }}" 
+                                                            class="btn btn-success btn-sm" 
+                                                            onclick="kirimNotif('{{ $history->id }}')">
                                                         <i class="fab fa-whatsapp"></i>
                                                     </button>
                                                 @endif
@@ -145,35 +147,92 @@
 </table>
 
 <!-- Script AJAX -->
+<!-- SweetAlert2 CSS & JS -->
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
     function kirimNotif(id) {
-        if (confirm("Kirim notifikasi WhatsApp?")) {
-            fetch(`/kirim-notifikasi/${id}`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(res => res.json())
-            .then(data => {
-                alert(data.message);
-                if (data.status === 'success') {
-                    const btn = document.getElementById(`wa-btn-${id}`);
-                    btn.classList.remove('btn-success');
-                    btn.classList.add('btn-secondary');
-                    btn.disabled = true;
+        Swal.fire({
+            title: 'Kirim Notifikasi WhatsApp?',
+            text: "Pesan ini akan langsung dikirim ke nomor terkait.",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Ya, kirim sekarang!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const btn = document.getElementById(`wa-btn-${id}`);
 
-                    // Ganti ikon jadi centang (opsional)
-                    btn.innerHTML = '<i class="fas fa-check-circle"></i>';
-                }
-            })
-            .catch(err => {
-                alert('Terjadi kesalahan saat mengirim notifikasi.');
-            });
-        }
+                // Ubah tombol jadi loading
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengirim...';
+
+                fetch(`/kirim-notifikasi/${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Simpan status di localStorage
+                        localStorage.setItem(`wa_sent_${id}`, true);
+
+                        btn.classList.remove('btn-success');
+                        btn.classList.add('btn-secondary');
+                        btn.disabled = true;
+                        btn.innerHTML = '<i class="fas fa-check-circle"></i> Terkirim';
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil!',
+                            text: data.message,
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                    } else {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fab fa-whatsapp"></i> Kirim WA';
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal!',
+                            text: data.message
+                        });
+                    }
+                })
+                .catch(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fab fa-whatsapp"></i> Kirim WA';
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Kesalahan!',
+                        text: 'Terjadi masalah saat mengirim notifikasi.'
+                    });
+                });
+            }
+        });
     }
+
+    // Saat halaman dimuat, cek status di localStorage
+    document.addEventListener("DOMContentLoaded", function() {
+        document.querySelectorAll("[id^='wa-btn-']").forEach(btn => {
+            const id = btn.id.replace("wa-btn-", "");
+            if (localStorage.getItem(`wa_sent_${id}`)) {
+                btn.classList.remove('btn-success');
+                btn.classList.add('btn-secondary');
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-check-circle"></i> Terkirim';
+            }
+        });
+    });
 </script>
+
 
 

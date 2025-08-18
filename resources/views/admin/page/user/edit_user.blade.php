@@ -10,8 +10,8 @@ aria-hidden="true">
         <div class="modal-body">
             <form action="" method="post" id="editform">
                 @csrf
-                <div class="form-floating mb-4">
-                    <input minlength=8 type="text" class="form-control" name="nisn" id="nisn" required
+                <div class="form-floating mb-4" id="nisn-group" >
+                    <input minlength=8 type="text" class="form-control" name="nisn" id="nisn" required 
                     autofocus>
                     <label for="nisn">NISN</label>
                 </div>
@@ -60,6 +60,34 @@ aria-hidden="true">
 </div>
 </div>
 
+<script>
+    function toggleNISNField() {
+    const role = document.getElementById("role").value;
+    const nisnGroup = document.getElementById("nisn-group");
+    const nisnInput = document.getElementById("nisn");
+
+    if (role == "3") {
+        nisnGroup.style.display = "block";
+        nisnInput.setAttribute("required", "required");
+    } else {
+        nisnGroup.style.display = "none";
+        nisnInput.removeAttribute("required");
+        nisnInput.value = "";
+    }
+}
+
+// Panggil saat halaman siap
+document.addEventListener("DOMContentLoaded", toggleNISNField);
+
+// Jalankan juga saat role berubah
+document.getElementById("role").addEventListener("change", toggleNISNField);
+
+// Jalankan ulang tiap kali modal dibuka
+$('#myModal').on('shown.bs.modal', function () {
+    toggleNISNField();
+});
+
+</script>
 <style>
     .form-floating>.form-control {
         height: 3.2rem;

@@ -61,9 +61,7 @@
                         <a href="{{ route('laporan.exportPdf', request()->query()) }}" class="btn btn-outline-secondary" style="color: #fff;">
                             Cetak PDF
                         </a>
-                        <button onclick="window.print()" class="btn btn-outline-secondary" style="color: #fff;">
-                            Cetak Browser
-                        </button>
+
                     @endif
                 </div>
         </div>

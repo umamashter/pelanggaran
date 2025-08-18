@@ -8,15 +8,29 @@
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { border: 1px solid #333; padding: 5px; text-align: left; }
         th { background-color: #eee; }
+        .filter-info { margin-bottom: 10px; }
     </style>
 </head>
 <body>
-    <h3>Data Pelanggaran Tahun Ajaran {{ $tahunAjaran }}</h3>
+    <h3 style="text-align: center;">Laporan Data Pelanggaran</h3>
 
-    @if ($bulan)
-        <p>Bulan: {{ $bulan }}</p>
-    @endif
+    {{-- Informasi Filter --}}
+    <div class="filter-info">
+        <p>
+            <strong>Tahun Ajaran:</strong> {{ $tahunAjaran }} <br>
+            @if ($bulan)
+                <strong>Bulan:</strong> {{ \Carbon\Carbon::parse($bulan . '-01')->translatedFormat('F Y') }} <br>
+            @endif
+            @if (isset($kelas) && $kelas)
+                <strong>Kelas:</strong> {{ $kelas->nama_kelas }} <br>
+            @endif
+            @if ($nisn)
+                <strong>NISN:</strong> {{ $nisn }} <br>
+            @endif
+        </p>
+    </div>
 
+    {{-- Tabel Data --}}
     <table>
         <thead>
             <tr>
@@ -28,15 +42,19 @@
             </tr>
         </thead>
         <tbody>
-            @foreach ($histories as $history)
+            @forelse ($histories as $history)
                 <tr>
                     <td>{{ $history->siswa->nama }}</td>
                     <td>{{ $history->kelasSnapshot->nama_kelas ?? '-' }}</td>
                     <td>{{ $history->rule->nama }}</td>
                     <td>{{ $history->rule->poin }}</td>
-                    <td>{{ $history->tanggal }}</td>
+                    <td>{{ \Carbon\Carbon::parse($history->tanggal)->format('d M Y') }}</td>
                 </tr>
-            @endforeach
+            @empty
+                <tr>
+                    <td colspan="5" style="text-align:center;">Tidak ada data pelanggaran.</td>
+                </tr>
+            @endforelse
         </tbody>
     </table>
 </body>

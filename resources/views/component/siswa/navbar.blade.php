@@ -76,4 +76,10 @@
             Pesan
         </li>
     </a>
+    <a href="/tata-tertib">
+        <li class="{{ request()->is('tata-tertib*') ? 'active' : '' }} hp-li" title="tata-tertib">
+            <i class="fas fa-gavel"></i>
+            Tata Tertib
+        </li>
+    </a>
 </ul>

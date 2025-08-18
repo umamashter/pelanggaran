@@ -19,27 +19,89 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($penanganan as $tindak)
-                            <tr>
-                                <td scope="row">
-                                    {{ ($penanganan->currentpage() - 1) * $penanganan->perpage() + $loop->index + 1 }}
-                                </td>
-                                <td>{{ $tindak->siswa->nama }}</td>
-                                <td>{{ $tindak->pesan->tindak_lanjut }}</td>
-                                <td>
-                                    @if ($tindak->status == 0)
-                                        <form action="/guru/penanganan/{{ $tindak->id }}" method="post">
-                                            @csrf
-                                            <button type="submit" class="btn btn-primary btn-sm">Konfirm</button>
-                                        </form>
-                                    @else
-                                        <button class="btn btn-secondary btn-sm" disabled>Terkonfirmasi -
-                                            {{ $tindak->created_at->format('d/m/Y') }}</button>
-                                    @endif
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
+                @foreach ($penanganan as $tindak)
+                    <tr>
+                        <td scope="row">
+                            {{ ($penanganan->currentpage() - 1) * $penanganan->perpage() + $loop->index + 1 }}
+                        </td>
+                        <td>{{ $tindak->siswa->nama }}</td>
+                        <td>{{ $tindak->pesan->tindak_lanjut }}</td>
+                        <td>
+                            @if ($tindak->pesan->tingkatan == 'Ringan' || $tindak->pesan->tingkatan == 'Sedang')
+                                @if ($tindak->status == 0)
+                                    <form action="/guru/penanganan/{{ $tindak->id }}" method="post">
+                                        @csrf
+                                        <button type="submit" class="btn btn-primary btn-sm">Konfirmasi</button>
+                                    </form>
+                                @else
+                                    <button class="btn btn-secondary btn-sm" disabled>
+                                        Terkonfirmasi - {{ $tindak->created_at->format('d/m/Y') }}
+                                    </button>
+                                @endif
+                            @else
+                                {{-- Jika tingkatan Berat --}}
+                                @if ($tindak->status == 0)
+                                    <a href="#modalCenter{{ $tindak->id }}" role="button"
+                                        class="btn btn-sm btn-info" data-bs-toggle="modal">Belum Terlaksana</a>
+                                @elseif ($tindak->status == 1)
+                                    <form action="/guru/penanganan/{{ $tindak->id }}" method="post">
+                                        @csrf                           
+                                                   
+                                        <button class="btn text-dark btn-warning btn-sm">
+                                            Terkirim Belum Terlaksana
+                                        </button>
+                                    </form>
+                                @elseif ($tindak->status == 2)
+                                    <button class="btn btn-secondary btn-sm" disabled>
+                                        Terkonfirmasi - {{ $tindak->created_at->format('d/m/Y') }}
+                                    </button>
+                                @endif
+                            @endif
+                        </td>
+                    </tr>
+
+                    {{-- Modal untuk pelanggaran berat --}}
+                    @if ($tindak->pesan->tingkatan == 'Berat')
+                    <div id="modalCenter{{ $tindak->id }}" class="modal fade" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-md modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header py-2 bg-info text-white">
+                                    <h5 class="modal-title ps-2">Form Surat Panggilan</h5>
+                                </div>
+                                <div class="modal-body">
+                                    <form action="/guru/penanganan/{{ $tindak->id }}" method="post">
+                                        @csrf
+                                        <div class="form-floating mb-2">
+                                            <input required type="date" name="date"
+                                                class="form-control @error('date') is-invalid @enderror"
+                                                value="{{ old('date') }}">
+                                            <label for="date">Tanggal</label>
+                                            @error('date')
+                                                <div class="invalid-feedback mb-2">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                        <div class="form-floating mb-2">
+                                            <input required type="time" name="time"
+                                                class="form-control @error('time') is-invalid @enderror"
+                                                value="{{ old('time') }}">
+                                            <label for="time">Jam</label>
+                                            @error('time')
+                                                <div class="invalid-feedback mb-2">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                </div>
+                                <div class="modal-footer py-2">
+                                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                                    <button type="submit" class="btn btn-sm btn-primary">Kirim</button>
+                                </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+                @endforeach
+                </tbody>
+
                 </table>
             </div>
 

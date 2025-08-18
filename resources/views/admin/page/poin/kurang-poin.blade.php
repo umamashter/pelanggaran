@@ -1,5 +1,5 @@
 @extends('layouts.main')
-@section('title', 'Pengurangan Poin')
+@section('title', 'Reset Poin')
 @section('content')
 <div class="row d-flex">
     <div class="card col-md-2" style="opacity: 0"></div>
@@ -14,7 +14,7 @@
             <form action="/pelanggaran/kurang/{{ $siswa->id }}" method="post">
                 @csrf
                 @method('put')
-                <label for="poin"> Jumlah Poin yang Dikurangi</label>
+                <label for="poin"> Jumlah poin yang Ingin di reset</label>
                 <input type="number" min=0 name="poin"
                 class="form-control form-input-lg @error('poin') is-invalid @enderror">
                 @error('poin')

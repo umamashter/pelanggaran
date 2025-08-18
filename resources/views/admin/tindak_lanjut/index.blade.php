@@ -5,8 +5,7 @@
 <div class="container mt-4">
     <div class="card shadow">
       <div class="bg-secondary card-header d-flex justify-content-between align-items-center mb-3">
-          <h4 class="fw-bold text-white">Tindak / Sanksi</h4>
-          <button class="btn bg-white" data-bs-toggle="modal" data-bs-target="#modalTambah"><i class="fas fa-gavel"></i> Tambah Tindakan</button>
+          <h4 class="fw-bold text-white">Tindak / Sanksi</h4>          
       </div>
         <div class="card-body">
             <div class="table-responsive">
@@ -26,9 +25,7 @@
                             <td>{{ $item->tindak_lanjut }}</td>
                             <td>{{ $item->tingkatan }}</td>
                             <td>
-                                <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEdit{{ $item->id }}">Edit</button>
-                                <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalHapus{{ $item->id }}">Hapus</button>
-                            </td>
+                                <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEdit{{ $item->id }}">Edit</button>                                
                         </tr>
                         @endforeach
                         @if($data->isEmpty())
@@ -93,11 +90,14 @@
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Tingkatan</label>
-                    <select name="tingkatan" class="form-control" required>
+                    {{-- Select dibuat disable agar tidak bisa dipilih ulang --}}
+                    <select class="form-control" disabled>
                         <option value="Ringan" {{ $item->tingkatan == 'Ringan' ? 'selected' : '' }}>Ringan</option>
                         <option value="Sedang" {{ $item->tingkatan == 'Sedang' ? 'selected' : '' }}>Sedang</option>
                         <option value="Berat" {{ $item->tingkatan == 'Berat' ? 'selected' : '' }}>Berat</option>
                     </select>
+                    {{-- Hidden input untuk mengirim data tingkatan --}}
+                    <input type="hidden" name="tingkatan" value="{{ $item->tingkatan }}">
                 </div>
             </div>
             <div class="modal-footer">
@@ -110,27 +110,7 @@
 @endforeach
 
 <!-- ========== Modal Hapus ========== -->
-@foreach($data as $item)
-<div class="modal fade" id="modalHapus{{ $item->id }}" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <form action="{{ route('tindak-lanjut.destroy', $item->id) }}" method="POST" class="modal-content">
-            @csrf
-            @method('DELETE')
-            <div class="modal-header text-white bg-secondary">
-                <h5 class="modal-title text-white">Konfirmasi Hapus</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
-            </div>
-            <div class="modal-body">
-                <p>Yakin ingin menghapus <strong>{{ $item->tindak_lanjut }}</strong>?</p>
-            </div>
-            <div class="modal-footer">
-                <button type="submit" class="btn btn-danger">Ya, Hapus</button>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-            </div>
-        </form>
-    </div>
-</div>
-@endforeach
+
 @endsection
 
 @push('scripts')

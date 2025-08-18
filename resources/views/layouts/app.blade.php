@@ -70,15 +70,14 @@
             <nav id="navbar" class="navbar order-last order-lg-0 ">
                 <ul>
                     <li><a class="nav-link scrollto animate__animated animate__fadeInDownBig"
-                        style="animation-delay: .5s;" href="#">Beranda</a></li>
+                        style="animation-delay: .5s; color: #dee2e6;" href="#">Beranda</a></li>
                         <li><a class="nav-link scrollto animate__animated animate__fadeInDownBig"
-                            style="animation-delay: .4s;" href="#pelanggaran">Pelanggaran</a></li>
-                            <li><a class="nav-link scrollto animate__animated animate__fadeInDownBig"
-                                style="animation-delay: .3s;" href="#pelanggaran-harian">Cek Pelanggaran</a></li>
+                            style="animation-delay: .4s; color: #dee2e6;" href="#pelanggaran">Pelanggaran</a></li>
+                            
                                 <li><a class="nav-link scrollto animate__animated animate__fadeInDownBig"
-                                    style="animation-delay: .2s;" href="#cek-pelanggaran">Cek Poin</a></li>
+                                    style="animation-delay: .2s; color: #dee2e6;" href="#cek-pelanggaran">Cek Poin</a></li>
                                     <li><a class="nav-link scrollto animate__animated animate__fadeInDownBig"
-                                        style="animation-delay: .1s;" href="#faq">FAQ</a></li>
+                                        style="animation-delay: .1s ; color: #dee2e6;" href="#faq">FAQ</a></li>
                                         
                                     </ul>
                                     <i class="bi bi-list mobile-nav-toggle"></i>
@@ -98,8 +97,13 @@
                         <!-- ======= Hero Section ======= -->
                         <section id="hero" class="d-flex align-items-center">
                             <div class="container text-center">
-                                <h1 class="animate__animated animate__fadeInDown animate__delay-1s"><b>Selamat Datang</b></h1>
-                                <h2 class="animate__animated animate__fadeInDown" style="animation-delay: 0.5s;">Website pencatatan
+                                <div class="text-center mt-3">
+                                    <img src="{{ asset('img/logo1.png') }} " style="width: 100px; height: auto;">
+
+                                    <h4 class="text-white">NURUL ULUM</h4>
+                                </div>
+                                <h1 class="animate__animated animate__fadeInDown animate__delay-1s" style="color: #6c757d;"><b>Selamat Datang</b></h1>
+                                <h2 class="animate__animated animate__fadeInDown" style="animation-delay: 0.5s ; color: #6c757d;" >Website pencatatan
                                 Poin pelanggaran siswa MIS Nurul Ulum Patapan</h2>
                                 <a href="#cek-pelanggaran"
                                 class="btn-get-started scrollto animate__animated animate__pulse fw-bold animate__infinite bg-gradient bg-secondary"
@@ -167,7 +171,7 @@
                                         <div class="icon text-whte"><i class="fa-solid fa-pen-ruler"></i></div>
                                         <h4><a href="" class="text-whte">Sikap Perilaku</a></h4>
                                         <p>Kategori <b>Sikap Prilaku</b> ini memiliki banyak sekali pelanggaran berat dengan rentang
-                                            <b>5-50 poin</b>.
+                                            <b>0-20 poin</b>.
                                         </p>
                                     </div>
                                 </div>
@@ -176,7 +180,7 @@
                                     <div class="icon-box reveal bg-gradient bg-secondary">
                                         <div class="icon"><i class="bx bxs-time-five"></i></div>
                                         <h4><a href="">Kerajinan</a></h4>
-                                        <p>Kategori <b>Kerajinan</b> ini termasuk pelanggaran ringan dan sedang<b>10-20
+                                        <p>Kategori <b>Kerajinan</b> ini termasuk pelanggaran ringan dan sedang<b>5-10
                                         poin</b>, mulai dari Datang Terlambat sampai Tidak mengikuti kegiatan keagamaan</p>
                                     </div>
                                 </div>
@@ -196,74 +200,7 @@
                 </section>
                 <!-- End Services Section -->
 
-                <!-- ======= Departments Section ======= -->
-                <section id="pelanggaran-harian" class="departments section-bg">
-                    <div class="container">
-
-                        <div class="section-title pb-3">
-
-                            <h2 class="reveal">Pelanggaran Tanggal
-                                @if (request('tanggal'))
-                                {{ date('d-m-Y', strtotime(request('tanggal'))) }}
-                                @else
-                                {{ Carbon\Carbon::now()->format('d-m-Y') }}
-                                @endif
-                                {{-- {{ $tanggal }} --}}
-                            </h2>
-                            <p class="texting-mobile reveal" style="display: none;">Fitur ini digunakan untuk menampilkan
-                            semua Histori Pelanggaran Siswa berdasarkan tanggal yang Anda tentukan.</p>
-                            <p class="texting reveal">Fitur ini digunakan untuk menampilkan semua Histori Pelanggaran Siswa
-                                berdasarkan tanggal yang Anda tentukan. Fitur ini akan menampilkan nama Pelanggaran yang
-                            dilakukan dan poinnya.</p>
-                        </div>
-
-                        <div class="row gy-4 reveal">
-                            <div class="d-flex tgl" style="padding: 0 15px; align-items: center;">
-                                <p class="mb-0">Pilih Tanggal : </p>
-                                <form action="/" method="get" id="form_history">
-                                    <input type="date" name="tanggal" id="tanggal" onchange="history()"
-                                    class="form-control ms-1 form-control-sm" style="width: auto;"
-                                    value="{{ request('tanggal') }}">
-                                </form>
-                            </div>
-                            <div class="col-lg-12 table-responsive mt-2 ">
-                                <table class="table table-hover table-stripped " id="tbl_history">
-                                    <thead style="color:#fff; " class="bg-gradient bg-secondary">
-                                        <tr>
-                                            <th>No.</th>
-                                            <th>Nama</th>
-                                            <th>Pelanggaran</th>
-                                            <th>Poin</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody style="border-bottom: #dee2e6;">
-                                        @forelse ($histories as $history)
-                                        <tr>
-                                            <td>{{ ($histories->currentpage() - 1) * $histories->perpage() + $loop->index + 1 }}
-                                            </td>
-                                            <td>{{ $history->siswa->nama }}</td>
-                                            <td>{{ $history->rule->nama }}</td>
-                                            <td>{{ $history->rule->poin }}</td>
-                                        </tr>
-                                        @empty
-                                        <tr>
-                                            <td class="text-center" colspan="4">Tidak ada pelanggaran</td>
-                                        </tr>
-                                        @endforelse
-                                    </tbody>
-                                    <tfoot>
-                                        <tr>
-                                            <td colspan="4">{{ $histories->links() }}</td>
-                                        </tr>
-                                    </tfoot>
-                                </table>
-                            </div>
-                        </div>
-
-                    </div>
-                </section>
-                <!-- End Departments Section -->
-
+                
                 <!-- ======= Appointment Section ======= -->
                 <section id="cek-pelanggaran" class="appointment">
                     <div class="container">
@@ -373,27 +310,27 @@
 
                 <li class="reveal" data-aos-delay="100">
                     <i class="bx bx-help-circle icon-help"></i> <a data-bs-toggle="collapse"
-                    data-bs-target="#faq-list-2" class="collapsed">Berapa total poin pelanggaran siswa
-                    sehingga terancam <b>skorsing?</b> <i class="bx bx-chevron-down icon-show"></i><i
+                    data-bs-target="#faq-list-2" class="collapsed">Apakah setiap pelanggaran mendapatkan 
+                    <b>Sanksi?</b> <i class="bx bx-chevron-down icon-show"></i><i
                     class="bx bx-chevron-up icon-close"></i></a>
                     <div id="faq-list-2" class="collapse" data-bs-parent=".faq-list">
                         <p>
-                            Dalam buku penghubung tata tertib peserta didik tertulis bahwa siswa yang memiliki
-                            total skor 150 akan dilakukan hukuman skorsing.
+                            Tidak semua pelanggaran mendapatkan sanksi, sanksi diberikan jika  
+                            total poin mencapai batas tertentu.
                         </p>
                     </div>
                 </li>
 
                 <li class="reveal" data-aos-delay="200">
                     <i class="bx bx-help-circle icon-help"></i> <a data-bs-toggle="collapse"
-                    data-bs-target="#faq-list-3" class="collapsed">Berapa total poin pelanggaran siswa
-                    sehingga terancam <b>Dikeluarkan dari Sekolah?</b> <i
+                    data-bs-target="#faq-list-3" class="collapsed">Apakah setiap pelanggaran mendapatkan notifikasi
+                    via <b>WhatsApp?</b> <i
                     class="bx bx-chevron-down icon-show"></i><i
                     class="bx bx-chevron-up icon-close"></i></a>
                     <div id="faq-list-3" class="collapse" data-bs-parent=".faq-list">
                         <p>
-                            Dalam buku penghubung tata tertib peserta didik tertulis bahwa siswa yang memiliki
-                            total skor 250 akan dikembalikan ke orangtua atau dikeluarkan dari sekolah.
+                            Tidak, Notifikasi diberikan jika total poin siswa mencapai lebih 49 
+                            dan masuk dalam kategori poin sedang
                         </p>
                     </div>
                 </li>

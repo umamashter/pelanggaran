@@ -39,7 +39,7 @@
                             </td>
                             <td data-label="Posisi">
                                 <a href="#modalCenter{{ $siswa->id }}" role="button" class="clickind btn btn-sm btn-info"
-                                    data-bs-toggle="modal"><i class="fas fa-info"></i></a>
+                                    data-bs-toggle="modal"><i class="fas fa-info"></i></a>                                
                             </td>
                         </tr>
                         {{-- Modal Detail --}}

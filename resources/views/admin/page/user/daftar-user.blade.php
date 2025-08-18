@@ -35,7 +35,7 @@
                     <th>Aksi</th>
                 </thead>
                 <tbody>
-                    @foreach ($users->skip(1) as $user)
+                    @foreach ($users as $user)
                         <tr>
                             <td scope="row">
                                 {{ ($users->currentpage() - 1) * $users->perpage() + $loop->index + 1 }}
@@ -57,13 +57,12 @@
                                 <td class="text-secondary" style="font-weight:500;">Siswa</td>
                             @endif
                             @if ($user->role == 4)
-                                <td class="text-success" style="font-weight:500;">BK</td>
+                                <td class="text-success" style="font-weight:500;"></td>
                             @endif
                             <td>
-                                <button
-                                    class="btn clickind btn-sm btn-warning btn-detail "
-                                    style="" value="{{ $user->id }}"><i
-                                        class="fas fa-pen"></i></button>
+                                <button class="btn clickind btn-sm btn-warning open_modal" value="{{ $user->id }}">
+                                    <i class="fas fa-pen"></i>
+                                </button>
                                 {{-- <form action="/master-user/" method="post" id="form"
                                     class="d-inline">
                                     @csrf --}}

@@ -76,6 +76,10 @@ Route::group(['middleware' => ['auth']], function () {
         Route::get('/guru/histori/{id}', [GuruController::class, 'history_siswa']);
         Route::get('/guru/penanganan', [PenangananController::class, 'guru_index']);
         Route::post('/guru/penanganan/{id}', [PenangananController::class, 'guru_konfirmasi']);
+        
+
+        // Tambah Poin
+        
     });
 
     // Admin
@@ -94,6 +98,8 @@ Route::group(['middleware' => ['auth']], function () {
         Route::post('/master-guru/store', [UserAdminController::class, 'tambah_guru']);
         Route::post('/master-guru/{id}', [UserAdminController::class, 'hapus_guru']);
         Route::put('/master-siswa/{id}', [AdminController::class, 'update_siswa'])->name('siswa.update');
+        Route::get('/master-user', [UserAdminController::class, 'daftar_user'])->name('user.index');
+
 
 
         // Tambah Poin
@@ -143,18 +149,18 @@ Route::group(['middleware' => ['auth']], function () {
 
     });
 
-    // Bk
-    Route::group(['middleware' => ['role:4']], function () {
+    // //
+    // Route::group(['middleware' => ['role:4']], function () {
 
-        // Tambah Poin
-        Route::get('/bk/daftar-siswa', [GuruBkController::class, 'daftar_siswa']);
-        Route::get('/bk/pelanggaran/tambah/{siswa:nisn}', [GuruBkController::class, 'tambah_view']);
-        Route::get('/bk/pelanggaran/kurang/{siswa:nisn}', [GuruBkController::class, 'kurang_view']);
-        Route::put('/bk/pelanggaran/{id}', [GuruBkController::class, 'tambah_poin']);
-        Route::put('/bk/pelanggaran/kurang/{id}', [GuruBkController::class, 'kurang_poin']);
+    //     // Tambah Poin
+    //     Route::get('/bk/daftar-siswa', [GuruBkController::class, 'daftar_siswa']);
+    //     Route::get('/bk/pelanggaran/tambah/{siswa:nisn}', [GuruBkController::class, 'tambah_view']);
+    //     Route::get('/bk/pelanggaran/kurang/{siswa:nisn}', [GuruBkController::class, 'kurang_view']);
+    //     Route::put('/bk/pelanggaran/{id}', [GuruBkController::class, 'tambah_poin']);
+    //     Route::put('/bk/pelanggaran/kurang/{id}', [GuruBkController::class, 'kurang_poin']);
 
-        // Penanganan
-        Route::get('/bk/penanganan', [GuruBkController::class, 'index']);
-        Route::post('/bk/penanganan/{id}', [GuruBkController::class, 'konfirmasi']);
-    });
+    //     // Penanganan
+    //     Route::get('/bk/penanganan', [GuruBkController::class, 'index']);
+    //     Route::post('/bk/penanganan/{id}', [GuruBkController::class, 'konfirmasi']);
+    // });
 });

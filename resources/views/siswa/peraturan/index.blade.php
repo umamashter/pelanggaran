@@ -33,3 +33,8 @@
     </div>
 </div>
 @endsection
+<style>
+    table.dataTable td {
+    white-space: normal !important;
+}
+</style>
