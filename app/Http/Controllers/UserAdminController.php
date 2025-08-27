@@ -28,8 +28,17 @@ class UserAdminController extends Controller
 {
     $user = User::findOrFail($id);
 
+    // 🚨 Logika khusus siswa
+    if ($request->role == 3 && $user->info == 0 && $request->info == 1) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Siswa harus mendaftar sendiri.'
+        ], 422);
+    }
+
+
     $rules = [
-        'name' => 'required|string|max:255',
+        'name' => 'required|string|max:255|regex:/^[a-zA-Z\s]+$/',
         'email' => [
             'required',
             'email',
@@ -55,8 +64,12 @@ class UserAdminController extends Controller
             Rule::unique('users', 'nisn')->ignore($id),
         ];
     }
+    $messages = [
+        'name.regex' => 'Nama lengkap hanya boleh berisi huruf dan spasi.',      
 
-    $validatedData = $request->validate($rules);
+    ];
+    
+    $validatedData = $request->validate($rules, $messages);
 
     $user->update($validatedData);
 
@@ -140,18 +153,36 @@ class UserAdminController extends Controller
     public function store(Request $request)
 {
     $rules = [
-        'name' => 'required|string|max:255',
+        'name' => 'required|string|max:255|regex:/^[a-zA-Z\s\.\-]+$/',
         'email' => 'required|email|unique:users,email',
         'role' => 'required|in:1,2,3',
-        'nisn' => 'nullable|size:10|unique:users,nisn',
+        'nisn' => 'nullable|size:10|unique:users,nisn|regex:/^[0-9]+$/',
     ];
 
     // Jika role == 3 (siswa), maka NISN wajib diisi
     if ($request->role == 3) {
-        $rules['nisn'] = 'required|size:10|unique:users,nisn';
+        $rules['nisn'] = 'required|size:10|unique:users,nisn|regex:/^[0-9]+$/';
     } 
+    $messages = [
+        'name.required' => 'Nama lengkap wajib diisi.',
+        'name.string'   => 'Nama lengkap harus berupa teks.',
+        'name.max'      => 'Nama lengkap maksimal 255 karakter.',
+        'name.regex'    => 'Nama lengkap hanya boleh huruf, spasi, titik, dan tanda hubung.',
 
-    $validated = $request->validate($rules);
+        'email.required' => 'Email wajib diisi.',
+        'email.email'    => 'Format email tidak valid.',
+        'email.unique'   => 'Email sudah digunakan, silakan pilih yang lain.',
+
+        'role.required' => 'Role wajib dipilih.',
+        'role.in'       => 'Role tidak valid.',
+
+        'nisn.required' => 'NISN wajib diisi untuk siswa.',
+        'nisn.size'     => 'NISN harus tepat 10 digit.',
+        'nisn.unique'   => 'NISN sudah terdaftar.',
+        'nisn.regex'    => 'NISN hanya boleh berupa angka.',
+    ];
+
+    $validated = $request->validate($rules, $messages);
 
     User::create([
         'name' => $validated['name'],

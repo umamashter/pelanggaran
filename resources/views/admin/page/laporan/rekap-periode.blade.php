@@ -32,9 +32,9 @@
                     <select name="kelas_id" class="form-select">
                         <option value="">-- Semua Kelas --</option>
                         @foreach(App\Models\Kelas::all() as $kelas)
-                            <option value="{{ $kelas->id }}" {{ request('kelas_id') == $kelas->id ? 'selected' : '' }}>
-                                {{ $kelas->nama_kelas }}
-                            </option>
+                        <option value="{{ $kelas->id }}" {{ request('kelas_id') == $kelas->id ? 'selected' : '' }}>
+                            {{ $kelas->nama_kelas }}
+                        </option>
                         @endforeach
                     </select>
                 </div>
@@ -45,7 +45,7 @@
                 </div>
 
                 <div class="col-12 d-flex flex-wrap gap-2 mt-3">
-                    <button type="submit" class="btn btn-dark">Tampilkan</button>                    
+                    <button type="submit" class="btn btn-dark">Tampilkan</button>
                 </div>
             </form>
         </div>
@@ -56,14 +56,14 @@
     <div class="card">
         <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
             Hasil Laporan
-                <div class="d-flex flex-wrap gap-2 ">                    
-                    @if($histories->count())
-                        <a href="{{ route('laporan.exportPdf', request()->query()) }}" class="btn btn-outline-secondary" style="color: #fff;">
-                            Cetak PDF
-                        </a>
+            <div class="d-flex flex-wrap gap-2 ">
+                @if($histories->count())
+                <a href="{{ route('laporan.exportPdf', request()->query()) }}" class="btn btn-outline-secondary" style="color: #fff;">
+                    Cetak PDF
+                </a>
 
-                    @endif
-                </div>
+                @endif
+            </div>
         </div>
         <div class="card-body table-responsive">
             <table class="table table-striped table-bordered" style="background: #fff; color: #000;">
@@ -77,15 +77,56 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($histories as $history)
-                        <tr>
-                            <td>{{ $history->siswa->nama }}</td>
-                            <td>{{ $history->kelasSnapshot->nama_kelas ?? '-' }}</td>
-                            <td>{{ $history->rule->nama }}</td>
-                            <td class="text-center">{{ $history->rule->poin }}</td>
-                            <td>{{ \Carbon\Carbon::parse($history->tanggal)->format('d M Y') }}</td>
-                        </tr>
+                    @php
+                    $grouped = $histories->groupBy('student_id');
+                    @endphp
+
+                    @foreach ($grouped as $siswaId => $pelanggaranSiswa)
+                    @php
+                    $totalPoin = 0;
+                    $chunkIndex = 1;
+                    @endphp
+
+                    <tr class="table-primary fw-bold text-center">
+                        <td colspan="5">
+                            {{ $pelanggaranSiswa->first()->student->nama }}
+                        </td>
+                    </tr>
+
+                    @foreach ($pelanggaranSiswa as $h)
+                    @php
+                    $totalPoin += $h->rule->poin;
+                    @endphp
+
+                    <tr>
+                        <td>{{ $h->student->nama }}</td>
+                        <td>{{ $h->kelasSnapshot->nama_kelas ?? '-' }}</td>
+                        <td>{{ $h->rule->nama }}</td>
+                        <td class="text-center">{{ $h->rule->poin }}</td>
+                        <td>{{ \Carbon\Carbon::parse($h->tanggal)->format('d M Y') }}</td>
+                    </tr>
+
+                    {{-- Jika total poin sudah melewati kelipatan 100 --}}
+                    @if ($totalPoin >= $chunkIndex * 100)
+                    <tr class="table-danger fw-bold text-center">
+                        <td colspan="5">
+                            ⚠️ Pemanggilan Orang Tua Tahap {{ $chunkIndex }} — Total Mencapai {{ $chunkIndex * 100 }} Poin
+                        </td>
+                    </tr>
+                    @php
+                    $chunkIndex++;
+                    @endphp
+                    @endif
                     @endforeach
+
+                    {{-- Tampilkan total akhir siswa --}}
+                    <tr class="table-secondary fw-bold">
+                        <td colspan="3" class="text-end">Total Poin {{ $pelanggaranSiswa->first()->student->nama }}</td>
+                        <td class="text-center">{{ $pelanggaranSiswa->sum(fn($h) => $h->rule->poin) }}</td>
+                        <td></td>
+                    </tr>
+                    @endforeach
+
                 </tbody>
             </table>
         </div>

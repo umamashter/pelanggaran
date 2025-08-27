@@ -1,8 +1,30 @@
+<style>
+    .text-logo {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+.text-logo .main-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #fff;
+}
+
+.text-logo .sub-title {
+    font-size: 13px;
+    font-weight: normal;
+    color: #ccc; /* abu-abu agar tidak menyaingi judul */
+    margin-top: 2px; /* beri jarak */
+}
+
+</style>
 <div class="l-sidebar">
     <div class="logo">
         <img src="../img/smkn1.png" width="35" class="animate__animated animate__fadeInDown">
         <div class="text-logo animate__animated animate__fadeInLeft" style="animation-delay: 1s">
-            <span>E - Book</span>
+            <span>E - Poin</span>
+             <div class="sub-title">Nurul Ulum Patapan</div>
         </div>
     </div>
 

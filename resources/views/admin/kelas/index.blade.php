@@ -55,6 +55,9 @@
                                     <form action="{{ route('kelas.update', $k->id) }}" method="POST">
                                         @csrf
                                         @method('PUT')
+                                        {{-- Hidden ID untuk bantu buka modal ketika validasi error --}}
+                                        <input type="hidden" name="id" value="{{ $k->id }}">
+                                        
                                         <div class="modal-header bg-secondary">
                                             <h5 class="modal-title text-white">Edit Kelas</h5>
                                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -62,8 +65,14 @@
                                         <div class="modal-body">
                                             <div class="form-group">
                                                 <label for="nama_kelas">Nama Kelas</label>
-                                                <input type="text" class="form-control" name="nama_kelas"
-                                                    value="{{ $k->nama_kelas }}" required>
+                                                <input type="text" 
+                                                    class="form-control @error('nama_kelas') is-invalid @enderror" 
+                                                    name="nama_kelas"
+                                                    value="{{ old('id') == $k->id ? old('nama_kelas') : $k->nama_kelas }}" 
+                                                    required>
+                                                @error('nama_kelas')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
                                             </div>
                                         </div>
                                         <div class="modal-footer">
@@ -95,9 +104,14 @@
                 <div class="modal-body">
                     <div class="form-group">
                         <label for="nama_kelas">Nama Kelas</label>
-                        <input type="text" class="form-control" name="nama_kelas"
-                            placeholder="Masukkan nama kelas" required
-                            value="{{ old('nama_kelas') }}">
+                        <input type="text" 
+                               class="form-control @error('nama_kelas') is-invalid @enderror" 
+                               name="nama_kelas"
+                               placeholder="Masukkan nama kelas" required
+                               value="{{ old('nama_kelas') }}">
+                        @error('nama_kelas')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -125,6 +139,17 @@
                 infoFiltered: "(difilter dari _MAX_ total data)"
             }
         });
+    });
+
+    document.addEventListener("DOMContentLoaded", function () {
+        let oldId = "{{ old('id') }}";
+        if (oldId) {
+            let modal = new bootstrap.Modal(document.getElementById("modalEdit" + oldId));
+            modal.show();
+        } else if ("{{ $errors->any() ? 'true' : '' }}" === "true") {
+            let modal = new bootstrap.Modal(document.getElementById("modalTambah"));
+            modal.show();
+        }
     });
 </script>
 @endpush

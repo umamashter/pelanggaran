@@ -26,7 +26,7 @@ aria-hidden="true">
                 </div>
 
                 <div class="form-floating mb-2 mt-1">
-                    <select class="form-select" id="role" name="role" required>
+                    <select class="form-select" id="role" name="role" disabled>
                         <option selected value="" disabled>Pilih Role</option>
                         <option value="1">Admin</option>
                         <option value="2">Guru</option>
@@ -106,4 +106,11 @@ $('#myModal').on('shown.bs.modal', function () {
         color: #ff3b3b;
         font-size: 15px;
     }
+    #role[disabled] {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: none !important;
+    pointer-events: none; /* biar tidak bisa diklik */
+}
 </style>

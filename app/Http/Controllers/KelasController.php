@@ -29,12 +29,19 @@ class KelasController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'nama_kelas' => 'required|string|unique:kelas,nama_kelas',
-        ], [
-            'nama_kelas.required' => 'Nama kelas wajib diisi.',
-            'nama_kelas.unique' => 'Nama kelas sudah terdaftar, silakan gunakan nama lain.',
-        ]);
+$request->validate([
+        'nama_kelas' => [
+            'required',
+            'string',
+            'unique:kelas,nama_kelas',
+            'regex:/^[^0-9]*$/', // tidak boleh ada angka
+        ],
+    ], [
+        'nama_kelas.required' => 'Nama kelas wajib diisi.',
+        'nama_kelas.unique' => 'Nama kelas sudah terdaftar.',
+        'nama_kelas.regex' => 'Nama kelas harus angka romawi.',
+    ]);
+
 
         Kelas::create([
             'nama_kelas' => $request->nama_kelas,
@@ -58,11 +65,16 @@ class KelasController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'nama_kelas' => 'required|unique:kelas,nama_kelas,' . $id,
-        ], [
-            'nama_kelas.required' => 'Nama kelas wajib diisi.',
-            'nama_kelas.unique' => 'Nama kelas sudah digunakan, silakan pilih nama lain.',
-        ]);
+        'nama_kelas' => [
+            'required',
+            'unique:kelas,nama_kelas,' . $id,
+            'regex:/^[^0-9]*$/', // tidak boleh ada angka
+        ],
+    ], [
+        'nama_kelas.required' => 'Nama kelas wajib diisi.',
+        'nama_kelas.unique' => 'Nama kelas sudah digunakan.',
+        'nama_kelas.regex' => 'Nama kelas harus angka romawi.',
+    ]);
 
         $kelas = Kelas::findOrFail($id);
         $kelas->update([

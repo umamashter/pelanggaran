@@ -21,9 +21,24 @@ class DataSiswaMiddleware
     {
         $user = Auth::user();
         $kelas = Kelas::all();
-        if ($user->info == false) {
-            return response()->view('form-datasiswa', compact('kelas'));
-        }
+        // Role 3 (siswa) → wajib isi data siswa
+    if ($user->role == 3 && $user->info == false) {
+        return response()->view('form-datasiswa', compact('kelas'));
+    }
+
+    // Role 2 (guru wali kelas) → wajib punya kelas_id
+    if ($user->role == 2 && (!$user->waliKelas || $user->waliKelas->kelas_id == null)) {
+        Auth::logout();
+        return redirect()->route('login')
+                         ->with('error', 'Akses ditolak! Guru wali kelas belum memiliki kelas yang ditugaskan.');
+    }
+    
+    // Role 1 (admin) dan Role 2 (guru wali kelas) → info wajib true
+    if ($user->role != 3 && $user->info == false) {
+        Auth::logout();
+        return redirect()->route('login')
+                         ->with('error', 'Akun Anda belum valid. Hubungi administrator.');
+    }
         return $next($request);
     }
 }

@@ -1,8 +1,30 @@
+<style>
+    .text-logo {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+
+.text-logo .main-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #fff;
+}
+
+.text-logo .sub-title {
+    font-size: 13px;
+    font-weight: normal;
+    color: #ccc; /* abu-abu agar tidak menyaingi judul */
+    margin-top: 2px; /* beri jarak */
+}
+
+</style>
 <div class="l-sidebar">
     <div class="logo">
         <img src="../img/smkn1.png" width="35" class="animate__animated animate__fadeInDown">
         <div class="text-logo animate__animated animate__fadeInLeft" style="animation-delay: 1s">
-            <span>E - Book</span>
+            <span>E - Poin</span>
+            <div class="sub-title">Nurul Ulum Patapan</div>
         </div>
     </div>
 
@@ -22,14 +44,14 @@
                     </a>
                 </li>
 
-                <li class="c-menu__item {{ request()->is('master-siswa*', 'pelanggaran*') ? 'is-active' : '' }} has-submenu"
-                    data-toggle="tooltip" title="Master Siswa">
-                    <a class="c-menu__item__inner" href="/master-siswa">
+                <li class="c-menu__item {{ request()->is('master-user*') ? 'is-active' : '' }} has-submenu"
+                    data-toggle="tooltip" title="Master User">
+                    <a class="c-menu__item__inner" href="/master-user">
                         <div class="ic animate__backInLeft animate__animated">
-                            <i class="fas fa-user-graduate"></i>
+                            <i class="fas fa-users"></i>
                         </div>
                         <div class="c-menu-item__title animate__backInLeft animate__animated">
-                            <span>Master Siswa</span>
+                            <span>Master User</span>
                         </div>
                     </a>
                 </li>
@@ -46,17 +68,19 @@
                     </a>
                 </li>
 
-                <li class="c-menu__item {{ request()->is('master-user*') ? 'is-active' : '' }} has-submenu"
-                    data-toggle="tooltip" title="Master User">
-                    <a class="c-menu__item__inner" href="/master-user">
+                <li class="c-menu__item {{ request()->is('master-siswa*', 'pelanggaran*') ? 'is-active' : '' }} has-submenu"
+                    data-toggle="tooltip" title="Master Siswa">
+                    <a class="c-menu__item__inner" href="/master-siswa">
                         <div class="ic animate__backInLeft animate__animated">
-                            <i class="fas fa-users"></i>
+                            <i class="fas fa-user-graduate"></i>
                         </div>
                         <div class="c-menu-item__title animate__backInLeft animate__animated">
-                            <span>Master User</span>
+                            <span>Master Siswa</span>
                         </div>
                     </a>
                 </li>
+
+                             
                 <li class="c-menu__item {{ request()->is('kelas*') ? 'is-active' : '' }} has-submenu"
                     data-toggle="tooltip" title="Kelas">
                     <a class="c-menu__item__inner" href="{{ route('kelas.index') }}">

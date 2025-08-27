@@ -4,10 +4,14 @@
 @section('content')
 <div class="container mt-4">
     <div class="card shadow">
-      <div class="bg-secondary card-header d-flex justify-content-between align-items-center mb-3">
-          <h4 class="fw-bold text-white">Tindak / Sanksi</h4>          
-      </div>
+        <div class="bg-secondary card-header d-flex justify-content-between align-items-center mb-3">
+            <h4 class="fw-bold text-white">Tindak / Sanksi</h4>
+        </div>
         <div class="card-body">
+            @if(session('success'))
+                <div class="alert alert-success">{{ session('success') }}</div>
+            @endif
+
             <div class="table-responsive">
                 <table id="datatable" class="table table-bordered table-striped align-middle">
                     <thead class="table-dark">
@@ -19,20 +23,20 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($data as $index => $item)
+                        @forelse($data as $index => $item)
                         <tr>
                             <td>{{ $index + 1 }}</td>
                             <td>{{ $item->tindak_lanjut }}</td>
                             <td>{{ $item->tingkatan }}</td>
                             <td>
-                                <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEdit{{ $item->id }}">Edit</button>                                
+                                <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEdit{{ $item->id }}">Edit</button>
+                            </td>
                         </tr>
-                        @endforeach
-                        @if($data->isEmpty())
+                        @empty
                         <tr>
                             <td colspan="4" class="text-center">Tidak ada data.</td>
                         </tr>
-                        @endif
+                        @endforelse
                     </tbody>
                 </table>
             </div>
@@ -40,7 +44,7 @@
     </div>
 </div>
 
-<!-- ========== Modal Tambah ========== -->
+<!-- Modal Tambah -->
 <div class="modal fade" id="modalTambah" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <form action="{{ route('tindak-lanjut.store') }}" method="POST" class="modal-content">
@@ -52,16 +56,22 @@
             <div class="modal-body">
                 <div class="mb-3">
                     <label class="form-label">Tindak Lanjut</label>
-                    <input type="text" name="tindak_lanjut" class="form-control" required>
+                    <input type="text" name="tindak_lanjut" class="form-control @error('tindak_lanjut') is-invalid @enderror" required value="{{ old('tindak_lanjut') }}">
+                    @error('tindak_lanjut')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Tingkatan</label>
-                    <select name="tingkatan" class="form-control" required>
+                    <select name="tingkatan" class="form-control @error('tingkatan') is-invalid @enderror" required>
                         <option value="">-- Pilih Tingkatan --</option>
-                        <option value="Ringan">Ringan</option>
-                        <option value="Sedang">Sedang</option>
-                        <option value="Berat">Berat</option>
+                        <option value="Ringan" {{ old('tingkatan')=='Ringan'?'selected':'' }}>Ringan</option>
+                        <option value="Sedang" {{ old('tingkatan')=='Sedang'?'selected':'' }}>Sedang</option>
+                        <option value="Berat" {{ old('tingkatan')=='Berat'?'selected':'' }}>Berat</option>
                     </select>
+                    @error('tingkatan')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
             </div>
             <div class="modal-footer">
@@ -72,7 +82,7 @@
     </div>
 </div>
 
-<!-- ========== Modal Edit ========== -->
+<!-- Modal Edit -->
 @foreach($data as $item)
 <div class="modal fade" id="modalEdit{{ $item->id }}" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
@@ -86,18 +96,20 @@
             <div class="modal-body">
                 <div class="mb-3">
                     <label class="form-label">Tindak Lanjut</label>
-                    <input type="text" name="tindak_lanjut" class="form-control" value="{{ $item->tindak_lanjut }}" required>
+                    <input type="text" name="tindak_lanjut" class="form-control @error('tindak_lanjut') is-invalid @enderror" required value="{{ old('tindak_lanjut', $item->tindak_lanjut) }}">
+                    @error('tindak_lanjut')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Tingkatan</label>
-                    {{-- Select dibuat disable agar tidak bisa dipilih ulang --}}
                     <select class="form-control" disabled>
                         <option value="Ringan" {{ $item->tingkatan == 'Ringan' ? 'selected' : '' }}>Ringan</option>
                         <option value="Sedang" {{ $item->tingkatan == 'Sedang' ? 'selected' : '' }}>Sedang</option>
                         <option value="Berat" {{ $item->tingkatan == 'Berat' ? 'selected' : '' }}>Berat</option>
                     </select>
-                    {{-- Hidden input untuk mengirim data tingkatan --}}
                     <input type="hidden" name="tingkatan" value="{{ $item->tingkatan }}">
+                    <input type="hidden" name="id" value="{{ $item->id }}">
                 </div>
             </div>
             <div class="modal-footer">
@@ -109,27 +121,39 @@
 </div>
 @endforeach
 
-<!-- ========== Modal Hapus ========== -->
-
 @endsection
 
 @push('scripts')
-<!-- DataTables -->
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script>
-    $(document).ready(function() {
-        $('#datatable').DataTable({
-            "language": {
-                "search": "Cari:",
-                "lengthMenu": "Tampilkan _MENU_ entri",
-                "zeroRecords": "Data tidak ditemukan",
-                "info": "Menampilkan _START_ - _END_ dari _TOTAL_ data",
-                "infoEmpty": "Tidak ada data tersedia",
-                "infoFiltered": "(difilter dari total _MAX_ data)"
-            }
-        });
+$(document).ready(function() {
+    $('#datatable').DataTable({
+        "language": {
+            "search": "Cari:",
+            "lengthMenu": "Tampilkan _MENU_ entri",
+            "zeroRecords": "Data tidak ditemukan",
+            "info": "Menampilkan _START_ - _END_ dari _TOTAL_ data",
+            "infoEmpty": "Tidak ada data tersedia",
+            "infoFiltered": "(difilter dari total _MAX_ data)"
+        }
     });
+});
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    let oldId = "{{ old('id') ?? '' }}";
+    let oldTindak = "{{ old('tindak_lanjut') ?? '' }}";
+
+    if (oldId) {
+        let modalEdit = document.getElementById('modalEdit' + oldId);
+        if(modalEdit) new bootstrap.Modal(modalEdit).show();
+    } else if (oldTindak) {
+        let modalTambah = document.getElementById('modalTambah');
+        if(modalTambah) new bootstrap.Modal(modalTambah).show();
+    }
+});
 </script>
 @endpush

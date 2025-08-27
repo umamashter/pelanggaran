@@ -43,11 +43,22 @@ class TindakLanjutController extends Controller
 
     public function update(Request $request, $id)
     {
-        // Validasi
-        $request->validate([
-            'tindak_lanjut' => 'required|string|max:255',
-            'tingkatan' => 'required|in:Ringan,Sedang,Berat',
-        ]);
+// Validasi
+    $request->validate([
+        'tindak_lanjut' => [
+            'required',
+            'string',
+            'max:255',
+            'regex:/^[^0-9]*$/', // tidak boleh ada angka
+        ],
+        'tingkatan' => 'required|in:Ringan,Sedang,Berat',
+    ], [
+        'tindak_lanjut.required' => 'Tindak lanjut wajib diisi.',
+        'tindak_lanjut.regex' => 'Tindak lanjut tidak boleh mengandung angka.',
+        'tindak_lanjut.max' => 'Tindak lanjut maksimal 255 karakter.',
+        'tingkatan.required' => 'Tingkatan wajib diisi.',
+        'tingkatan.in' => 'Tingkatan harus Ringan, Sedang, atau Berat.',
+    ]);
 
         // Update
         $tindakLanjut = TindakLanjut::findOrFail($id);
