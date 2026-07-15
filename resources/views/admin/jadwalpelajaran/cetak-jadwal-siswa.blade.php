@@ -28,7 +28,7 @@
         html, body {
             height: 100%;
             font-family: 'Times New Roman', Times, serif;
-            font-size: 9px;
+            font-size: 10px !important;
             line-height: 1.2;
             color: #000;
         }
@@ -59,6 +59,10 @@
             font-weight: bold;
             text-align: center;
             margin-bottom: 3px;
+        }
+
+        small {
+            font-size: 10px !important;
         }
 
         .bagian-label {
@@ -103,25 +107,25 @@
             text-align: center;
             vertical-align: middle;
             padding: 2px 1px;
-            font-size: 10px;
+            font-size: 10px !important;
         }
 
         table.utama td {
             padding: 1px;
             vertical-align: middle;
             text-align: center;
-            font-size: 10px;
+            font-size: 10px !important;
         }
 
         .cell-mapel {
             font-weight: 600;
-            font-size: 10px;
+            font-size: 12px !important;
             line-height: 1.2;
         }
 
         .cell-hari {
             font-weight: 600;
-            font-size: 10px;
+            font-size: 10px !important;
             text-transform: uppercase;
             text-align: center;
             vertical-align: middle;
@@ -129,7 +133,7 @@
         }
 
         .cell-guru {
-            font-size: 10px;
+            font-size: 10px !important;
             font-weight: bold;
             color: #333;
             text-align: center;
@@ -137,19 +141,29 @@
             padding: 1px 0 !important;
         }
 
+        .cell-jam {
+            font-size: 10px !important;
+            font-weight: bold;
+        }
+
+        .cell-waktu {
+            font-size: 10px !important;
+            font-weight: bold;
+        }
+
         .th-mapel {
-            font-size: 10px;
+            font-size: 10px !important;
         }
 
         .th-kd {
-            font-size: 10px;
+            font-size: 10px !important;
             white-space: nowrap;
         }
 
         .row-istirahat td {
             background: #f0f0f0 !important;
             font-weight: bold;
-            font-size: 10px;
+            font-size: 10px !important;
             letter-spacing: 2px;
         }
 
@@ -250,15 +264,12 @@
                 <div class="header-title">JADWAL MATA PELAJARAN</div>
                 <div class="header-sub"><strong>{{ $jenjangLabel }}</strong> NURUL ULUM PATAPAN GULUK GULUK SUMENEP</div>
                 <div class="header-tahun">TAHUN PELAJARAN {{ $tahunAjaran->tahun_ajaran }}</div>
-                @if($chunks->count() > 1)
-                <div class="bagian-label">Bagian {{ $chunkIdx + 1 }} dari {{ $chunks->count() }}</div>
-                @endif
 
                 <table class="utama">
                     <colgroup>
                         <col style="width:9%">
                         <col style="width:3%">
-                        <col style="width:7%">
+                        <col style="width:12%">
                         @foreach($chunkKelas as $kelas)
                         <col>
                         <col style="width:40px">
@@ -295,8 +306,8 @@
                             @if($idx == 0)
                             <td rowspan="{{ count($jamSlot) + 1 }}" class="cell-hari">{{ $hari }}</td>
                             @endif
-                            <td class="fw-bold">{{ $jamKe }}</td>
-                            <td class="nowrap">{{ $jamSlot[$jamKe]['mulai'] }} - {{ $jamSlot[$jamKe]['selesai'] }}</td>
+                            <td class="cell-jam fw-bold">{{ $jamKe }}</td>
+                            <td class="cell-waktu nowrap">{{ $jamSlot[$jamKe]['mulai'] }} - {{ $jamSlot[$jamKe]['selesai'] }}</td>
                             @foreach($chunkKelas as $kelas)
                             @php
                             $cell = $matrix[$hari][$jamKe][$kelas->id] ?? null;
