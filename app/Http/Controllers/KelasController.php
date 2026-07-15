@@ -3,95 +3,189 @@
 namespace App\Http\Controllers;
 
 use App\Models\Kelas;
+use App\Models\Jenjang;
 use Illuminate\Http\Request;
 
 class KelasController extends Controller
 {
     /**
-     * Tampilkan daftar kelas.
+     * Daftar kelas
      */
     public function index()
     {
-        $kelas = Kelas::all();
-        return view('admin.kelas.index', compact('kelas'));
+        $kelas = Kelas::with([
+            'jenjang',
+            'waliKelas.guru',
+            'siswaAktif'
+        ])
+            ->orderBy('tingkat')
+            ->orderBy('nama_kelas')
+            ->get();
+
+        $jenjangs = Jenjang::all();
+
+        return view(
+            'admin.kelas.index',
+            compact(
+                'kelas',
+                'jenjangs'
+            )
+        );
     }
 
+
     /**
-     * Tampilkan form tambah kelas.
+     * Form tambah kelas
      */
     public function create()
     {
-        return view('admin.kelas.create');
+        $jenjangs = Jenjang::all();
+
+        return view(
+            'admin.kelas.create',
+            compact('jenjangs')
+        );
     }
 
     /**
-     * Simpan kelas baru.
+     * Simpan kelas
      */
     public function store(Request $request)
     {
-$request->validate([
-        'nama_kelas' => [
-            'required',
-            'string',
-            'unique:kelas,nama_kelas',
-            'regex:/^[^0-9]*$/', // tidak boleh ada angka
-        ],
-    ], [
-        'nama_kelas.required' => 'Nama kelas wajib diisi.',
-        'nama_kelas.unique' => 'Nama kelas sudah terdaftar.',
-        'nama_kelas.regex' => 'Nama kelas harus angka romawi.',
-    ]);
-
-
-        Kelas::create([
-            'nama_kelas' => $request->nama_kelas,
+        $request->validate([
+            'jenjang_id' => 'required|exists:jenjangs,id',
+            'tingkat' => 'required|integer',
+            'nama_kelas' => 'required|max:10',
         ]);
 
-        return redirect()->route('kelas.index')->with('success', 'Kelas berhasil ditambahkan.');
+        $jenjang = Jenjang::findOrFail($request->jenjang_id);
+
+        $request->validate([
+            'tingkat' => 'integer|min:' . $jenjang->tingkat_awal . '|max:' . $jenjang->tingkat_akhir,
+        ]);
+
+        $cek = Kelas::where('jenjang_id', $request->jenjang_id)
+            ->where('tingkat', $request->tingkat)
+            ->exists();
+
+        if ($cek) {
+            return back()
+                ->withInput()
+                ->with(
+                    'error',
+                    'Kelas sudah terdaftar.'
+                );
+        }
+
+        Kelas::create([
+            'jenjang_id' => $request->jenjang_id,
+            'tingkat' => $request->tingkat,
+            'nama_kelas' => strtoupper($request->nama_kelas),
+        ]);
+
+        return redirect()
+            ->route('kelas.index')
+            ->with(
+                'success',
+                'Kelas berhasil ditambahkan.'
+            );
     }
 
     /**
-     * Tampilkan form edit kelas.
+     * Form edit kelas
      */
     public function edit($id)
     {
         $kelas = Kelas::findOrFail($id);
-        return view('admin.kelas.edit', compact('kelas'));
+        $jenjangs = Jenjang::all();
+
+        return view(
+            'admin.kelas.edit',
+            compact(
+                'kelas',
+                'jenjangs'
+            )
+        );
     }
 
     /**
-     * Update data kelas.
+     * Update kelas
      */
     public function update(Request $request, $id)
     {
         $request->validate([
-        'nama_kelas' => [
-            'required',
-            'unique:kelas,nama_kelas,' . $id,
-            'regex:/^[^0-9]*$/', // tidak boleh ada angka
-        ],
-    ], [
-        'nama_kelas.required' => 'Nama kelas wajib diisi.',
-        'nama_kelas.unique' => 'Nama kelas sudah digunakan.',
-        'nama_kelas.regex' => 'Nama kelas harus angka romawi.',
-    ]);
-
-        $kelas = Kelas::findOrFail($id);
-        $kelas->update([
-            'nama_kelas' => $request->nama_kelas,
+            'jenjang_id' => 'required|exists:jenjangs,id',
+            'tingkat' => 'required|integer',
+            'nama_kelas' => 'required|max:10',
         ]);
 
-        return redirect()->route('kelas.index')->with('success', 'Kelas berhasil diperbarui.');
+        $jenjang = Jenjang::findOrFail($request->jenjang_id);
+
+        $request->validate([
+            'tingkat' => 'integer|min:' . $jenjang->tingkat_awal . '|max:' . $jenjang->tingkat_akhir,
+        ]);
+
+        $kelas = Kelas::findOrFail($id);
+
+        $cek = Kelas::where('jenjang_id', $request->jenjang_id)
+            ->where('tingkat', $request->tingkat)
+            ->where('id', '!=', $id)
+            ->exists();
+
+        if ($cek) {
+            return back()
+                ->withInput()
+                ->with(
+                    'error',
+                    'Kelas sudah terdaftar.'
+                );
+        }
+
+        $kelas->update([
+            'jenjang_id' => $request->jenjang_id,
+            'tingkat' => $request->tingkat,
+            'nama_kelas' => strtoupper($request->nama_kelas),
+        ]);
+
+        return redirect()
+            ->route('kelas.index')
+            ->with(
+                'success',
+                'Kelas berhasil diperbarui.'
+            );
     }
 
     /**
-     * Hapus kelas.
+     * Hapus kelas
      */
     public function destroy($id)
     {
         $kelas = Kelas::findOrFail($id);
+
+        if ($kelas->anggota()->count() > 0) {
+            return back()->with(
+                'error',
+                'Kelas tidak dapat dihapus karena masih memiliki siswa.'
+            );
+        }
+
         $kelas->delete();
 
-        return redirect()->route('kelas.index')->with('success', 'Kelas berhasil dihapus.');
+        return redirect()
+            ->route('kelas.index')
+            ->with(
+                'success',
+                'Kelas berhasil dihapus.'
+            );
+    }
+    public function show($id)
+    {
+        $kelas = Kelas::with([
+            'jenjang',
+            'waliKelas.guru',
+            'siswaAktif.student'
+        ])->findOrFail($id);
+
+        return view('admin.kelas.show', compact('kelas'));
     }
 }

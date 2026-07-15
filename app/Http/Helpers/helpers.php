@@ -59,3 +59,20 @@ function tambah_nol_didepan($value, $threshold = null)
 {
     return sprintf("%0". $threshold . "s", $value);
 }
+
+function angka_romawi($angka)
+{
+    $romawi = [
+        1000 => 'M', 900 => 'CM', 500 => 'D', 400 => 'CD',
+        100 => 'C', 90 => 'XC', 50 => 'L', 40 => 'XL',
+        10 => 'X', 9 => 'IX', 5 => 'V', 4 => 'IV', 1 => 'I'
+    ];
+    $hasil = '';
+    foreach ($romawi as $nilai => $simbol) {
+        while ($angka >= $nilai) {
+            $hasil .= $simbol;
+            $angka -= $nilai;
+        }
+    }
+    return $hasil;
+}

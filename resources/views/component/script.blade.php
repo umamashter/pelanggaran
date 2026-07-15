@@ -14,6 +14,7 @@
 <script type="text/javascript" charset="utf8"
     src="https://cdn.datatables.net/responsive/2.3.0/js/dataTables.responsive.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.0/sweetalert.min.js"></script>
+<script src="../js/sweetalert-custom.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.js"></script>
 @stack('scripts')
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
@@ -23,3 +24,48 @@
 
 <!-- Our JS -->
 <script src="../js/nav-side-bar.js"></script>
+
+<!-- Dark/Light Mode Toggle -->
+<script>
+(function() {
+    var html = document.documentElement;
+    var key = 'theme-preference';
+
+    function getPref() { return localStorage.getItem(key); }
+    function setPref(v) { localStorage.setItem(key, v); }
+
+    function applyTheme(theme) {
+        if (theme === 'dark') {
+            html.classList.add('dark-mode');
+        } else {
+            html.classList.remove('dark-mode');
+        }
+        var icons = document.querySelectorAll('.theme-toggle i');
+        for (var i = 0; i < icons.length; i++) {
+            icons[i].className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+        }
+    }
+
+    // Restore preference
+    var saved = getPref();
+    if (saved === 'dark') {
+        applyTheme('dark');
+    } else if (saved === 'light') {
+        applyTheme('light');
+    } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        applyTheme('dark');
+        setPref('dark');
+    }
+
+    // Toggle on click
+    document.addEventListener('click', function(e) {
+        var toggle = e.target.closest('.theme-toggle');
+        if (!toggle) return;
+        e.preventDefault();
+        var isDark = html.classList.contains('dark-mode');
+        var next = isDark ? 'light' : 'dark';
+        applyTheme(next);
+        setPref(next);
+    });
+})();
+</script>

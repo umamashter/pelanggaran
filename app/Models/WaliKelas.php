@@ -2,20 +2,26 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class WaliKelas extends Model
 {
+    protected $table = 'wali_kelas';
+
     protected $guarded = ['id'];
+
+    public function guru()
+    {
+        return $this->belongsTo(Guru::class);
+    }
 
     public function kelas()
     {
         return $this->belongsTo(Kelas::class);
     }
 
-    public function user()
+    public function tahunAjaran()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(TahunAjaran::class);
     }
 }

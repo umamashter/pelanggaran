@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
@@ -20,14 +21,16 @@ class LoginController extends Controller
     public function __construct()
     {
         $this->middleware('guest')->except('logout');
-        $this->nisn = $this->findNisn();
+        $this->nisn = $this->findUsername();
     }
 
-    public function findNisn()
+    public function findUsername()
     {
-        $login = request()->input('nisn');
+        $login = request()->input('username');
 
-        $fieldType = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'nisn';
+        $fieldType = filter_var($login, FILTER_VALIDATE_EMAIL)
+            ? 'email'
+            : 'username';
 
         request()->merge([$fieldType => $login]);
 
@@ -36,7 +39,7 @@ class LoginController extends Controller
 
     public function username()
     {
-        return $this->nisn;
+        return 'username';
     }
 
     public function login_view()
@@ -47,24 +50,43 @@ class LoginController extends Controller
     public function login(Request $request)
     {
         $this->validate($request, [
-            'nisn' => 'required|max:50',
+            'username' => 'required|max:50',
             'password' => 'required|max:100'
         ]);
 
-        $login_type = filter_var($request->input('nisn'), FILTER_VALIDATE_EMAIL)
+        $login_type = filter_var($request->username, FILTER_VALIDATE_EMAIL)
             ? 'email'
-            : 'nisn';
+            : 'username';
 
-        $request->merge([
-            $login_type => $request->input('nisn')
-        ]);
-        $remember = $request->has('remember') ? true : false;
+        $credentials = [
+            $login_type => $request->username,
+            'password' => $request->password,
+        ];
 
-        if (Auth::attempt($request->only($login_type, 'password'), $remember)) {
-            return redirect()->intended('/home')->with('toast_info', 'Welcome Back ' . auth()->user()->name . '!');
+        if (Auth::attempt($credentials, $request->filled('remember'))) {
+            $user = Auth::user();
+
+            if ($user->google2fa_secret) {
+                $remember = $request->filled('remember');
+                Auth::logout();
+
+                session()->put('2fa:user_id', $user->id);
+                session()->put('2fa:remember', $remember);
+
+                Log::info('Login (2FA)', ['user' => $user->email, 'ip' => $request->ip()]);
+
+                return redirect()->route('2fa.challenge');
+            }
+
+            Log::info('Login success', ['user' => $user->email, 'ip' => $request->ip()]);
+
+            return redirect()->intended('/home')
+                ->with('toast_info', 'Welcome Back ' . $user->name . '!');
         }
 
-        return back()->with('error', 'Login gagal!');
+        Log::warning('Login failed', ['username' => $request->username, 'ip' => $request->ip()]);
+
+        return redirect()->back()->withInput()->with('error', 'Username atau password salah.');
     }
 
     public function logout(Request $request)

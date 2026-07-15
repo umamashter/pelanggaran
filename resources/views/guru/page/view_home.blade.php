@@ -58,7 +58,7 @@
                 @foreach ($penanganan as $msg)
                     <div class="list-group my-2 px-2">
                         <div class="border-hover list-group-item list-group-item-action flex-column align-items-start py-0 px-3"
-                            style="background-color: #ffd8ab84; border-radius: 6px;">
+                            style="background-color: rgba(19, 143, 91, 0.10); border-radius: 6px;">
                             <div class="d-flex w-100 mt-1 mb-1 align-items-center"
                                 style="justify-content: space-between; flex-wrap: wrap;">
                                 <a href="/guru/penanganan" class="linkind">

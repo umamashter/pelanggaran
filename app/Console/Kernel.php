@@ -15,7 +15,9 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
+        // Fase 7 — Retention policy: prune audit keamanan harian
+        $schedule->command('security:prune')->dailyAt('03:00')
+            ->appendOutputTo(storage_path('logs/prune-security.log'));
     }
 
     /**

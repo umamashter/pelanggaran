@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\History;
 use App\Models\Student;
 use App\Models\WaliKelas;
+use App\Events\PasswordChanged;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -88,6 +89,8 @@ class GuruController extends Controller
         User::whereId(auth()->user()->id)->update([
             'password' => Hash::make($request->new_password)
         ]);
+
+        event(new PasswordChanged(auth()->user()));
 
         return back()->with("success", "Password berhasil diubah!");
     }

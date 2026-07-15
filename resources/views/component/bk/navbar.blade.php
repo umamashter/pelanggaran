@@ -8,8 +8,8 @@
             </div>
         </div>
 
-        <div class="c-header-icon lol logo" style="border-left: 0; border-right: 1px solid #fff;">
-            <img src="../img/smkn1.png" width="35">
+        <div class="c-header-icon lol logo" style="border-left: 0; border-right: 1px solid rgba(255,255,255,.1);">
+            <img src="../img/logo2.png" width="32" height="32" style="object-fit:contain;">
         </div>
 
         <div class="c-title">
@@ -18,7 +18,11 @@
 
         {{-- <div class="c-search"></div> --}}
 
-        <div class="ms-auto navbar-nav">
+        <div class="ms-auto navbar-nav d-flex align-items-center">
+            <!-- Theme Toggle -->
+            <a class="theme-toggle" href="#" title="Ganti tema">
+                <i class="fas fa-moon"></i>
+            </a>
             <!-- Authentication Links -->
             <div class="nav-item dropdown px-3">
                 <a id="navbarDropdown" class="name-tag nav-link dropdown-toggle c-header-icon userDropdown me-2"
@@ -29,6 +33,10 @@
                 </a>
 
                 <div class="dropdown-menu dropdown-menu-end me-2" aria-labelledby="navbarDropdown">
+                    <a class="dropdown-item py-2" href="{{ route('profil-saya.index') }}">
+                        {{ __('Profil Saya') }}
+                    </a>
+
                     <a class="dropdown-item py-2" href="/">
                         {{ __('Kembali') }}
                     </a>
@@ -45,9 +53,9 @@
             </div>
         </div>
 
-        <div class="none c-header-icon-hp">
-            <i class='bx bx-menu-alt-right' id="btn"></i>
-        </div>
+        <label for="checki" class="none c-header-icon-hp" style="cursor:pointer;margin:0;display:none">
+            <i class='bx bx-menu-alt-right'></i>
+        </label>
 
     </div>
 </header>

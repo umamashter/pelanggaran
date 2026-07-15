@@ -1,0 +1,493 @@
+/* ============================================================
+   SWEETALERT CUSTOM — Fully Custom Modern UI
+   No SweetAlert 2 overrides. Pure custom design.
+   ============================================================ */
+
+/* ============================================================
+   1. TOAST NOTIFICATIONS
+   ============================================================ */
+
+.ms-toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 999999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+    max-width: 420px;
+    width: 100%;
+}
+
+.ms-toast {
+    pointer-events: auto;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px 18px;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 8px 32px rgba(0,0,0,.08), 0 2px 8px rgba(0,0,0,.04);
+    border: 1px solid #f1f5f9;
+    transform: translateX(120%);
+    opacity: 0;
+    animation: toastSlideIn .4s cubic-bezier(.16,1,.3,1) forwards;
+    position: relative;
+    overflow: hidden;
+    max-width: 100%;
+}
+
+html.dark-mode .ms-toast {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 8px 32px rgba(0,0,0,.3);
+}
+
+.ms-toast.ms-toast-hiding {
+    animation: toastSlideOut .3s ease forwards;
+}
+
+@keyframes toastSlideIn {
+    from { transform: translateX(120%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes toastSlideOut {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(120%); opacity: 0; }
+}
+
+.ms-toast .toast-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.ms-toast.ms-toast-success .toast-icon {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+html.dark-mode .ms-toast.ms-toast-success .toast-icon {
+    background: rgba(22,163,74,.15);
+    color: #22c55e;
+}
+
+.ms-toast.ms-toast-error .toast-icon {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+html.dark-mode .ms-toast.ms-toast-error .toast-icon {
+    background: rgba(220,38,38,.15);
+    color: #ef4444;
+}
+
+.ms-toast.ms-toast-warning .toast-icon {
+    background: #fffbeb;
+    color: #d97706;
+}
+
+html.dark-mode .ms-toast.ms-toast-warning .toast-icon {
+    background: rgba(217,119,6,.15);
+    color: #f59e0b;
+}
+
+.ms-toast.ms-toast-info .toast-icon {
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+html.dark-mode .ms-toast.ms-toast-info .toast-icon {
+    background: rgba(37,99,235,.15);
+    color: #3b82f6;
+}
+
+.ms-toast .toast-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.ms-toast .toast-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 2px;
+    line-height: 1.4;
+}
+
+html.dark-mode .ms-toast .toast-title {
+    color: #f1f5f9;
+}
+
+.ms-toast .toast-text {
+    font-size: 13px;
+    color: #64748b;
+    line-height: 1.4;
+    margin: 0;
+}
+
+html.dark-mode .ms-toast .toast-text {
+    color: #94a3b8;
+}
+
+.ms-toast .toast-close {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    color: #94a3b8;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    transition: all .2s;
+    padding: 0;
+    margin-top: 1px;
+}
+
+.ms-toast .toast-close:hover {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+html.dark-mode .ms-toast .toast-close:hover {
+    background: #334155;
+    color: #cbd5e1;
+}
+
+.ms-toast .toast-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    border-radius: 0 0 0 14px;
+    animation: toastProgress 2s linear forwards;
+}
+
+.ms-toast.ms-toast-success .toast-progress {
+    background: linear-gradient(90deg, #16a34a, #22c55e);
+}
+
+.ms-toast.ms-toast-error .toast-progress {
+    background: linear-gradient(90deg, #dc2626, #ef4444);
+}
+
+.ms-toast.ms-toast-warning .toast-progress {
+    background: linear-gradient(90deg, #d97706, #f59e0b);
+}
+
+.ms-toast.ms-toast-info .toast-progress {
+    background: linear-gradient(90deg, #2563eb, #3b82f6);
+}
+
+@keyframes toastProgress {
+    from { width: 100%; }
+    to { width: 0%; }
+}
+
+/* ============================================================
+   2. CONFIRM MODAL — Fully Custom
+   ============================================================ */
+
+.ms-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 999990;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,.3);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    opacity: 0;
+    transition: opacity .3s ease;
+    padding: 20px;
+}
+
+.ms-modal-backdrop.ms-modal-visible {
+    opacity: 1;
+}
+
+html.dark-mode .ms-modal-backdrop {
+    background: rgba(0,0,0,.5);
+}
+
+.ms-modal {
+    background: #fff;
+    border-radius: 20px;
+    padding: 32px 28px 24px;
+    width: 420px;
+    max-width: 100%;
+    box-shadow: 0 24px 80px rgba(0,0,0,.1), 0 8px 24px rgba(0,0,0,.06);
+    border: 1px solid #f1f5f9;
+    opacity: 0;
+    transform: scale(.92) translateY(12px);
+    transition: opacity .35s cubic-bezier(.16,1,.3,1),
+                transform .35s cubic-bezier(.16,1,.3,1);
+}
+
+.ms-modal.ms-modal-visible {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+}
+
+html.dark-mode .ms-modal {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 24px 80px rgba(0,0,0,.4);
+}
+
+.ms-modal-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.ms-modal-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin-bottom: 16px;
+    animation: msModalIconPulse .5s ease;
+}
+
+.ms-modal-icon-warning {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+html.dark-mode .ms-modal-icon-warning {
+    background: rgba(217,119,6,.15);
+    color: #f59e0b;
+}
+
+.ms-modal-icon-error {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+html.dark-mode .ms-modal-icon-error {
+    background: rgba(220,38,38,.15);
+    color: #ef4444;
+}
+
+.ms-modal-icon-success {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+html.dark-mode .ms-modal-icon-success {
+    background: rgba(22,163,74,.15);
+    color: #22c55e;
+}
+
+.ms-modal-icon-info {
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+html.dark-mode .ms-modal-icon-info {
+    background: rgba(37,99,235,.15);
+    color: #3b82f6;
+}
+
+.ms-modal-icon-question {
+    background: #f0fdf4;
+    color: #16a34a;
+}
+
+html.dark-mode .ms-modal-icon-question {
+    background: rgba(22,163,74,.15);
+    color: #22c55e;
+}
+
+@keyframes msModalIconPulse {
+    0% { transform: scale(.7); opacity: 0; }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.ms-modal-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 8px;
+    text-align: center;
+    line-height: 1.4;
+}
+
+html.dark-mode .ms-modal-title {
+    color: #f1f5f9;
+}
+
+.ms-modal-text {
+    font-size: 14px;
+    color: #64748b;
+    text-align: center;
+    line-height: 1.5;
+    margin-bottom: 4px;
+}
+
+html.dark-mode .ms-modal-text {
+    color: #94a3b8;
+}
+
+.ms-modal-actions {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    width: 100%;
+}
+
+.ms-modal-btn {
+    border: none;
+    border-radius: 10px;
+    padding: 10px 24px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .2s;
+    min-width: 100px;
+    font-family: inherit;
+}
+
+.ms-modal-btn-cancel {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.ms-modal-btn-cancel:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+}
+
+html.dark-mode .ms-modal-btn-cancel {
+    background: #334155;
+    color: #cbd5e1;
+}
+
+html.dark-mode .ms-modal-btn-cancel:hover {
+    background: #475569;
+    color: #f1f5f9;
+}
+
+.ms-modal-btn-confirm {
+    background: #16a34a;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(22,163,74,.25);
+}
+
+.ms-modal-btn-confirm:hover {
+    background: #15803d;
+    box-shadow: 0 6px 20px rgba(22,163,74,.35);
+    transform: translateY(-1px);
+}
+
+html.dark-mode .ms-modal-btn-confirm {
+    box-shadow: 0 4px 12px rgba(22,163,74,.3);
+}
+
+.ms-modal-btn-danger {
+    background: #dc2626;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(220,38,38,.25);
+}
+
+.ms-modal-btn-danger:hover {
+    background: #b91c1c;
+    box-shadow: 0 6px 20px rgba(220,38,38,.35);
+    transform: translateY(-1px);
+}
+
+html.dark-mode .ms-modal-btn-danger {
+    box-shadow: 0 4px 12px rgba(220,38,38,.3);
+}
+
+/* ============================================================
+   3. RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 768px) {
+    .ms-toast-container {
+        top: 12px;
+        right: 12px;
+        max-width: calc(100vw - 24px);
+    }
+
+    .ms-toast {
+        padding: 14px 16px;
+        border-radius: 12px;
+    }
+
+    .ms-toast .toast-icon {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+    }
+
+    .ms-toast .toast-title {
+        font-size: 13px;
+    }
+
+    .ms-toast .toast-text {
+        font-size: 12px;
+    }
+
+    .ms-modal {
+        padding: 24px 20px 20px;
+        width: calc(100vw - 32px);
+    }
+
+    .ms-modal-icon {
+        width: 48px;
+        height: 48px;
+        font-size: 20px;
+    }
+
+    .ms-modal-title {
+        font-size: 16px;
+    }
+
+    .ms-modal-actions {
+        flex-direction: column-reverse;
+        gap: 8px;
+    }
+
+    .ms-modal-btn {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .ms-toast-container {
+        top: 8px;
+        right: 8px;
+        max-width: calc(100vw - 16px);
+    }
+
+    .ms-toast {
+        padding: 12px 14px;
+        gap: 10px;
+    }
+
+    .ms-modal {
+        padding: 20px 16px 16px;
+    }
+}

@@ -21,7 +21,7 @@
 </style>
 <div class="l-sidebar">
     <div class="logo">
-        <img src="../img/smkn1.png" width="35" class="animate__animated animate__fadeInDown">
+        <img src="../img/logo2.png" width="32" height="32" style="object-fit:contain;" class="animate__animated animate__fadeInDown">
         <div class="text-logo animate__animated animate__fadeInLeft" style="animation-delay: 1s">
             <span>E - Poin</span>
             <div class="sub-title">Nurul Ulum Patapan</div>
@@ -69,7 +69,15 @@
                         </div>
                         <div class="c-menu-item__title"><span>Pesan</span></div>
                     </a>
-                </li>                    
+                </li>
+                <li>
+                    <a class="c-menu__item__inner" href="{{ route('2fa.setup') }}">
+                        <div class="ic">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <div class="c-menu-item__title"><span>Keamanan 2FA</span></div>
+                    </a>
+                </li>
             </ul>
 
         </nav>

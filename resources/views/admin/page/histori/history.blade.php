@@ -4,8 +4,15 @@
 <div class="row justify-content-center">
     <div class="card shadow px-0">
         <div class="card-header bg-secondary">
+            @php
+            $totalPoin = $histories->sum(fn($h) => $h->rule->poin);
+            @endphp
+
             <h3 class="fw-bolder mt-2 d-inline text-white">
                 Histori {{ $siswa->nama }}
+                <span class="badge bg-danger text-white ms-2">
+                    Total Keseluruhan Poin: {{ $totalPoin }}
+                </span>
             </h3>
             @if ($histories)
             <form action="/master-histori/{{ $siswa->id }}" method="get" id="form_history" class="float-end">
@@ -14,144 +21,110 @@
             </form>
             @endif
         </div>
+
         <div class="card-body py-0">
-            @if (request('tanggal'))
-            <b>
-                <p class="text-dark mb-1 mt-3 ml-1">Di urutkan berdasarkan : {{ $tanggal }}
-                </p>
-            </b>
+            @php
+            $stagePoin = 0; // total poin per tahap
+            $chunk = []; // buffer pelanggaran per tahap
+            @endphp
+
             @forelse ($histories as $history)
-            <div class="list-group mt-2" style="margin-bottom: 0.75rem">
-                <div class="border-hover list-group-item list-group-item-action flex-column align-items-start py-0"
-                    style="background-color: #f8f8ff; border-radius: 6px;">
-                    <div class="d-flex w-100 mt-1 mb-1 align-items-center"
-                        style="justify-content: space-between; flex-wrap: wrap;">
-                        <a class="linkind">
-                            <small class="me-1">
-                                <b>{{ $history->siswa->nama }} -
-                                    {{ $history->kelasSnapshot->nama_kelas ?? '-' }}
-                                </b>
-                            </small>
-                        </a>
-                        <a><small>{{ $history->created_at->diffForHumans() }}</small></a>
-                    </div>
-                    <div class="row">
-                        <div class="col-lg-10">
-                            <p class="mb-1 h6 text-dark ">{{ $history->rule->nama }}</p>
-                            <div class="text-danger d-inline-flex mb-2">
-                                <b>+{{ $history->rule->poin }}</b>
+            @php
+            $stagePoin += $history->rule->poin;
+            $chunk[] = $history;
+            @endphp
+
+            {{-- Jika sudah mencapai 100 poin pada tahap ini atau histori terakhir --}}
+            @if ($stagePoin >= 100 || $loop->last)
+            <div class="card mb-3 border-danger">
+                <div class="card-header bg-danger text-white fw-bold">
+                    ⚠️ Pemanggilan Orang Tua —
+                    Batas Maksimal Poin 100
+                    <span class="float-end">(Total Saat Ini: {{ $stagePoin }} Poin)</span>
+                </div>
+                <div class="card-body p-2">
+                    @foreach ($chunk as $item)
+                    <div class="list-group mb-2">
+                        <div class="list-group-item flex-column align-items-start py-0"
+                            style="background-color:#f8f9fa; border-radius:6px;">
+                            <div class="d-flex w-100 mt-1 mb-1 align-items-center justify-content-between flex-wrap">
+                                <small><b>{{ $item->siswa->nama }} - {{ $item->kelasSnapshot->nama_kelas ?? '-' }}</b></small>
+                                <small>{{ $item->created_at->diffForHumans() }}</small>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-10 position-relative">
+                                    <p class="mb-1 h6 text-dark">{{ $item->rule->nama }}</p>
+                                    <div class="text-danger d-inline-flex mb-2"><b>+{{ $item->rule->poin }}</b></div>
+                                    <div class="d-flex align-items-center gap-2 mb-2">
+                                        {{-- Tombol hapus --}}
+                                        <button type="button" class="btn btn-sm btn-outline-danger"
+                                            data-bs-toggle="modal" data-bs-target="#hapusModal{{ $item->id }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+
+                                        {{-- Tombol WhatsApp --}}
+                                        @if ($item->student->poin >= 50
+                                        && optional($item->penanganan)->status == 0
+                                        && $item->rule->jenis_peraturan_id == 1)
+                                        <button id="wa-btn-{{ $item->id }}" class="btn btn-success btn-sm"
+                                            onclick="kirimNotif('{{ $item->id }}')">
+                                            <i class="fab fa-whatsapp"></i>
+                                        </button>
+                                        @endif
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
+
+                    <!-- Modal Konfirmasi Hapus -->
+                    <div class="modal fade" id="hapusModal{{ $item->id }}" tabindex="-1"
+                        aria-labelledby="hapusModalLabel{{ $item->id }}" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header bg-danger text-white">
+                                    <h5 class="modal-title" id="hapusModalLabel{{ $item->id }}">Konfirmasi Hapus</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    Apakah Anda yakin ingin menghapus histori pelanggaran
+                                    <strong>{{ $item->rule->nama }}</strong>
+                                    dari <strong>{{ $item->siswa->nama }}</strong>?
+                                </div>
+                                <div class="modal-footer">
+                                    <form action="{{ route('poin.destroy', $item->id) }}" method="POST">
+                                        @csrf @method('DELETE')
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                                        <button type="submit" class="btn btn-danger">Hapus</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
                 </div>
             </div>
+
+            {{-- reset buffer dan poin untuk tahap berikutnya --}}
+            @php
+            $chunk = [];
+            $stagePoin = 0;
+            @endphp
+            @endif
             @empty
             <h5 class="text-secondary text-center py-1 mt-3">Histori tidak ada</h5>
             @endforelse
-            @else
-            @forelse ($tanggal as $tgl)
-            <b>
-                <p class="text-dark mb-1 mt-3 ml-1">Tanggal : {{ date('d-m-Y', strtotime($tgl)) }}</p>
-            </b>
-            @foreach ($histories as $history)
-            @if ($history->getAttribute('tanggal') == $tgl)
-            <div class="list-group mt-2" style="margin-bottom: 0.75rem">
-                <div class="border-hover list-group-item list-group-item-action flex-column align-items-start py-0"
-                    style="background-color: #f2f2f2; border-radius: 6px;">
-                    <div class="d-flex w-100 mt-1 mb-1 align-items-center"
-                        style="justify-content: space-between; flex-wrap: wrap;">
-                        <a class="linkind">
-                            <small class="me-1">
-                                <b>{{ $history->siswa->nama }} -
-                                    {{ $history->kelasSnapshot->nama_kelas ?? '-' }}
-                                </b>
-                            </small>
-                        </a>
-                        <a><small>{{ $history->created_at->diffForHumans() }}</small></a>
-                    </div>
-                    <div class="row">
-                        <div class="col-lg-10 position-relative">
-                            <p class="mb-1 h6 text-dark ">{{ $history->rule->nama }}</p>
-                            <div class="text-danger d-inline-flex mb-2">
-                                <b>+{{ $history->rule->poin }}</b>
-                            </div>
-                            <div class="d-flex align-items-center gap-2 mb-2">
-                                <form class="mb-0 p-0 " action="{{ route('poin.destroy', $history->id) }}" method="POST" type="button">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#hapusModal{{ $history->id }}">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
-                                @if ($history->student->poin >= 50 && optional($history->penanganan)->status == 0 && $history->rule->jenis_peraturan_id == 1)
-                                <button id="wa-btn-{{ $history->id }}"
-                                    class="btn btn-success btn-sm"
-                                    onclick="kirimNotif('{{ $history->id }}')">
-                                    <i class="fab fa-whatsapp"></i>
-                                </button>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- Modal Konfirmasi -->
-            <div class="modal fade" id="hapusModal{{ $history->id }}" tabindex="-1" aria-labelledby="hapusModalLabel{{ $history->id }}" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header bg-danger text-white">
-                            <h5 class="modal-title" id="hapusModalLabel{{ $history->id }}">Konfirmasi Hapus</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
-                        </div>
-                        <div class="modal-body">
-                            Apakah Anda yakin ingin menghapus histori pelanggaran <strong>{{ $history->rule->nama }}</strong> dari <strong>{{ $history->siswa->nama }}</strong>?
-                        </div>
-                        <div class="modal-footer">
-                            <form action="{{ route('poin.destroy', $history->id) }}" method="POST">
-                                @csrf
-                                @method('DELETE')
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                                <button type="submit" class="btn btn-danger">Hapus</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            @endif
-            @endforeach
-            @empty
-            <h5 class="text-secondary text-center py-1 mt-4">Histori tidak ada</h5>
-            @endforelse
-            @endif
-
         </div>
-        <div class="text-end card-footer mt-3">
-            <div class="mx-4 text-decoration-none float-right pagination">
-                {{ $histories->links() }}
-            </div>
-        </div>
-
     </div>
 </div>
 @endsection
+
 @push('scripts')
 <script>
     function history() {
         $("form#form_history").submit();
     }
-</script>
-@endpush
 
-<!-- Akhir tabel -->
-</table>
-
-<!-- Script AJAX -->
-<!-- SweetAlert2 CSS & JS -->
-<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-<script>
     function kirimNotif(id) {
         Swal.fire({
             title: 'Kirim Notifikasi WhatsApp?',
@@ -165,8 +138,6 @@
         }).then((result) => {
             if (result.isConfirmed) {
                 const btn = document.getElementById(`wa-btn-${id}`);
-
-                // Ubah tombol jadi loading
                 btn.disabled = true;
                 btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengirim...';
 
@@ -181,14 +152,11 @@
                     .then(res => res.json())
                     .then(data => {
                         if (data.status === 'success') {
-                            // Simpan status di localStorage
                             localStorage.setItem(`wa_sent_${id}`, true);
-
                             btn.classList.remove('btn-success');
                             btn.classList.add('btn-secondary');
                             btn.disabled = true;
                             btn.innerHTML = '<i class="fas fa-check-circle"></i> Terkirim';
-
                             Swal.fire({
                                 icon: 'success',
                                 title: 'Berhasil!',
@@ -199,7 +167,6 @@
                         } else {
                             btn.disabled = false;
                             btn.innerHTML = '<i class="fab fa-whatsapp"></i> Kirim WA';
-
                             Swal.fire({
                                 icon: 'error',
                                 title: 'Gagal!',
@@ -220,7 +187,6 @@
         });
     }
 
-    // Saat halaman dimuat, cek status di localStorage
     document.addEventListener("DOMContentLoaded", function() {
         document.querySelectorAll("[id^='wa-btn-']").forEach(btn => {
             const id = btn.id.replace("wa-btn-", "");
@@ -233,3 +199,8 @@
         });
     });
 </script>
+@endpush
+
+<!-- SweetAlert2 CSS & JS -->
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

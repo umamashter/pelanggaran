@@ -49,8 +49,8 @@
   border-radius: 9px 9px 0 0;
 }
 .border-left-green {
-  /*border-bottom: 5px solid #3cd014;*/
-  border-left: 5px solid #3cd014;
+  /*border-bottom: 5px solid #138F5B;*/
+  border-left: 5px solid #138F5B;
   border-top-left-radius: 9px;
   border-bottom-left-radius: 9px;
   /*border-bottom-right-radius: 9px;*/
@@ -70,17 +70,17 @@
   /*border-bottom-right-radius: 9px;*/
 }
 .border-left-blue {
-  /*border-bottom: 5px solid #11cdef;*/
-  border-left: 5px solid #11cdef;
+  /*border-bottom: 5px solid #0F7A6A;*/
+  border-left: 5px solid #0F7A6A;
   border-top-left-radius: 9px;
   border-bottom-left-radius: 9px;
   /*border-bottom-right-radius: 9px;*/
 }
 .bg-purple {
-  background:#bb11ef;
+  background: linear-gradient(135deg, #138F5B, #0a4f47);
 }
 .green {
-  background-color: #3cd014;
+  background-color: #138F5B;
 }
 .orange {
   background-color: #fb6340;
@@ -89,7 +89,7 @@
   background-color: #ffd600;
 }
 .blue {
-  background-color: #11cdef;
+  background-color: #0F7A6A;
 } 
 .text-title {
   color: #8898aa;
@@ -141,14 +141,14 @@
   transition: all 0.3s ease-in-out;
 }
 .card.dashb:hover {
-  box-shadow: 0 0 15px #11cdef;
-  background: #11cdef;
+  box-shadow: 0 0 15px #0F7A6A;
+  background: #0F7A6A;
   transition: all 0.3s ease-in-out;
 }
 .card.dashb:hover .blue {
   background: white;
   box-shadow: 0 0 10px white;
-  color: #11cdef;
+  color: #0F7A6A;
   transition: all 0.3s ease-in-out;
 }
 td.child ul li {

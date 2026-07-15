@@ -1,6 +1,6 @@
 <div class="l-sidebar">
     <div class="logo">
-        <img src="../img/smkn1.png" width="35" class="animate__animated animate__fadeInDown">
+        <img src="../img/logo2.png" width="32" height="32" style="object-fit:contain;" class="animate__animated animate__fadeInDown">
         <div class="text-logo animate__animated animate__fadeInLeft" style="animation-delay: 1s">
             <span>E - Book</span>
         </div>
@@ -39,6 +39,14 @@
                         <div class="c-menu-item__title animate__backInLeft animate__animated">
                             <span>Penanganan</span>
                         </div>
+                    </a>
+                </li>
+                <li>
+                    <a class="c-menu__item__inner" href="{{ route('2fa.setup') }}">
+                        <div class="ic">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <span>Keamanan 2FA</span>
                     </a>
                 </li>
             </ul>

@@ -18,9 +18,6 @@ class CreateStudentsTable extends Migration
             $table->foreignId('user_id')->references('id')->on('users')
                 ->onDelete('cascade')
                 ->onUpdate('cascade');
-            $table->foreignId('kelas_id')->references('id')->on('kelas')
-                ->onDelete('cascade')
-                ->onUpdate('cascade');
             $table->char('nisn', 10)->unique();
             $table->string('nama', 255)->nullable();
             $table->string('ttl', 255)->nullable();

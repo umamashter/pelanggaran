@@ -9,6 +9,7 @@ use App\Models\TindakLanjut;
 use App\Models\Peraturan;
 use App\Models\Student;
 use RealRashid\SweetAlert\Facades\Alert;
+use App\Models\TahunAjaran;
 // WA API
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -63,13 +64,19 @@ class PoinController extends Controller
         }
 
         $histories = $request->input('rule');
+        $tahunAktif = TahunAjaran::where('status', 'Aktif')->first();
+
+        if (!$tahunAktif) {
+            return redirect()->back()->with('error', 'Tidak ada tahun ajaran aktif!');
+        }
 
         foreach ($histories as $historyId) {
             $newHistory = History::create([
                 'student_id' => $siswa->id,
                 'peraturan_id' => $historyId,
                 'tanggal' => date('Y-m-d', time()),
-                'kelas_saat_pelanggaran' => $siswa->kelas_id // ✅ SNAPSHOT!
+                'kelas_saat_pelanggaran' => $siswa->kelas_id, // ✅ SNAPSHOT!
+                'tahun_ajaran_id' => $tahunAktif->id,
             ]);
 
             $siswa->poin += $newHistory->rule->poin;
@@ -208,71 +215,70 @@ class PoinController extends Controller
     }
 
     public function kirimNotifikasi($id)
-{
-    $WA_THRESHOLD = 50;
+    {
+        $WA_THRESHOLD = 50;
 
-    $history = History::with(['siswa.kelas', 'pelanggaran', 'siswa.user', 'penanganan'])
-        ->findOrFail($id);
+        $history = History::with(['siswa.kelas', 'pelanggaran', 'siswa.user', 'penanganan'])
+            ->findOrFail($id);
 
-    $siswa = $history->siswa;
-    $pelanggaran = $history->pelanggaran;
+        $siswa = $history->siswa;
+        $pelanggaran = $history->pelanggaran;
 
-    if (!$siswa || !$pelanggaran) {
-        return response()->json(['status' => 'error', 'message' => 'Data tidak ditemukan.'], 404);
+        if (!$siswa || !$pelanggaran) {
+            return response()->json(['status' => 'error', 'message' => 'Data tidak ditemukan.'], 404);
+        }
+
+        // Hanya kirim jika penanganan masih 0 (belum dikonfirmasi)
+        if ((int) optional($history->penanganan)->status !== 0) {
+            return response()->json([
+                'status'  => 'ignored',
+                'message' => 'Penanganan sudah dikonfirmasi.'
+            ], 422);
+        }
+
+        // Pastikan poin sudah mencapai ambang batas
+        if (($siswa->poin ?? 0) < $WA_THRESHOLD) {
+            return response()->json([
+                'status'  => 'ignored',
+                'message' => 'Poin belum mencapai ambang.'
+            ], 422);
+        }
+
+        // Pastikan hanya kirim jika jenis_peraturan_id = 1
+        if (($pelanggaran->jenis_peraturan_id ?? null) != 1) {
+            return response()->json([
+                'status'  => 'ignored',
+                'message' => 'Jenis peraturan tidak memenuhi syarat notifikasi.'
+            ], 422);
+        }
+
+        // Sanitasi nomor: hapus non-digit, lalu normalisasi ke '62...'
+        $no = preg_replace('/\D+/', '', $siswa->no_telp_rumah ?? '');
+        if (Str::startsWith($no, '0')) {
+            $no = '62' . substr($no, 1);
+        } elseif (!Str::startsWith($no, '62')) {
+            // opsional: reject atau tambahkan handling lain
+        }
+
+        if (strlen($no) < 10) {
+            return response()->json(['status' => 'error', 'message' => 'Nomor telepon tidak valid.'], 422);
+        }
+
+        $namaSiswa = optional($siswa->user)->name ?? $siswa->nama ?? 'Nama Tidak Diketahui';
+        $pesan = "*Assalamualaikum: Notifikasi Pelanggaran Siswa:*\n\n"
+            . "👤 Nama: $namaSiswa\n"
+            . "🏫 Kelas: " . ($siswa->kelas->nama_kelas ?? '-') . "\n"
+            . "🚫 Pelanggaran: " . ($pelanggaran->nama ?? '-') . "\n"
+            . "⚠️ Total Poin: " . ($siswa->poin ?? 0) . "\n";
+
+        try {
+            WhatsAppHelper::kirim($no, $pesan);
+            Log::info('WA sent', ['history_id' => $id, 'to' => $no]);
+
+            return response()->json(['status' => 'success', 'message' => 'Pesan berhasil dikirim.'], 200);
+        } catch (\Exception $e) {
+            Log::error('Failed to send WA', ['history_id' => $id, 'error' => $e->getMessage()]);
+            return response()->json(['status' => 'error', 'message' => 'Gagal mengirim pesan.'], 500);
+        }
     }
-
-    // Hanya kirim jika penanganan masih 0 (belum dikonfirmasi)
-    if ((int) optional($history->penanganan)->status !== 0) {
-        return response()->json([
-            'status'  => 'ignored',
-            'message' => 'Penanganan sudah dikonfirmasi.'
-        ], 422);
-    }
-
-    // Pastikan poin sudah mencapai ambang batas
-    if (($siswa->poin ?? 0) < $WA_THRESHOLD) {
-        return response()->json([
-            'status'  => 'ignored',
-            'message' => 'Poin belum mencapai ambang.'
-        ], 422);
-    }
-
-    // Pastikan hanya kirim jika jenis_peraturan_id = 1
-    if (($pelanggaran->jenis_peraturan_id ?? null) != 1) {
-        return response()->json([
-            'status'  => 'ignored',
-            'message' => 'Jenis peraturan tidak memenuhi syarat notifikasi.'
-        ], 422);
-    }
-
-    // Sanitasi nomor: hapus non-digit, lalu normalisasi ke '62...'
-    $no = preg_replace('/\D+/', '', $siswa->no_telp_rumah ?? '');
-    if (Str::startsWith($no, '0')) {
-        $no = '62' . substr($no, 1);
-    } elseif (!Str::startsWith($no, '62')) {
-        // opsional: reject atau tambahkan handling lain
-    }
-
-    if (strlen($no) < 10) {
-        return response()->json(['status' => 'error', 'message' => 'Nomor telepon tidak valid.'], 422);
-    }
-
-    $namaSiswa = optional($siswa->user)->name ?? $siswa->nama ?? 'Nama Tidak Diketahui';
-    $pesan = "*Assalamualaikum: Notifikasi Pelanggaran Siswa:*\n\n"
-        . "👤 Nama: $namaSiswa\n"
-        . "🏫 Kelas: " . ($siswa->kelas->nama_kelas ?? '-') . "\n"
-        . "🚫 Pelanggaran: " . ($pelanggaran->nama ?? '-') . "\n"
-        . "⚠️ Total Poin: " . ($siswa->poin ?? 0) . "\n";
-
-    try {
-        WhatsAppHelper::kirim($no, $pesan);
-        Log::info('WA sent', ['history_id' => $id, 'to' => $no]);
-
-        return response()->json(['status' => 'success', 'message' => 'Pesan berhasil dikirim.'], 200);
-    } catch (\Exception $e) {
-        Log::error('Failed to send WA', ['history_id' => $id, 'error' => $e->getMessage()]);
-        return response()->json(['status' => 'error', 'message' => 'Gagal mengirim pesan.'], 500);
-    }
-}
-
 }

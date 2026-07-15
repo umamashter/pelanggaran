@@ -3,72 +3,24 @@
 namespace Database\Seeders;
 
 use App\Models\Kelas;
+use App\Models\Jenjang;
 use Illuminate\Database\Seeder;
 
 class KelasSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     *
-     * @return void
-     */
-    public function run()
+    public function run(): void
     {
-        Kelas::create([
-            'nama_kelas' => '12 RPL 1'
-        ]);
-        Kelas::create([
-            'nama_kelas' => '12 RPL 2'
-        ]);
-        Kelas::create([
-            'nama_kelas' => '11 RPL 1'
-        ]);
-        Kelas::create([
-            'nama_kelas' => '11 RPL 2'
-        ]);
-        Kelas::create([
-            'nama_kelas' => '10 RPL 1'
-        ]);
-        Kelas::create([
-            'nama_kelas' => '10 RPL 2'
-        ]);
+        $mi = Jenjang::where('kode', 'MI')->first();
 
-        Kelas::create([
-            'nama_kelas' => '12 MM 1'
-        ]);
-        Kelas::create([
-            'nama_kelas' => '12 MM 2'
-        ]);
-        Kelas::create([
-            'nama_kelas' => '11 MM 1'
-        ]);
-        Kelas::create([
-            'nama_kelas' => '11 MM 2'
-        ]);
-        Kelas::create([
-            'nama_kelas' => '10 MM 1'
-        ]);
-        Kelas::create([
-            'nama_kelas' => '10 MM 2'
-        ]);
+        for ($i = 1; $i <= 6; $i++) {
 
-        Kelas::create([
-            'nama_kelas' => '12 TKJ 1'
-        ]);
-        Kelas::create([
-            'nama_kelas' => '12 TKJ 2'
-        ]);
-        Kelas::create([
-            'nama_kelas' => '11 TKJ 1'
-        ]);
-        Kelas::create([
-            'nama_kelas' => '11 TKJ 2'
-        ]);
-        Kelas::create([
-            'nama_kelas' => '10 TKJ 1'
-        ]);
-        Kelas::create([
-            'nama_kelas' => '10 TKJ 2'
-        ]);
+            Kelas::firstOrCreate(
+                [
+                    'jenjang_id' => $mi->id,
+                    'tingkat' => $i,
+                    'nama_kelas' => '1',
+                ]
+            );
+        }
     }
 }

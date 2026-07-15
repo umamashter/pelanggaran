@@ -9,6 +9,7 @@ use App\Models\Student;
 use App\Models\WaliKelas;
 use App\Models\Peraturan;
 use Illuminate\Http\Request;
+use App\Models\TahunAjaran;
 
 class HomeController extends Controller
 {
@@ -31,12 +32,25 @@ class HomeController extends Controller
     {
         // admin
         if (auth()->user()->role == 1) {
+            $tahunAktif = TahunAjaran::where('status', 'Aktif')->first();
             $siswas = Student::all();
             $users = User::all();
             $walikelas = Walikelas::all();
             $peraturan = Peraturan::all();
             $penanganan = Penanganan::latest()->take(10)->get();
-            return view('home', compact('siswas', 'users', 'walikelas', 'peraturan', 'penanganan'));
+
+            // Data untuk grafik
+            $dataPelanggaran = \App\Models\History::selectRaw('MONTH(tanggal) as month, count(*) as count')
+                ->whereYear('tanggal', date('Y'))
+                ->groupBy('month')
+                ->pluck('count', 'month');
+
+            $chartData = array_fill(1, 12, 0);
+            foreach ($dataPelanggaran as $month => $count) {
+                $chartData[$month] = $count;
+            }
+
+            return view('home', compact('siswas', 'users', 'walikelas', 'peraturan', 'penanganan', 'tahunAktif', 'chartData'));
         }
 
         // wali kelas
