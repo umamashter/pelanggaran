@@ -824,17 +824,17 @@
                 margin-top: 12px !important;
             }
             #hero .hero-logo-wrap img {
-                width: 70px !important;
+                width: 80px !important;
             }
             #hero h1 {
-                font-size: 1.3rem !important;
+                font-size: 1.5rem !important;
                 margin-top: 1rem !important;
             }
             #hero h2 {
-                font-size: 1rem !important;
+                font-size: 1.1rem !important;
             }
             #hero h4 {
-                font-size: 0.85rem !important;
+                font-size: 0.9rem !important;
                 margin-top: 0.5rem !important;
             }
             #preloader:before {
