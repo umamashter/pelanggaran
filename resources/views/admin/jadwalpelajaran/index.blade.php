@@ -145,6 +145,18 @@
         font-size: 2.5rem;
         color: #dc2626;
     }
+
+    @media (max-width: 575.98px) {
+        .dataTables_scroll {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .dataTables_scrollHead {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+    }
 </style>
 
 <div class="master-jadwal-page">
@@ -286,8 +298,6 @@
                     <input type="search" id="customSearch" class="search-pill" placeholder="Cari jadwal..." style="width:160px;min-width:120px;font-size:12px;">
                 </div>
             </div>
-
-            <div class="table-responsive">
 
                 <table id="table_jadwal" class="table table-ms display" cellspacing="0" width="100%">
 
@@ -482,8 +492,6 @@
 
                 </table>
 
-            </div>
-
         </div>
     </div>
 
@@ -611,7 +619,8 @@
         // DataTable
         var table = $('#table_jadwal').DataTable({
             pagingType: 'simple_numbers',
-            responsive: true,
+            responsive: false,
+            scrollX: true,
             processing: true,
             pageLength: 10,
             lengthMenu: [

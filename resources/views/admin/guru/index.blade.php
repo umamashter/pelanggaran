@@ -11,6 +11,18 @@
         font-size: 12px;
         border-radius: 8px;
     }
+
+    @media (max-width: 575.98px) {
+        .dataTables_scroll {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .dataTables_scrollHead {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+    }
 </style>
 @endpush
 
@@ -54,8 +66,7 @@
             </div>
             @endif
 
-            <div class="table-responsive">
-                <table id="guruTable" class="table table-ms display" cellspacing="0" width="100%">
+            <table id="guruTable" class="table table-ms display" cellspacing="0" width="100%">
                     <thead>
                         <tr>
                             <th>No</th>
@@ -182,7 +193,6 @@
                         @endforeach
                     </tbody>
                 </table>
-            </div>
 
         </div>
     </div>
@@ -252,7 +262,8 @@
     $(document).ready(function() {
         $('#guruTable').DataTable({
             pagingType: 'simple_numbers',
-            responsive: true,
+            responsive: false,
+            scrollX: true,
             processing: true,
             pageLength: 10,
             lengthMenu: [

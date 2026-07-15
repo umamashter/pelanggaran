@@ -44,6 +44,18 @@
         list-style: none;
     }
     .alert-error-mu li { list-style: none; }
+
+    @media (max-width: 575.98px) {
+        .dataTables_scroll {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .dataTables_scrollHead {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+    }
 </style>
 @endpush
 @section('content')
@@ -281,7 +293,8 @@
     $(document).ready(function() {
         var table = $('#table_data_user').DataTable({
             pagingType: 'simple_numbers',
-            responsive: true,
+            responsive: false,
+            scrollX: true,
             processing: true,
             "language": {
                 "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Indonesian.json",
@@ -302,7 +315,6 @@
             },
             'columnDefs': [{
                     orderable: false,
-                    responsivePriority: 1,
                     targets: 1
                 },
                 {
@@ -311,7 +323,6 @@
                 },
                 {
                     orderable: false,
-                    responsivePriority: 2,
                     targets: 5
                 },
             ],

@@ -226,6 +226,18 @@
         background: #e2e8f0;
         transform: translateY(-1px);
     }
+
+    @media (max-width: 575.98px) {
+        .dataTables_scroll {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .dataTables_scrollHead {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+    }
 </style>
 
 <div class="master-kelas-page">
@@ -301,7 +313,6 @@
             @endif
 
             {{-- Table --}}
-            <div class="table-responsive">
                 <table id="kelasTable" class="table table-ms display" cellspacing="0" width="100%">
                     <thead>
                         <tr>
@@ -459,7 +470,6 @@
                         @endforelse
                     </tbody>
                 </table>
-            </div>
 
         </div>
     </div>
@@ -529,7 +539,8 @@
 
         let table = $('#kelasTable').DataTable({
             pagingType: 'simple_numbers',
-            responsive: true,
+            responsive: false,
+            scrollX: true,
             processing: true,
             pageLength: 10,
             lengthMenu: [

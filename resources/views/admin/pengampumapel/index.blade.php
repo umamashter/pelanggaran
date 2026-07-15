@@ -133,6 +133,18 @@
         box-shadow: 0 0 0 3px rgba(22,163,74,.1);
         background-color: #fff;
     }
+
+    @media (max-width: 575.98px) {
+        .dataTables_scroll {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .dataTables_scrollHead {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+    }
 </style>
 
 <div class="master-pengampu-page">
@@ -230,8 +242,6 @@
                     <input type="search" id="customSearch" class="search-pill" placeholder="Cari pengampu..." style="width:160px;min-width:120px;font-size:12px;">
                 </div>
             </div>
-
-            <div class="table-responsive">
 
                 <table id="pengampuTable" class="table table-ms display" cellspacing="0" width="100%">
 
@@ -426,8 +436,6 @@
 
                 </table>
 
-            </div>
-
         </div>
     </div>
 
@@ -521,7 +529,8 @@
     $(document).ready(function() {
         var table = $('#pengampuTable').DataTable({
             pagingType: 'simple_numbers',
-            responsive: true,
+            responsive: false,
+            scrollX: true,
             processing: true,
             pageLength: 10,
             lengthMenu: [
