@@ -144,6 +144,16 @@
             top: 0;
             z-index: 10;
         }
+        .action-group-ms {
+            display: inline-flex !important;
+            gap: 4px !important;
+            grid-template-columns: unset !important;
+        }
+        .action-group-ms .btn {
+            width: 28px !important;
+            height: 28px !important;
+            font-size: 11px !important;
+        }
     }
 </style>
 
