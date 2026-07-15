@@ -2,8 +2,11 @@
 
 ## Stack
 - Laravel 8.75, PHP `^7.3|^8.0`, MySQL, Laravel Mix (no Vite).
+- Timezone `Asia/Jakarta`, locale `id` (Indonesian).
 - No CI workflows in repo.
 - `.editorconfig`: 4-space indent, LF, UTF-8. StyleCI uses Laravel preset v8; `no_unused_imports` is disabled.
+- Global helpers: `format_uang()`, `terbilang()`, `tanggal_indonesia()`, `tambah_nol_didepan()`, `angka_romawi()` — loaded via composer autoload files (`app/Http/Helpers/helpers.php`).
+- Config aliases: `Helper`, `Alert` (SweetAlert), `PDF` (DomPDF).
 
 ## Commands
 - First setup: `cp .env.example .env && php artisan key:generate`.
@@ -69,4 +72,3 @@
 - Avoid `@php(...)` shorthand in files that already use `@php ... @endphp` blocks.
 - Do not combine Blade `paginate()` with DataTables paging on the same table.
 - Global view shares from `AppServiceProvider::boot()`: `$profil`, `$pengumuman`, `$galery` (with `Schema::hasTable('galery')` safety check).
-- Autoloaded helpers are in `app/Http/Helpers/helpers.php`: `format_uang()`, `terbilang()`, `tanggal_indonesia()`, `tambah_nol_didepan()`, `angka_romawi()`.

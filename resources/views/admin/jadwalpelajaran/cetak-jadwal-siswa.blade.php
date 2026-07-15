@@ -63,7 +63,7 @@
 
         .bagian-label {
             text-align: center;
-            font-size: 9px;
+            font-size: 10px;
             font-weight: bold;
             margin-bottom: 3px;
         }
@@ -103,19 +103,19 @@
             text-align: center;
             vertical-align: middle;
             padding: 2px 1px;
-            font-size: 9px;
+            font-size: 10px;
         }
 
         table.utama td {
             padding: 1px;
             vertical-align: middle;
             text-align: center;
-            font-size: 8px;
+            font-size: 10px;
         }
 
         .cell-mapel {
             font-weight: 600;
-            font-size: 13px;
+            font-size: 10px;
             line-height: 1.2;
         }
 
@@ -129,7 +129,7 @@
         }
 
         .cell-guru {
-            font-size: 7px;
+            font-size: 10px;
             font-weight: bold;
             color: #333;
             text-align: center;
@@ -138,18 +138,18 @@
         }
 
         .th-mapel {
-            font-size: 8px;
+            font-size: 10px;
         }
 
         .th-kd {
-            font-size: 6px;
+            font-size: 10px;
             white-space: nowrap;
         }
 
         .row-istirahat td {
             background: #f0f0f0 !important;
             font-weight: bold;
-            font-size: 9px;
+            font-size: 10px;
             letter-spacing: 2px;
         }
 
@@ -168,13 +168,13 @@
         .legenda-wrap {
             column-count: 4;
             column-gap: 12px;
-            font-size: 8px;
+            font-size: 10px;
             line-height: 1.6;
         }
 
         .legenda-title {
             font-weight: bold;
-            font-size: 8px;
+            font-size: 10px;
             margin-bottom: 2px;
             column-span: all;
         }
@@ -200,7 +200,7 @@
         .footer-right {
             flex-shrink: 0;
             text-align: right;
-            font-size: 9px;
+            font-size: 10px;
             line-height: 1.4;
         }
 
@@ -335,7 +335,9 @@
                         <div>Guluk-Guluk, {{ tanggal_indonesia(\Carbon\Carbon::now()->format('Y-m-d')) }}</div>
                         <div style="margin-top:2px;">Kepala {{ $jenjangLabel }} Nurul Ulum,</div>
                         <div style="height:30px;"></div>
-                        <div class="nama-guru">___________________________</div>
+                        @if($jenjangLabel === 'MI')
+                        <div style="font-size:10px;">Ach. Fathorrosi, S.Pd.I</div>
+                        @endif
                     </div>
                 </div>
 
