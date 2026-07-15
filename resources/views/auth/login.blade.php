@@ -557,15 +557,7 @@
         }
 
         .login-left {
-            min-height: auto;
-        }
-
-        .login-left .hero-section {
-            padding: 40px 24px 24px;
-        }
-
-        .login-left .hero-school-name {
-            font-size: 20px;
+            display: none;
         }
 
         .login-right {
@@ -577,7 +569,7 @@
         }
 
         .login-right .brand-section img {
-            width: 52px;
+            width: 80px;
         }
 
         .login-right .brand-section .app-name {
@@ -593,23 +585,9 @@
             height: 40px;
             font-size: 14px;
         }
-
-        .login-left .hero-decoration,
-        .login-left .hero-decoration-2,
-        .login-left .hero-decoration-3 {
-            display: none;
-        }
     }
 
     @media (max-width: 480px) {
-        .login-left .hero-section {
-            padding: 32px 16px 20px;
-        }
-
-        .login-left .hero-school-name {
-            font-size: 17px;
-        }
-
         .login-right {
             padding: 20px 16px;
         }
