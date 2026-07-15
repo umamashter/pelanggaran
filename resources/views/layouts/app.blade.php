@@ -786,6 +786,62 @@
         html.dark-mode .galery-card {
             box-shadow: 0 4px 16px rgba(0,0,0,.3);
         }
+
+        @media (max-width: 991px) {
+            .mobile-nav-toggle {
+                display: none !important;
+            }
+            #header .container {
+                padding-top: 8px;
+                padding-bottom: 8px;
+                gap: 8px;
+            }
+            #header .logo {
+                font-size: 14px;
+                flex: 1;
+                width: auto;
+                text-align: left;
+            }
+            #header .logo a {
+                font-size: 14px;
+            }
+            #header .navbar {
+                display: none;
+            }
+            #header .appointment-btn {
+                font-size: 10px;
+                padding: 3px 8px;
+                border-radius: 5px;
+                white-space: nowrap;
+            }
+            #header .d-flex.align-items-center.gap-2 {
+                gap: 6px;
+            }
+            #hero .btn-get-started,
+            #hero .hero-mulai-btn {
+                font-size: 10px !important;
+                padding: 6px 14px !important;
+                margin-top: 12px !important;
+            }
+            #hero .hero-logo-wrap img {
+                width: 70px !important;
+            }
+            #hero h1 {
+                font-size: 1.3rem !important;
+                margin-top: 1rem !important;
+            }
+            #hero h2 {
+                font-size: 1rem !important;
+            }
+            #hero h4 {
+                font-size: 0.85rem !important;
+                margin-top: 0.5rem !important;
+            }
+            #preloader:before {
+                border-color: #16a34a !important;
+                border-top-color: #dcfce7 !important;
+            }
+        }
     </style>
 
     <script>
@@ -850,11 +906,16 @@
                 <i class="bi bi-list mobile-nav-toggle"></i>
             </nav>
 
-            @guest
-            <a href="/login" class="appointment-btn scrollto animate__animated animate__fadeInRight">Masuk</a>
-            @else
-            <a href="/home" class="appointment-btn scrollto animate__animated animate__fadeInRight">Dashboard</a>
-            @endguest
+            <div class="d-flex align-items-center gap-2">
+                <a class="theme-toggle d-lg-none" href="#" title="Ganti tema" style="color:rgba(255,255,255,.7);font-size:16px;">
+                    <i class="fas fa-moon"></i>
+                </a>
+                @guest
+                <a href="/login" class="appointment-btn scrollto animate__animated animate__fadeInRight">Masuk</a>
+                @else
+                <a href="/home" class="appointment-btn scrollto animate__animated animate__fadeInRight">Dashboard</a>
+                @endguest
+            </div>
         </div>
     </header>
 
@@ -870,17 +931,19 @@
                 <div class="hero-logo-wrap">
                     <img src="{{ asset('img/logo2.png') }}" style="width:120px; height:auto; filter:drop-shadow(0 4px 12px rgba(0,0,0,.2));">
                 </div>
-                <h4 class="text-white mt-3 fw-bold" style="font-family: 'Poppins', sans-serif; letter-spacing:2px; animation:fadeInUp .6s ease .8s both;">MIS NURUL ULUM</h4>
             </div>
-            <h1 class="fw-bold mt-4" style="animation:fadeInUp .8s ease 1.2s both;">
+            <h1 class="fw-bold mt-4 text-white" style="animation:fadeInUp .8s ease 1.2s both;">
                 Selamat Datang
             </h1>
             <h2 class="hero-title-line" style="font-size:1.5rem; color:rgba(255,255,255,.75); display:inline-block;">
-                E-Book MIS Nurul Ulum
+                Sistem Informasi Akademik
             </h2>
-            <div style="animation:fadeInUp .8s ease 2s both;">
+            <h4 class="text-white mt-2 fw-bold" style="font-family: 'Poppins', sans-serif; letter-spacing:2px; animation:fadeInUp .6s ease .8s both;">
+                MIS Nurul Ulum
+            </h4>
+            <div style="animation:fadeInUp .8s ease 2s both;" class="d-md-block">
                 <a href="#profil"
-                    class="btn-get-started scrollto mt-3"
+                    class="btn-get-started scrollto mt-3 d-inline-block hero-mulai-btn"
                     style="display:inline-block;">
                     <i class="fas fa-rocket me-2"></i>Mulai Sekarang
                 </a>
