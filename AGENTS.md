@@ -29,9 +29,11 @@
 - Web group order matters: `auth` -> `2fa` -> `require.2fa` (route-level, defined at `routes/web.php:96`).
 - `2fa/challenge` and `2fa/verify` are defined **outside** the auth group (for unauthenticated access).
 - Login (`POST /login`) and 2FA verify are throttled (`throttle:5,1`).
-- `datasiswa` is applied per-controller, currently only `HomeController`.
+- `datasiswa` is applied per-controller, currently only `HomeController`. It forces siswa (role 3) with `info=false` to a data-completion form; logs out guru without a `waliKelas` assignment; logs out any non-siswa user with `info=false`.
 - Roles are ints: `1=admin`, `2=guru`, `3=siswa`, `4=BK`. **BK (4) routes in `routes/web.php:365-377` are fully commented out.**
 - `admin` middleware alias exists in Kernel but is unused — roles use the `role` middleware instead.
+- BK (4) routes are commented out, but `layouts/main.blade.php` includes sidebar/navbar rendering for role 4 — the view layer is wired for BK even though the routing is not.
+- `laravel/sanctum` is installed; its middleware is commented out in the `api` middleware group (`Kernel.php:45`).
 - `2fa.disable` is intentionally not allowlisted by `require.2fa`.
 - `HaflahMiddleware` runs on every **authenticated** web request, flips Haflah status by date, writes DB, seeds `session('haflah_id')`, and shares `semuaHaflah`/`haflahAktif` (both eager-loaded with `tahunAjaran`) to all views.
 - Route order matters for Jadwal Siswa: `/jadwal-siswa/cetak/{jenjang_id?}` must stay before `/jadwal-siswa/{kelas_id}`.

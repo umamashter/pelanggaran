@@ -19,6 +19,27 @@
         font-size: 10px;
     }
 
+    .btn-header-ms:disabled { opacity:.65; cursor:not-allowed; background:rgba(22,163,74,.25)!important; color:rgba(255,255,255,.7)!important; border:1px solid rgba(22,163,74,.3)!important; }
+
+    .salin-icon-wrap { width:80px; height:80px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; margin-bottom:4px; }
+    html:not(.dark-mode) .salin-icon-wrap { background:linear-gradient(135deg,#eff6ff,#dbeafe); animation:salinPulse 2s ease-in-out infinite; }
+    html.dark-mode .salin-icon-wrap { background:rgba(37,99,235,.15); box-shadow:0 0 20px rgba(37,99,235,.1); }
+    .salin-icon-wrap i { font-size:32px; color:#2563eb; }
+    html:not(.dark-mode) .salin-icon-wrap i { animation:salinBounce 2.5s ease-in-out infinite; }
+    @keyframes salinPulse { 0%,100%{box-shadow:0 0 0 0 rgba(37,99,235,.15)} 50%{box-shadow:0 0 0 12px rgba(37,99,235,0)} }
+    @keyframes salinBounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-3px)} }
+
+    .salin-info-box { border-left:4px solid #2563eb; border-radius:12px; padding:14px 18px; }
+    html:not(.dark-mode) .salin-info-box { background:linear-gradient(135deg,#f8fafc,#f1f5f9); border:1px solid #e2e8f0; }
+    html.dark-mode .salin-info-box { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); }
+    .salin-info-box .salin-label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; color:#94a3b8; margin-bottom:2px; }
+    .salin-info-box .salin-value { font-weight:700; font-size:15px; }
+    html:not(.dark-mode) .salin-info-box .salin-value { color:var(--ms-text); }
+    html.dark-mode .salin-info-box .salin-value { color:var(--text-primary); }
+
+    .btn-salin-final { border:none !important; border-radius:10px !important; padding:9px 22px !important; font-weight:600 !important; font-size:13px !important; transition:all .25s !important; }
+    .btn-salin-final:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(37,99,235,.3); }
+
     .dt-toolbar {
         display: flex;
         align-items: center;
@@ -213,6 +234,9 @@
                         <h4 class="mb-1 fw-bold" style="color: var(--ms-text); font-size: 20px;">
                             Jadwal Pelajaran
                         </h4>
+                        <p class="mb-1" style="font-size:12px;color:#94a3b8;line-height:1.4;">
+                            Atur jadwal mengajar guru hari dan jam.
+                        </p>
                         <div class="d-flex flex-wrap gap-2 mt-1">
                             <span class="badge-modern badge-ta">
                                 <i class="fas fa-list me-1"></i>
@@ -222,8 +246,20 @@
                     </div>
                 </div>
 
-                {{-- Right: Export PDF + Tambah --}}
+                {{-- Right: Salin + Export PDF + Tambah --}}
                 <div class="d-flex flex-wrap align-items-center gap-2">
+
+                    @if($sudahDisalin)
+                    <button type="button" class="btn btn-header-ms btn-simpan-ms btn-compact"
+                        disabled title="Data tahun ajaran aktif sudah ada">
+                        <i class="fas fa-copy me-1"></i> Salin
+                    </button>
+                    @else
+                    <button type="button" class="btn btn-header-ms btn-simpan-ms btn-compact"
+                        data-bs-toggle="modal" data-bs-target="#modalSalinJadwal">
+                        <i class="fas fa-copy me-1"></i> Salin
+                    </button>
+                    @endif
 
                     <a href="{{ route('jadwal-pelajaran.export-pdf', [
                         'jenjang_id' => request('jenjang_id'),
@@ -640,11 +676,70 @@
     </div>
 </div>
 
+{{-- Modal Salin Jadwal --}}
+<div class="modal fade" id="modalSalinJadwal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:16px;overflow:hidden;">
+            <div class="modal-header border-0 pb-0" style="padding:20px 24px 0;">
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center px-4 pb-4">
+                <div class="mb-3">
+                    <div class="salin-icon-wrap">
+                        <i class="fas fa-copy"></i>
+                    </div>
+                </div>
+                <h4 class="fw-bold mb-2" style="font-size:18px;">Salin Jadwal Pelajaran?</h4>
+                <p class="text-muted mb-4" style="font-size:13px;line-height:1.6;">
+                    Semua jadwal pelajaran dari tahun ajaran sebelumnya akan disalin ke tahun ajaran aktif.
+                    Jadwal yang sudah ada atau bentrok akan dilewati otomatis.
+                </p>
+
+                <div class="salin-info-box mb-3 text-start">
+                    <div class="salin-label">Dari Tahun Ajaran</div>
+                    <div class="salin-value" id="salinFromTA">-</div>
+                </div>
+                <div class="salin-info-box mb-4 text-start" style="border-left-color:#16a34a;">
+                    <div class="salin-label">Ke Tahun Ajaran Aktif</div>
+                    <div class="salin-value" id="salinToTA">-</div>
+                </div>
+
+                <form action="{{ route('jadwal-pelajaran.salin') }}" method="POST">
+                    @csrf
+                    <div class="d-flex justify-content-center gap-2 mt-4">
+                        <button type="button" class="btn btn-light border" data-bs-dismiss="modal" style="border-radius:10px;padding:9px 22px;font-weight:600;font-size:13px;">Batal</button>
+                        <button type="submit" class="btn btn-primary btn-salin-final">
+                            <i class="fas fa-copy me-1"></i> Ya, Salin Sekarang
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
 <script>
     $(document).ready(function() {
+        var tahunAjarans = @json($tahunAjarans);
+        var tahunAktif = @json($tahunAjaranAktif);
+
+        $('#modalSalinJadwal').on('show.bs.modal', function() {
+            if (tahunAktif) {
+                $('#salinToTA').text(tahunAktif.tahun_ajaran + ' (Aktif)');
+            }
+            var tahunSebelumnya = tahunAjarans
+                .filter(function(ta) { return ta.id != (tahunAktif ? tahunAktif.id : 0); })
+                .sort(function(a, b) { return b.tahun_ajaran.localeCompare(a.tahun_ajaran); })[0];
+            if (tahunSebelumnya) {
+                $('#salinFromTA').text(tahunSebelumnya.tahun_ajaran);
+            } else {
+                $('#salinFromTA').text('Tidak ada data');
+            }
+        });
+
         const pengampuMapels = @json($pengampuMapels);
         const allMapels = @json($mapels->map(function ($m) {
             return ['id' => $m->id, 'nama_mapel' => $m->nama_mapel];

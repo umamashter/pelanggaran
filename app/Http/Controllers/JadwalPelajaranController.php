@@ -75,6 +75,8 @@ class JadwalPelajaranController extends Controller
         $pengampuMapels = PengampuMapel::where('tahun_ajaran_id', $tahunAjaranAktif->id)
             ->get(['guru_id', 'mata_pelajaran_id', 'kelas_id']);
 
+        $sudahDisalin = JadwalPelajaran::where('tahun_ajaran_id', $tahunAjaranAktif->id)->exists();
+
         // Jam pelajaran resmi
         $jamPelajaran = [
             [
@@ -110,7 +112,8 @@ class JadwalPelajaranController extends Controller
                 'tahunAjaranAktif',
                 'tahunAjarans',
                 'jamPelajaran',
-                'pengampuMapels'
+                'pengampuMapels',
+                'sudahDisalin'
             )
         );
     }
@@ -704,5 +707,102 @@ class JadwalPelajaranController extends Controller
                 'jenjangCetak'
             )
         );
+    }
+
+    public function salin()
+    {
+        $tahunAktif = TahunAjaran::where('status', 'Aktif')->first();
+
+        if (!$tahunAktif) {
+            return back()->with('error', 'Tidak ada tahun ajaran aktif.');
+        }
+
+        $tahunSebelumnya = TahunAjaran::where('id', '!=', $tahunAktif->id)
+            ->orderByDesc('tahun_ajaran')
+            ->first();
+
+        if (!$tahunSebelumnya) {
+            return back()->with('error', 'Tidak ada tahun ajaran sebelumnya untuk disalin.');
+        }
+
+        $dataLama = JadwalPelajaran::where('tahun_ajaran_id', $tahunSebelumnya->id)->get();
+
+        if ($dataLama->isEmpty()) {
+            return back()->with('error', 'Tidak ada jadwal pelajaran di tahun ajaran ' . $tahunSebelumnya->tahun_ajaran . '.');
+        }
+
+        $berhasil = 0;
+        $dilewati = 0;
+
+        $jamMap = [
+            1 => ['mulai' => '07:30:00', 'selesai' => '08:30:00'],
+            2 => ['mulai' => '08:30:00', 'selesai' => '09:30:00'],
+            3 => ['mulai' => '10:00:00', 'selesai' => '11:00:00'],
+            4 => ['mulai' => '11:00:00', 'selesai' => '12:00:00'],
+        ];
+
+        foreach ($dataLama as $item) {
+            if (!$item->guru || !$item->mapel || !$item->kelas) {
+                $dilewati++;
+                continue;
+            }
+
+            $sudahAda = JadwalPelajaran::where('guru_id', $item->guru_id)
+                ->where('mata_pelajaran_id', $item->mata_pelajaran_id)
+                ->where('kelas_id', $item->kelas_id)
+                ->where('hari', $item->hari)
+                ->where('jam_ke', $item->jam_ke)
+                ->where('tahun_ajaran_id', $tahunAktif->id)
+                ->exists();
+
+            if ($sudahAda) {
+                $dilewati++;
+                continue;
+            }
+
+            $guruBentrok = JadwalPelajaran::where('guru_id', $item->guru_id)
+                ->where('hari', $item->hari)
+                ->where('jam_ke', $item->jam_ke)
+                ->where('tahun_ajaran_id', $tahunAktif->id)
+                ->exists();
+
+            if ($guruBentrok) {
+                $dilewati++;
+                continue;
+            }
+
+            $kelasBentrok = JadwalPelajaran::where('kelas_id', $item->kelas_id)
+                ->where('hari', $item->hari)
+                ->where('jam_ke', $item->jam_ke)
+                ->where('tahun_ajaran_id', $tahunAktif->id)
+                ->exists();
+
+            if ($kelasBentrok) {
+                $dilewati++;
+                continue;
+            }
+
+            $jam = $jamMap[$item->jam_ke] ?? ['mulai' => $item->jam_mulai, 'selesai' => $item->jam_selesai];
+
+            JadwalPelajaran::create([
+                'kelas_id' => $item->kelas_id,
+                'jenjang_id' => $item->kelas->jenjang_id ?? $item->jenjang_id,
+                'guru_id' => $item->guru_id,
+                'mata_pelajaran_id' => $item->mata_pelajaran_id,
+                'tahun_ajaran_id' => $tahunAktif->id,
+                'hari' => $item->hari,
+                'jam_ke' => $item->jam_ke,
+                'jam_mulai' => $jam['mulai'],
+                'jam_selesai' => $jam['selesai'],
+            ]);
+            $berhasil++;
+        }
+
+        $pesan = "Berhasil menyalin {$berhasil} jadwal pelajaran dari tahun ajaran {$tahunSebelumnya->tahun_ajaran}.";
+        if ($dilewati > 0) {
+            $pesan .= " {$dilewati} data dilewati (sudah ada, bentrok, atau data tidak ditemukan).";
+        }
+
+        return back()->with('success', $pesan);
     }
 }

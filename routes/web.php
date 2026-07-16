@@ -189,6 +189,7 @@ Route::group(['middleware' => ['auth', '2fa', 'require.2fa']], function () {
 
         //jadwal pelajaran
         Route::get('/jadwal-pelajaran/export-pdf', [JadwalPelajaranController::class, 'exportPdf'])->name('jadwal-pelajaran.export-pdf');
+        Route::post('/jadwal-pelajaran/salin', [JadwalPelajaranController::class, 'salin'])->name('jadwal-pelajaran.salin');
         Route::resource('jadwal-pelajaran', JadwalPelajaranController::class);
 
         //jadwalPerkelas
@@ -211,6 +212,7 @@ Route::group(['middleware' => ['auth', '2fa', 'require.2fa']], function () {
         Route::get('kurikulum/{id}/aktifkan', [KurikulumController::class, 'aktifkan'])->name('kurikulum.aktifkan');
         //pengamppu mata pelajaran
         Route::put('/pengampu-mapel/{id}', [PengampuMapelController::class, 'update'])->name('pengampu-mapel.update');
+        Route::post('/pengampu-mapel/salin', [PengampuMapelController::class, 'salin'])->name('pengampu-mapel.salin');
         Route::resource('pengampu-mapel', PengampuMapelController::class);
         // Mata Pelajaran
         Route::get('/mata-pelajaran/export', [MataPelajaranController::class, 'export'])->name('mata-pelajaran.export');

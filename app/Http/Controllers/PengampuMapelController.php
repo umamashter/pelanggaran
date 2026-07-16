@@ -61,6 +61,8 @@ class PengampuMapelController extends Controller
             ->select('guru_id', 'mata_pelajaran_id', 'kelas_id')
             ->get();
 
+        $sudahDisalin = $existingPengampus->isNotEmpty();
+
         return view(
             'admin.pengampumapel.index',
             compact(
@@ -71,7 +73,8 @@ class PengampuMapelController extends Controller
                 'jenjangs',
                 'tahunAjarans',
                 'tahunAktif',
-                'existingPengampus'
+                'existingPengampus',
+                'sudahDisalin'
 
             )
         );
@@ -204,5 +207,64 @@ class PengampuMapelController extends Controller
                 'success',
                 'Data pengampu berhasil diperbarui.'
             );
+    }
+
+    public function salin()
+    {
+        $tahunAktif = TahunAjaran::where('status', 'Aktif')->first();
+
+        if (!$tahunAktif) {
+            return back()->with('error', 'Tidak ada tahun ajaran aktif.');
+        }
+
+        $tahunSebelumnya = TahunAjaran::where('id', '!=', $tahunAktif->id)
+            ->orderByDesc('tahun_ajaran')
+            ->first();
+
+        if (!$tahunSebelumnya) {
+            return back()->with('error', 'Tidak ada tahun ajaran sebelumnya untuk disalin.');
+        }
+
+        $dataLama = PengampuMapel::where('tahun_ajaran_id', $tahunSebelumnya->id)->get();
+
+        if ($dataLama->isEmpty()) {
+            return back()->with('error', 'Tidak ada data pengampu di tahun ajaran ' . $tahunSebelumnya->tahun_ajaran . '.');
+        }
+
+        $berhasil = 0;
+        $dilewati = 0;
+
+        foreach ($dataLama as $item) {
+            if (!$item->guru || !$item->mapel || !$item->kelas) {
+                $dilewati++;
+                continue;
+            }
+
+            $sudahAda = PengampuMapel::where('guru_id', $item->guru_id)
+                ->where('mata_pelajaran_id', $item->mata_pelajaran_id)
+                ->where('kelas_id', $item->kelas_id)
+                ->where('tahun_ajaran_id', $tahunAktif->id)
+                ->exists();
+
+            if ($sudahAda) {
+                $dilewati++;
+                continue;
+            }
+
+            PengampuMapel::create([
+                'guru_id' => $item->guru_id,
+                'mata_pelajaran_id' => $item->mata_pelajaran_id,
+                'kelas_id' => $item->kelas_id,
+                'tahun_ajaran_id' => $tahunAktif->id,
+            ]);
+            $berhasil++;
+        }
+
+        $pesan = "Berhasil menyalin {$berhasil} pengampu dari tahun ajaran {$tahunSebelumnya->tahun_ajaran}.";
+        if ($dilewati > 0) {
+            $pesan .= " {$dilewati} data dilewati (sudah ada atau guru/mapel/kelas tidak ditemukan).";
+        }
+
+        return back()->with('success', $pesan);
     }
 }

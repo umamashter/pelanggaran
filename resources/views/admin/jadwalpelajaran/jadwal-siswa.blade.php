@@ -168,6 +168,53 @@
         background: rgba(255, 255, 255, .3);
         color: #fff;
     }
+
+    @media (max-width: 575.98px) {
+        .hero-header {
+            padding: 20px 16px;
+            border-radius: 12px;
+        }
+        .hero-header h3 {
+            font-size: 16px !important;
+        }
+        .hero-header h3 i {
+            display: none;
+        }
+        .hero-header p {
+            font-size: 11px !important;
+        }
+        .hero-header .d-flex {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+        }
+        .hero-header .d-flex > div:last-child {
+            width: 100%;
+            flex-wrap: wrap;
+            gap: 8px !important;
+        }
+        .stat-card {
+            padding: 10px 14px;
+            flex: 1;
+            min-width: 0;
+        }
+        .stat-card .stat-icon {
+            width: 34px;
+            height: 34px;
+            font-size: 14px;
+        }
+        .stat-card .fw-bold {
+            font-size: 16px !important;
+        }
+        .stat-card .text-white-50 {
+            font-size: 10px !important;
+        }
+        .btn-cetak-semua {
+            width: 100%;
+            justify-content: center;
+            padding: 10px;
+            font-size: 13px;
+        }
+    }
 </style>
 
 {{-- Hero Header --}}
