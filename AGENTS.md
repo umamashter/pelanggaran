@@ -1,11 +1,24 @@
 # MIS Nurul Ulum
 
+School Management Information System (Sistem Informasi Akademik) for an Indonesian Islamic elementary school.
+
+## Quick Start
+
+```bash
+cp .env.example .env && php artisan key:generate
+# Add FONNTE_API_KEY to .env (required for WhatsApp notifications, not in .env.example)
+php artisan migrate --seed
+php artisan storage:link
+npm install && npm run dev
+php artisan serve
+```
+
 ## Stack
 - Laravel 8.75, PHP `^7.3|^8.0`, MySQL, Laravel Mix (no Vite).
 - Auth scaffolding: `laravel/ui` (not Fortify/Breeze/Jetstream).
 - Timezone `Asia/Jakarta`, locale `id` (Indonesian), Faker `id_ID`.
-- No CI workflows in repo.
-- `.editorconfig`: 4-space indent, LF, UTF-8. StyleCI uses Laravel preset v8; `no_unused_imports` is disabled.
+- No CI workflows in repo. Only StyleCI (Laravel preset v8; `no_unused_imports` disabled).
+- `.editorconfig`: 4-space indent, LF, UTF-8.
 - Global helpers: `format_uang()`, `terbilang()`, `tanggal_indonesia()`, `tambah_nol_didepan()`, `angka_romawi()` — loaded via composer autoload files (`app/Http/Helpers/helpers.php`).
 - Config aliases: `Helper` (static class duplicate of global helpers except `angka_romawi`), `Alert` (SweetAlert), `PDF` (DomPDF).
 
@@ -30,7 +43,7 @@
 - `2fa/challenge` and `2fa/verify` are defined **outside** the auth group (for unauthenticated access).
 - Login (`POST /login`) and 2FA verify are throttled (`throttle:5,1`).
 - `datasiswa` is applied per-controller, currently only `HomeController`. It forces siswa (role 3) with `info=false` to a data-completion form; logs out guru without a `waliKelas` assignment; logs out any non-siswa user with `info=false`.
-- Roles are ints: `1=admin`, `2=guru`, `3=siswa`, `4=BK`. **BK (4) routes in `routes/web.php:365-377` are fully commented out.**
+- Roles are ints: `1=admin`, `2=guru`, `3=siswa`, `4=BK`. **BK (4) routes in `routes/web.php:366-379` are fully commented out.**
 - `admin` middleware alias exists in Kernel but is unused — roles use the `role` middleware instead.
 - BK (4) routes are commented out, but `layouts/main.blade.php` includes sidebar/navbar rendering for role 4 — the view layer is wired for BK even though the routing is not.
 - `laravel/sanctum` is installed; its middleware is commented out in the `api` middleware group (`Kernel.php:45`).
@@ -41,7 +54,7 @@
 - `Paginator::useBootstrap()` is called globally in `AppServiceProvider::boot()`.
 - `Semester` model is observed by `SemesterObserver` (registered in `AppServiceProvider::boot()`).
 - Login auto-detects field type: `FILTER_VALIDATE_EMAIL` on input → uses `email` column, otherwise uses `username` column (`LoginController::findUsername()`).
-- There are duplicate route definitions: `jadwal-pelajaran/kelas/{id}` (lines 195 & 199), `alumni/pdf` (lines 264-265). Avoid touching these without checking both.
+- There are duplicate route definitions: `jadwal-pelajaran/kelas/{id}` (lines 196 & 200), `alumni/pdf` (lines 266-267). Avoid touching these without checking both.
 
 ## User / Guru Conventions
 - `master-guru` is the resource route for `Guru` records.
