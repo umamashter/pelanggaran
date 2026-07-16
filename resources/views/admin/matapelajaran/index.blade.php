@@ -145,6 +145,30 @@
             height: 28px !important;
             font-size: 11px !important;
         }
+
+        .dt-toolbar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .dt-left {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 8px;
+            flex-wrap: wrap;
+            overflow: visible;
+        }
+        .dt-length-group {
+            justify-content: flex-start;
+        }
+        .dt-left .filter-lomba-wrap {
+            width: 100%;
+        }
+        .dt-left .filter-lomba-wrap .form-select {
+            width: 100%;
+        }
+        .search-pill {
+            width: 100% !important;
+        }
     }
 </style>
 

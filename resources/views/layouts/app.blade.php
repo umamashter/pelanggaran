@@ -841,6 +841,14 @@
                 border-color: #16a34a !important;
                 border-top-color: #dcfce7 !important;
             }
+            .theme-toggle {
+                width: 32px !important;
+                height: 32px !important;
+                font-size: 13px !important;
+            }
+            .theme-toggle i {
+                font-size: 13px !important;
+            }
         }
     </style>
 

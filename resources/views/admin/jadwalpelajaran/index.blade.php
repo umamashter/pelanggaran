@@ -166,6 +166,33 @@
             height: 28px !important;
             font-size: 11px !important;
         }
+
+        .dt-toolbar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .dt-left {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 8px;
+        }
+        .dt-length-group {
+            justify-content: flex-start;
+        }
+        #filterForm {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .filter-lomba-wrap {
+            width: 100%;
+        }
+        .filter-lomba-wrap .form-select {
+            width: 100%;
+        }
+        #customSearch {
+            width: 100% !important;
+        }
     }
 </style>
 
