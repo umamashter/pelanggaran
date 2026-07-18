@@ -20,7 +20,7 @@
     <style>
         @page {
             size: A4 portrait;
-            margin: 5mm 4mm 5mm 5mm;
+            margin: 4mm 4mm 4mm 4mm;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -28,50 +28,40 @@
         html, body {
             height: 100%;
             font-family: 'Times New Roman', Times, serif;
-            font-size: 10px !important;
-            line-height: 1.2;
+            line-height: 1.1;
             color: #000;
         }
 
         .page-wrap {
             display: flex;
             flex-direction: column;
-            height: 277mm;
+            height: 281mm;
         }
 
+        /* ===== HEADER ===== */
         .header-title {
-            font-size: 14px;
+            font-size: 14pt;
             font-weight: bold;
             text-align: center;
             letter-spacing: 2px;
-            margin-bottom: 1px;
+            margin-bottom: 0;
         }
 
         .header-sub {
-            font-size: 11px;
+            font-size: 12pt;
             font-weight: bold;
             text-align: center;
-            margin-bottom: 1px;
+            margin-bottom: 0;
         }
 
         .header-tahun {
-            font-size: 10px;
+            font-size: 11pt;
             font-weight: bold;
             text-align: center;
-            margin-bottom: 3px;
+            margin-bottom: 2px;
         }
 
-        small {
-            font-size: 10px !important;
-        }
-
-        .bagian-label {
-            text-align: center;
-            font-size: 10px;
-            font-weight: bold;
-            margin-bottom: 3px;
-        }
-
+        /* ===== TABEL: SATU ATURAN GLOBAL 10pt ===== */
         table.utama {
             width: 100%;
             border-collapse: collapse;
@@ -79,26 +69,11 @@
             flex: 1;
         }
 
-        table.utama,
         table.utama th,
         table.utama td {
             border: 1px solid #000 !important;
-        }
-
-        table.utama thead tr:first-child th {
-            height: 14mm;
-        }
-
-        table.utama thead tr:nth-child(2) th {
-            height: 6mm;
-        }
-
-        table.utama tbody tr {
-            height: calc((277mm - 14mm - 6mm - {{ $totalBodyRows }}mm) / {{ $totalBodyRows }});
-        }
-
-        table.utama tbody tr.row-istirahat {
-            height: 6mm;
+            font-size: 10pt !important;
+            line-height: 1.1;
         }
 
         table.utama th {
@@ -106,121 +81,91 @@
             font-weight: bold;
             text-align: center;
             vertical-align: middle;
-            padding: 2px 1px;
-            font-size: 10px !important;
+            padding: 1px 1px;
         }
 
         table.utama td {
             padding: 1px;
             vertical-align: middle;
             text-align: center;
-            font-size: 10px !important;
         }
 
-        .cell-mapel {
-            font-weight: 600;
-            font-size: 12px !important;
-            line-height: 1.2;
+        table.utama thead tr:first-child th {
+            height: 12mm;
         }
 
-        .cell-hari {
-            font-weight: 600;
-            font-size: 10px !important;
-            text-transform: uppercase;
-            text-align: center;
-            vertical-align: middle;
-            padding: 2px 3px;
+        table.utama thead tr:nth-child(2) th {
+            height: 5mm;
         }
 
-        .cell-guru {
-            font-size: 10px !important;
-            font-weight: bold;
-            color: #333;
-            text-align: center;
-            vertical-align: middle;
-            padding: 1px 0 !important;
+        table.utama tbody tr {
+            height: calc((281mm - 12mm - 5mm - {{ $totalBodyRows }}mm) / {{ $totalBodyRows }});
         }
 
-        .cell-jam {
-            font-size: 10px !important;
-            font-weight: bold;
-        }
-
-        .cell-waktu {
-            font-size: 10px !important;
-            font-weight: bold;
-        }
-
-        .th-mapel {
-            font-size: 10px !important;
-        }
-
-        .th-kd {
-            font-size: 10px !important;
-            white-space: nowrap;
-        }
-
-        .row-istirahat td {
-            background: #f0f0f0 !important;
-            font-weight: bold;
-            font-size: 10px !important;
+        table.utama tbody tr.row-istirahat {
+            height: 5mm;
             letter-spacing: 2px;
         }
 
-        .footer-area {
-            flex-shrink: 0;
+        table.utama small {
+            font-size: 10pt !important;
+        }
+
+        /* ===== BOTTOM ROW: KD (kiri) + TTD (kanan) ===== */
+        .bottom-row {
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
+            margin-top: 2px;
+            flex-shrink: 0;
         }
 
-        .footer-left {
+        /* ===== LEGENDA KD (kiri) ===== */
+        .legenda-kd {
             flex: 1;
             min-width: 0;
+            padding: 2px 4px;
+            border: 1px solid #000;
         }
 
-        .legenda-wrap {
-            column-count: 4;
-            column-gap: 12px;
-            font-size: 10px;
-            line-height: 1.6;
-        }
-
-        .legenda-title {
+        .legenda-kd-title {
+            font-size: 10pt;
             font-weight: bold;
-            font-size: 10px;
-            margin-bottom: 2px;
-            column-span: all;
-        }
-
-        .legenda-item {
-            break-inside: avoid;
-            display: flex;
-            gap: 4px;
             margin-bottom: 1px;
         }
 
-        .legenda-item .kode {
+        .legenda-kd-grid {
+            column-count: 4;
+            column-gap: 10px;
+            font-size: 10pt;
+            line-height: 1.2;
+        }
+
+        .legenda-kd-item {
+            break-inside: avoid;
+            display: flex;
+            gap: 3px;
+            margin-bottom: 0;
+        }
+
+        .legenda-kd-item .kode {
             width: 16px;
             flex-shrink: 0;
             text-align: right;
             font-weight: 600;
         }
 
-        .legenda-item .nama {
+        .legenda-kd-item .nama {
             flex: 1;
         }
 
-        .footer-right {
+        /* ===== TTD (kanan) ===== */
+        .ttd-area {
             flex-shrink: 0;
             text-align: right;
-            font-size: 10px;
-            line-height: 1.4;
-        }
-
-        .footer-right .nama-guru {
-            font-weight: bold;
-            text-decoration: underline;
+            font-size: 10pt;
+            line-height: 1.3;
+            margin-left: 16px;
         }
 
         .nowrap { white-space: nowrap; }
@@ -330,24 +275,28 @@
                     </tbody>
                 </table>
 
-                <div class="footer-area">
-                    <div class="footer-left">
-                        <div class="legenda-wrap">
-                            <div class="legenda-title">KD</div>
+                <div class="bottom-row">
+                    @if($chunkIdx === 0)
+                    <div class="legenda-kd">
+                        <div class="legenda-kd-title">Keterangan KD</div>
+                        <div class="legenda-kd-grid">
                             @foreach($guruAlfa as $g)
-                            <div class="legenda-item">
+                            <div class="legenda-kd-item">
                                 <span class="kode">{{ $guruKodeMap[$g->id] }}</span>
                                 <span class="nama">= {{ $g->nama }}</span>
                             </div>
                             @endforeach
                         </div>
                     </div>
-                    <div class="footer-right">
+                    @else
+                    <div></div>
+                    @endif
+                    <div class="ttd-area">
                         <div>Guluk-Guluk, {{ tanggal_indonesia(\Carbon\Carbon::now()->format('Y-m-d')) }}</div>
                         <div style="margin-top:2px;">Kepala {{ $jenjangLabel }} Nurul Ulum,</div>
-                        <div style="height:30px;"></div>
+                        <div style="height:28px;"></div>
                         @if($jenjangLabel === 'MI')
-                        <div style="font-size:10px;">Ach. Fathorrosi, S.Pd.I</div>
+                        <div>Ach. Fathorrosi, S.Pd.I</div>
                         @endif
                     </div>
                 </div>
