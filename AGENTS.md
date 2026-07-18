@@ -90,9 +90,9 @@ php artisan serve
 - `layouts/app.blade.php` is the **public homepage** (self-contained, not extending `layouts.main`). It loads `component.head`, `component.loading`, `component.footer`, `component.script`.
 - `<base href="../../">` makes asset paths relative (authenticated pages only).
 - `@stack('css')` is in the layout `<head>` (after base CSS, before dark-mode.css).
-- `@stack('scripts')` lives in `resources/views/component/script.blade.php` and loads **before** Bootstrap JS — stack scripts must not depend on Bootstrap globals.
+- `@stack('scripts')` lives in `resources/views/component/script.blade.php` and loads **before** jQuery Validation, SweetAlert, DataTables, Select2, and Bootstrap JS — stack scripts must not depend on any of those globals.
 - `@include('sweetalert::alert')` comes after the shared script include.
-- Dark mode is CSS-only (`public/css/dark-mode.css`) and must stay last among `<link>` stylesheets in `<head>`.
+- Dark mode is CSS-only (`public/css/dark-mode.css`) — place it near the end of `<head>` stylesheets, just before `loading.css`.
 - Avoid `@php(...)` shorthand in files that already use `@php ... @endphp` blocks.
 - Do not combine Blade `paginate()` with DataTables paging on the same table.
 - Global view shares from `AppServiceProvider::boot()`: `$profil`, `$pengumuman`, `$galery` (with `Schema::hasTable('galery')` safety check).
@@ -107,7 +107,7 @@ php artisan serve
 - All admin DataTables pages use `scrollX: true` + `responsive: false` (never `table-responsive` wrapper) so only `<tbody>` scrolls horizontally while search/entries/pagination stay fixed.
 - The homepage (`layouts/app.blade.php`) hides `.navbar` and `.mobile-nav-toggle` on `≤991px`, showing only logo + theme toggle + login button. The theme toggle is duplicated outside the navbar with `d-lg-none` for mobile visibility.
 - Login page (`auth/login.blade.php`) hides `.login-left` (hero image) on `≤768px` — form only.
-- Homepage preloader (`#preloader`) is overridden to green (`#16a34a`) in `layouts/app.blade.php` — the base `style.css` uses orange (`#fb6340`).
+- Homepage preloader (`#preloader`) is overridden to green (`#16a34a`) on mobile (`≤991px`) in `layouts/app.blade.php` — the base `style.css` uses orange (`#fb6340`).
 - Font-size overrides on homepage hero elements require `!important` to override `style.css` and CDN-loaded Bootstrap.
 
 ## Admin Page Pattern

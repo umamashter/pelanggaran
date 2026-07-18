@@ -190,6 +190,7 @@ Route::group(['middleware' => ['auth', '2fa', 'require.2fa']], function () {
         //jadwal pelajaran
         Route::get('/jadwal-pelajaran/export-pdf', [JadwalPelajaranController::class, 'exportPdf'])->name('jadwal-pelajaran.export-pdf');
         Route::post('/jadwal-pelajaran/salin', [JadwalPelajaranController::class, 'salin'])->name('jadwal-pelajaran.salin');
+        Route::get('/jadwal-pelajaran/template', [JadwalPelajaranController::class, 'templateJadwal'])->name('jadwal-pelajaran.template');
         Route::resource('jadwal-pelajaran', JadwalPelajaranController::class);
 
         //jadwalPerkelas

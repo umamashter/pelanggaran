@@ -584,6 +584,46 @@ class JadwalPelajaranController extends Controller
         );
     }
 
+    public function templateJadwal()
+    {
+        $tahunAjaranAktif = TahunAjaran::with('semesterAktif')->where('status', 'Aktif')->firstOrFail();
+
+        $jadwals = JadwalPelajaran::with(['kelas.jenjang', 'guru', 'mapel', 'tahunAjaran'])
+            ->where('tahun_ajaran_id', $tahunAjaranAktif->id)
+            ->orderByRaw("FIELD(hari,'Senin','Selasa','Rabu','Kamis','Sabtu','Minggu')")
+            ->orderBy('jam_mulai')
+            ->get();
+
+        $jenjangs = Jenjang::orderBy('nama_jenjang')->get();
+
+        $jadwalPerJenjang = [];
+        foreach ($jenjangs as $j) {
+            $jadwalPerJenjang[$j->id] = $jadwals->where('jenjang_id', $j->id)->values();
+        }
+
+        $kelasPerJenjang = [];
+        foreach ($jenjangs as $j) {
+            $kelasPerJenjang[$j->id] = Kelas::where('jenjang_id', $j->id)
+                ->orderBy('nama_kelas')
+                ->get();
+        }
+
+        $kelas = Kelas::with('jenjang')->orderBy('nama_kelas')->get();
+        $gurus = Guru::orderBy('nama')->get();
+        $mapels = MataPelajaran::orderBy('nama_mapel')->get();
+
+        return view('admin.jadwalpelajaran.template-jadwal', compact(
+            'jenjangs',
+            'jadwalPerJenjang',
+            'kelasPerJenjang',
+            'jadwals',
+            'kelas',
+            'gurus',
+            'mapels',
+            'tahunAjaranAktif'
+        ));
+    }
+
     public function jadwalSiswa()
     {
         $jenjangs = Jenjang::orderBy('nama_jenjang')->get();

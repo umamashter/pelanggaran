@@ -270,6 +270,10 @@
                         <i class="fas fa-file-pdf"></i> Export PDF
                     </a>
 
+                    <a href="{{ route('jadwal-pelajaran.template') }}" class="btn btn-header-ms btn-simpan-ms btn-compact" style="background: linear-gradient(135deg, #7c3aed, #a78bfa); color: #fff; box-shadow: 0 2px 8px rgba(124,58,237,.25);">
+                        <i class="fas fa-table me-1"></i> Template Jadwal
+                    </a>
+
                     <button type="button" class="btn btn-header-ms btn-simpan-ms btn-compact"
                         data-bs-toggle="modal" data-bs-target="#modalTambah">
                         <i class="fas fa-plus me-1"></i> Tambah
