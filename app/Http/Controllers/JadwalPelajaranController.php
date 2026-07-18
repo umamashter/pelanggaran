@@ -64,7 +64,7 @@ class JadwalPelajaranController extends Controller
         }
         $kelas = $kelasQuery->orderBy('nama_kelas')->get();
 
-        $jenjangs = Jenjang::orderBy('nama_jenjang')->get();
+        $jenjangs = Jenjang::orderBy('tingkat_awal')->get();
 
         $gurus = Guru::orderBy('nama')->get();
 
@@ -77,29 +77,20 @@ class JadwalPelajaranController extends Controller
 
         $sudahDisalin = JadwalPelajaran::where('tahun_ajaran_id', $tahunAjaranAktif->id)->exists();
 
-        // Jam pelajaran resmi
-        $jamPelajaran = [
-            [
-                'label' => 'Jam Ke-1',
-                'mulai' => '07:30',
-                'selesai' => '08:30'
-            ],
-            [
-                'label' => 'Jam Ke-2',
-                'mulai' => '08:30',
-                'selesai' => '09:30'
-            ],
-            [
-                'label' => 'Jam Ke-3',
-                'mulai' => '10:00',
-                'selesai' => '11:00'
-            ],
-            [
-                'label' => 'Jam Ke-4',
-                'mulai' => '11:00',
-                'selesai' => '12:00'
-            ]
-        ];
+        // Group data for matrix view
+        $jadwalPerJenjang = [];
+        foreach ($jenjangs as $j) {
+            $jadwalPerJenjang[$j->id] = $jadwals->where('jenjang_id', $j->id)->values();
+        }
+
+        $kelasPerJenjang = [];
+        foreach ($jenjangs as $j) {
+            $kelasPerJenjang[$j->id] = Kelas::where('jenjang_id', $j->id)
+                ->orderBy('nama_kelas')
+                ->get();
+        }
+
+        $hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Sabtu', 'Minggu'];
 
         return view(
             'admin.jadwalpelajaran.index',
@@ -111,9 +102,11 @@ class JadwalPelajaranController extends Controller
                 'mapels',
                 'tahunAjaranAktif',
                 'tahunAjarans',
-                'jamPelajaran',
                 'pengampuMapels',
-                'sudahDisalin'
+                'sudahDisalin',
+                'jadwalPerJenjang',
+                'kelasPerJenjang',
+                'hariList'
             )
         );
     }
@@ -368,7 +361,7 @@ class JadwalPelajaranController extends Controller
     }
     public function perKelas($id)
     {
-        $kelas = Kelas::findOrFail($id);
+        $kelas = Kelas::with('jenjang')->findOrFail($id);
 
         $jadwals = JadwalPelajaran::with([
             'guru',
@@ -376,25 +369,26 @@ class JadwalPelajaranController extends Controller
             'tahunAjaran'
         ])
             ->where('kelas_id', $id)
-            ->orderByRaw("
-            FIELD(
-                hari,
-                'Senin',
-                'Selasa',
-                'Rabu',
-                'Kamis',
-                'Sabtu',
-                'Minggu'
-            )
-        ")
+            ->orderByRaw("FIELD(hari,'Senin','Selasa','Rabu','Kamis','Sabtu','Minggu')")
             ->orderBy('jam_mulai')
             ->get();
+
+        $hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Sabtu', 'Minggu'];
+
+        $jamList = [
+            1 => ['mulai' => '07:30', 'selesai' => '08:30'],
+            2 => ['mulai' => '08:30', 'selesai' => '09:30'],
+            3 => ['mulai' => '10:00', 'selesai' => '11:00'],
+            4 => ['mulai' => '11:00', 'selesai' => '12:00'],
+        ];
 
         return view(
             'admin.jadwalpelajaran.per-kelas',
             compact(
                 'kelas',
-                'jadwals'
+                'jadwals',
+                'hariList',
+                'jamList'
             )
         );
     }
@@ -582,46 +576,6 @@ class JadwalPelajaranController extends Controller
                 'jadwals'
             )
         );
-    }
-
-    public function templateJadwal()
-    {
-        $tahunAjaranAktif = TahunAjaran::with('semesterAktif')->where('status', 'Aktif')->firstOrFail();
-
-        $jadwals = JadwalPelajaran::with(['kelas.jenjang', 'guru', 'mapel', 'tahunAjaran'])
-            ->where('tahun_ajaran_id', $tahunAjaranAktif->id)
-            ->orderByRaw("FIELD(hari,'Senin','Selasa','Rabu','Kamis','Sabtu','Minggu')")
-            ->orderBy('jam_mulai')
-            ->get();
-
-        $jenjangs = Jenjang::orderBy('nama_jenjang')->get();
-
-        $jadwalPerJenjang = [];
-        foreach ($jenjangs as $j) {
-            $jadwalPerJenjang[$j->id] = $jadwals->where('jenjang_id', $j->id)->values();
-        }
-
-        $kelasPerJenjang = [];
-        foreach ($jenjangs as $j) {
-            $kelasPerJenjang[$j->id] = Kelas::where('jenjang_id', $j->id)
-                ->orderBy('nama_kelas')
-                ->get();
-        }
-
-        $kelas = Kelas::with('jenjang')->orderBy('nama_kelas')->get();
-        $gurus = Guru::orderBy('nama')->get();
-        $mapels = MataPelajaran::orderBy('nama_mapel')->get();
-
-        return view('admin.jadwalpelajaran.template-jadwal', compact(
-            'jenjangs',
-            'jadwalPerJenjang',
-            'kelasPerJenjang',
-            'jadwals',
-            'kelas',
-            'gurus',
-            'mapels',
-            'tahunAjaranAktif'
-        ));
     }
 
     public function jadwalSiswa()

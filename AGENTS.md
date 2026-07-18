@@ -28,7 +28,7 @@ php artisan serve
 - Tests: `vendor/bin/phpunit` (uses `.env` MySQL, not sqlite; suite is placeholder-only — `ExampleTest` only).
 - Before retesting route/view changes: `php artisan route:clear && php artisan view:clear`.
 - `php artisan storage:link` is required before avatar uploads.
-- `php artisan security:prune` removes `login_histories` >90d and stale `device_fingerprints` >1y; `--dry` previews. Scheduled daily at 03:00 via `Console\Kernel`.
+- `php artisan security:prune` removes `login_histories` >90d and stale `device_fingerprints` >1y; `--dry` previews. Scheduled daily at 03:00 via `Console\Kernel`. Output appended to `storage/logs/prune-security.log`.
 - `composer update` triggers `@php artisan vendor:publish --tag=laravel-assets --ansi --force`.
 
 ## Runtime / Env
@@ -47,7 +47,8 @@ php artisan serve
 - `admin` middleware alias exists in Kernel but is unused — roles use the `role` middleware instead.
 - BK (4) routes are commented out, but `layouts/main.blade.php` includes sidebar/navbar rendering for role 4 — the view layer is wired for BK even though the routing is not.
 - `laravel/sanctum` is installed; its middleware is commented out in the `api` middleware group (`Kernel.php:45`).
-- `2fa.disable` is intentionally not allowlisted by `require.2fa`.
+- `2fa.disable` is intentionally not allowlisted by `require.2fa`. The allowlist also includes `login-history.index` and `active-sessions.index` (plus path prefixes `riwayat-login` and `perangkat`), so users with role-required 2FA can still access those pages before setup.
+- `RouteServiceProvider::$namespace` is commented out — all routes use `[Controller::class, 'method']` syntax, not string-based references.
 - `HaflahMiddleware` runs on every **authenticated** web request, flips Haflah status by date, writes DB, seeds `session('haflah_id')`, and shares `semuaHaflah`/`haflahAktif` (both eager-loaded with `tahunAjaran`) to all views.
 - Route order matters for Jadwal Siswa: `/jadwal-siswa/cetak/{jenjang_id?}` must stay before `/jadwal-siswa/{kelas_id}`.
 - Public NISN lookup lives at `GET /api/{nisn}` (defined in `routes/web.php`, not `api.php`).
@@ -69,7 +70,7 @@ php artisan serve
 ## Models / Data
 - Most models use `protected $guarded = ['id']`; notable `$fillable` exceptions include `Jenjang`, `MataPelajaran`, `Semester`, `TahunAjaran`, `LoginHistory`, `DeviceFingerprint`, `Notifikasi`, `RoleTwoFaRequirement`, `AccountActivity`.
 - `Semester` uses the `semesters` table (plural) and `TahunAjaran::saved` auto-creates its semester rows.
-- `TahunAjaran::saved` also auto-activates a semester based on current month (>= 7 = Ganjil, else Genap) when status is `Aktif`; when status is not `Aktif`, it deactivates all semesters for that tahun ajaran.
+- `TahunAjaran::saved` also auto-activates a semester based on current month (>= 7 = Ganjil, else Genap) when status is `Aktif`; when status is not `Aktif`, it deactivates all semesters for that tahun ajaran. This only fires on creation or status change (`wasRecentlyCreated` / `wasChanged('status')`), not every save.
 - `TahunAjaran::deleted` deletes associated semesters.
 - `SemesterObserver` deactivates siblings in the same tahun ajaran (fires on `saving`).
 - `Student::getRouteKeyName()` is `nisn`; `Penanganan::getRouteKeyName()` is `berkas`; `Poin::getRouteKeyName()` is `siswa_id`.
@@ -106,8 +107,6 @@ php artisan serve
   ```
 - All admin DataTables pages use `scrollX: true` + `responsive: false` (never `table-responsive` wrapper) so only `<tbody>` scrolls horizontally while search/entries/pagination stay fixed.
 - The homepage (`layouts/app.blade.php`) hides `.navbar` and `.mobile-nav-toggle` on `≤991px`, showing only logo + theme toggle + login button. The theme toggle is duplicated outside the navbar with `d-lg-none` for mobile visibility.
-- Login page (`auth/login.blade.php`) hides `.login-left` (hero image) on `≤768px` — form only.
-- Homepage preloader (`#preloader`) is overridden to green (`#16a34a`) on mobile (`≤991px`) in `layouts/app.blade.php` — the base `style.css` uses orange (`#fb6340`).
 - Font-size overrides on homepage hero elements require `!important` to override `style.css` and CDN-loaded Bootstrap.
 
 ## Admin Page Pattern
