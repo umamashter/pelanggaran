@@ -492,7 +492,7 @@ class JadwalPelajaranController extends Controller
                 'guru'
             )
         )->setPaper(
-            'A4',
+            'Folio',
             'portrait'
         );
 

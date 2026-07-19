@@ -19,7 +19,7 @@
     @endphp
     <style>
         @page {
-            size: A4 portrait;
+            size: 210mm 330mm portrait;
             margin: 4mm 4mm 4mm 4mm;
         }
 
@@ -35,7 +35,7 @@
         .page-wrap {
             display: flex;
             flex-direction: column;
-            height: 281mm;
+            height: 280mm;
         }
 
         /* ===== HEADER ===== */
@@ -91,15 +91,15 @@
         }
 
         table.utama thead tr:first-child th {
-            height: 12mm;
+            height: 10mm;
         }
 
         table.utama thead tr:nth-child(2) th {
-            height: 5mm;
+            height: 4mm;
         }
 
         table.utama tbody tr {
-            height: calc((281mm - 12mm - 5mm - {{ $totalBodyRows }}mm) / {{ $totalBodyRows }});
+            height: 5mm;
         }
 
         table.utama tbody tr.row-istirahat {
@@ -122,8 +122,7 @@
 
         /* ===== LEGENDA KD (kiri) ===== */
         .legenda-kd {
-            flex: 1;
-            min-width: 0;
+            width: 75%;
             padding: 2px 4px;
             border: 1px solid #000;
         }
@@ -161,11 +160,10 @@
 
         /* ===== TTD (kanan) ===== */
         .ttd-area {
-            flex-shrink: 0;
+            width: 23%;
             text-align: right;
             font-size: 10pt;
             line-height: 1.3;
-            margin-left: 16px;
         }
 
         .nowrap { white-space: nowrap; }
@@ -276,9 +274,8 @@
                 </table>
 
                 <div class="bottom-row">
-                    @if($chunkIdx === 0)
                     <div class="legenda-kd">
-                        <div class="legenda-kd-title">Keterangan KD</div>
+                        <div class="legenda-kd-title">KD</div>
                         <div class="legenda-kd-grid">
                             @foreach($guruAlfa as $g)
                             <div class="legenda-kd-item">
@@ -288,13 +285,10 @@
                             @endforeach
                         </div>
                     </div>
-                    @else
-                    <div></div>
-                    @endif
                     <div class="ttd-area">
                         <div>Guluk-Guluk, {{ tanggal_indonesia(\Carbon\Carbon::now()->format('Y-m-d')) }}</div>
                         <div style="margin-top:2px;">Kepala {{ $jenjangLabel }} Nurul Ulum,</div>
-                        <div style="height:28px;"></div>
+                        <div style="height:36px;"></div>
                         @if($jenjangLabel === 'MI')
                         <div>Ach. Fathorrosi, S.Pd.I</div>
                         @endif
