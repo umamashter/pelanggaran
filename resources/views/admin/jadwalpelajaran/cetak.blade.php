@@ -86,7 +86,7 @@
         'Rabu',
         'Kamis',
         'Sabtu',
-        'Minggu'
+        'Ahad'
     ];
     @endphp
 

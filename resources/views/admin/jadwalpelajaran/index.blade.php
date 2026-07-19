@@ -589,7 +589,7 @@
                                 <option>Rabu</option>
                                 <option>Kamis</option>
                                 <option>Sabtu</option>
-                                <option>Minggu</option>
+                                <option>Ahad</option>
                             </select>
                         </div>
                         <div class="col-md-6 mb-3 d-none" id="step5_jam">
