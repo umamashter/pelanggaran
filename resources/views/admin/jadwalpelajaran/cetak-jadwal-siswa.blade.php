@@ -35,7 +35,7 @@
         .page-wrap {
             display: flex;
             flex-direction: column;
-            height: 280mm;
+            height: 285mm;
         }
 
         /* ===== HEADER ===== */
@@ -58,7 +58,7 @@
             font-size: 11pt;
             font-weight: bold;
             text-align: center;
-            margin-bottom: 2px;
+            margin-bottom: 4px;
         }
 
         /* ===== TABEL: SATU ATURAN GLOBAL 10pt ===== */
@@ -122,7 +122,7 @@
 
         /* ===== LEGENDA KD (kiri) ===== */
         .legenda-kd {
-            width: 75%;
+            width: 70%;
             padding: 2px 4px;
         }
 
@@ -134,7 +134,7 @@
 
         .legenda-kd-grid {
             column-count: 2;
-            column-gap: 6px;
+            column-gap: 4px;
             font-size: 10pt;
             line-height: 1.1;
         }
@@ -159,10 +159,15 @@
 
         /* ===== TTD (kanan) ===== */
         .ttd-area {
-            width: 23%;
+            width: 28%;
             text-align: right;
             font-size: 10pt;
             line-height: 1.3;
+            padding-right: 2px;
+        }
+
+        .ttd-area .tanggal {
+            white-space: nowrap;
         }
 
         .nowrap { white-space: nowrap; }
@@ -285,9 +290,9 @@
                         </div>
                     </div>
                     <div class="ttd-area">
-                        <div>Guluk-Guluk, {{ tanggal_indonesia(\Carbon\Carbon::now()->format('Y-m-d')) }}</div>
+                        <div class="tanggal">Guluk-Guluk, {{ tanggal_indonesia(\Carbon\Carbon::now()->format('Y-m-d')) }}</div>
                         <div style="margin-top:2px;">Kepala {{ $jenjangLabel }} Nurul Ulum,</div>
-                        <div style="height:36px;"></div>
+                        <div style="height:48px;"></div>
                         @if($jenjangLabel === 'MI')
                         <div>Ach. Fathorrosi, S.Pd.I</div>
                         @endif
