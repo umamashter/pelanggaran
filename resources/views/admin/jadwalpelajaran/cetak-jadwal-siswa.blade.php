@@ -230,9 +230,6 @@
                             @foreach($chunkKelas as $kelas)
                             <th colspan="2">
                                 KELAS {{ angka_romawi((int) $kelas->nama_kelas) }}
-                                @if($kelas->jenjang)
-                                <br><small>{{ $kelas->jenjang->nama_jenjang }}</small>
-                                @endif
                             </th>
                             @endforeach
                         </tr>

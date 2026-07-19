@@ -54,7 +54,7 @@ class JadwalPelajaranController extends Controller
         }
 
         $jadwals = $query
-            ->orderByRaw("FIELD(hari,'Senin','Selasa','Rabu','Kamis','Sabtu','Ahad')")
+            ->orderByRaw("FIELD(hari,'Sabtu','Ahad','Senin','Selasa','Rabu','Kamis')")
             ->orderBy('jam_mulai')
             ->get();
 
@@ -90,7 +90,7 @@ class JadwalPelajaranController extends Controller
                 ->get();
         }
 
-        $hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Sabtu', 'Ahad'];
+        $hariList = ['Sabtu', 'Ahad', 'Senin', 'Selasa', 'Rabu', 'Kamis'];
 
         return view(
             'admin.jadwalpelajaran.index',
@@ -369,11 +369,11 @@ class JadwalPelajaranController extends Controller
             'tahunAjaran'
         ])
             ->where('kelas_id', $id)
-            ->orderByRaw("FIELD(hari,'Senin','Selasa','Rabu','Kamis','Sabtu','Ahad')")
+            ->orderByRaw("FIELD(hari,'Sabtu','Ahad','Senin','Selasa','Rabu','Kamis')")
             ->orderBy('jam_mulai')
             ->get();
 
-        $hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Sabtu', 'Ahad'];
+        $hariList = ['Sabtu', 'Ahad', 'Senin', 'Selasa', 'Rabu', 'Kamis'];
 
         $jamList = [
             1 => ['mulai' => '07:30', 'selesai' => '08:30'],
@@ -401,7 +401,7 @@ class JadwalPelajaranController extends Controller
             'mapel'
         ])
             ->where('kelas_id', $id)
-            ->orderByRaw("FIELD(hari,'Senin','Selasa','Rabu','Kamis','Sabtu','Ahad')")
+            ->orderByRaw("FIELD(hari,'Sabtu','Ahad','Senin','Selasa','Rabu','Kamis')")
             ->orderBy('jam_mulai')
             ->get();
 
@@ -463,7 +463,7 @@ class JadwalPelajaranController extends Controller
         }
 
         $jadwals = $query
-            ->orderByRaw("FIELD(hari,'Senin','Selasa','Rabu','Kamis','Sabtu','Ahad')")
+            ->orderByRaw("FIELD(hari,'Sabtu','Ahad','Senin','Selasa','Rabu','Kamis')")
             ->orderBy('jam_mulai')
             ->get();
 
@@ -512,7 +512,7 @@ class JadwalPelajaranController extends Controller
             })
             ->get();
 
-        $hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Sabtu', 'Ahad'];
+        $hariList = ['Sabtu', 'Ahad', 'Senin', 'Selasa', 'Rabu', 'Kamis'];
 
         $jamList = JadwalPelajaran::select('jam_mulai', 'jam_selesai')
             ->distinct()
@@ -605,7 +605,7 @@ class JadwalPelajaranController extends Controller
             'tahunAjaran'
         ])
             ->where('kelas_id', $kelas_id)
-            ->orderByRaw("FIELD(hari,'Senin','Selasa','Rabu','Kamis','Sabtu','Ahad')")
+            ->orderByRaw("FIELD(hari,'Sabtu','Ahad','Senin','Selasa','Rabu','Kamis')")
             ->orderBy('jam_mulai')
             ->get();
 
@@ -655,7 +655,7 @@ class JadwalPelajaranController extends Controller
         }
 
         // Bangun matrix [hari][jam_ke][kelas_id]
-        $hariUrut = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Sabtu', 'Ahad'];
+        $hariUrut = ['Sabtu', 'Ahad', 'Senin', 'Selasa', 'Rabu', 'Kamis'];
         $jamSlot = [
             1 => ['mulai' => '07:30', 'selesai' => '08:30'],
             2 => ['mulai' => '08:30', 'selesai' => '09:30'],

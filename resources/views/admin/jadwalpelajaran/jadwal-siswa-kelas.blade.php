@@ -151,7 +151,7 @@
 
 {{-- Jadwal Per Hari --}}
 @php
-$hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Sabtu', 'Ahad'];
+$hariList = ['Sabtu', 'Ahad', 'Senin', 'Selasa', 'Rabu', 'Kamis'];
 @endphp
 
 @foreach($hariList as $hari)
