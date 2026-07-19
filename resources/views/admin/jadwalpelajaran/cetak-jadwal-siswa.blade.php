@@ -124,31 +124,30 @@
         .legenda-kd {
             width: 75%;
             padding: 2px 4px;
-            border: 1px solid #000;
         }
 
         .legenda-kd-title {
             font-size: 10pt;
             font-weight: bold;
-            margin-bottom: 1px;
+            margin-bottom: 0;
         }
 
         .legenda-kd-grid {
-            column-count: 4;
-            column-gap: 10px;
+            column-count: 2;
+            column-gap: 6px;
             font-size: 10pt;
-            line-height: 1.2;
+            line-height: 1.1;
         }
 
         .legenda-kd-item {
             break-inside: avoid;
             display: flex;
-            gap: 3px;
+            gap: 2px;
             margin-bottom: 0;
         }
 
         .legenda-kd-item .kode {
-            width: 16px;
+            width: 14px;
             flex-shrink: 0;
             text-align: right;
             font-weight: 600;
