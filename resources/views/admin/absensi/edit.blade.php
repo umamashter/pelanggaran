@@ -44,8 +44,8 @@
     </div>
 
     <div class="info-card-modern mb-4">
-        <div class="info-item"><i class="fas fa-chalkboard"></i><span><strong>Kelas :</strong> {{ $absensi->kelas->nama_kelas }}</span></div>
-        <div class="info-item"><i class="fas fa-graduation-cap"></i><span><strong>Tahun Ajaran :</strong> {{ $absensi->tahunAjaran->tahun_ajaran }}</span></div>
+        <div class="info-item"><i class="fas fa-chalkboard"></i><span><strong>Kelas :</strong> {{ $absensi->kelas?->nama_kelas ?? '-' }}</span></div>
+        <div class="info-item"><i class="fas fa-graduation-cap"></i><span><strong>Tahun Ajaran :</strong> {{ $absensi->tahunAjaran?->tahun_ajaran ?? '-' }}</span></div>
         <div class="info-item"><i class="fas fa-users"></i><span><strong>Jumlah Siswa :</strong> {{ $siswas->count() }}</span></div>
     </div>
 

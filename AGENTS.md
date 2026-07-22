@@ -109,6 +109,21 @@ php artisan serve
 - Homepage hides `.navbar`/`.mobile-nav-toggle` on `≤991px`; theme toggle duplicated outside navbar with `d-lg-none`.
 - Hero font-size overrides on homepage need `!important`.
 
+## Absensi Siswa (Stable)
+- **Arsitektur**: Tahun Ajaran Aktif → Kelas → Tanggal → Siswa Aktif → Status (H/I/S/A) → Rekap.
+- **No `semester_id`** in attendance — scoping solely by `TahunAjaran` where `status='Aktif'`.
+- `Absensi` model: `$guarded=['id']`, `$casts=['tanggal'=>'date']`. Relationships: `kelas()`, `tahunAjaran()`, `user()`, `details()`, `jadwal()`.
+- `AbsensiDetail` model: `$guarded=['id']`. Relationships: `absensi()`, `student()`.
+- DB schema (`absensis`): `jadwal_pelajaran_id` (nullable, legacy FK), `kelas_id`, `tahun_ajaran_id`, `user_id`, `tanggal`. Unique constraint: `(kelas_id, tahun_ajaran_id, tanggal)`.
+- DB schema (`absensi_details`): `absensi_id`, `student_id`, `status` (enum H/I/S/A), `keterangan`. Unique constraint: `(absensi_id, student_id)`.
+- `jadwal_pelajaran_id` is nullable for backward compatibility — old records have `kelas_id=NULL, tahun_ajaran_id=NULL, user_id=NULL`. Views use null-safe operators (`?->`) to handle these.
+- **Route naming**: `absensi.index`, `absensi.create`, `absensi.store`, `absensi.detail`, `absensi.edit`, `absensi.update`, `absensi.riwayat`, `absensi.rekap`, `absensi.rekap.pdf`.
+- All routes behind `CekRole:1` (admin only). Store/update wrapped in `DB::beginTransaction`.
+- `updateOrCreate` pattern for both header and details — prevents duplicates on re-submit.
+- Rekap controller: `kelas_id` validation is conditional (form shown without it, query only when filled). `rekapPdf` requires `kelas_id`.
+- Students fetched via `Student::whereHas('kelasAktif')` scoped by `kelas_id` + `tahun_ajaran_id`.
+- **Known UX gaps** (not bugs, future iterations): no date picker on index (hardcoded to today), no explicit date range filter in riwayat (DataTables search only), no confirmation dialog before save.
+
 ## Admin Page Pattern
 Every admin table page:
 1. `@extends('layouts.main')` + `@push('css')` with `@include('component.admin.ms-style')` + inline `<style>`.

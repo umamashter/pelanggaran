@@ -80,8 +80,8 @@
                         <tbody>
                             @foreach($siswas as $siswa)
                             @php
-                                $currentStatus = $existingAbsensi ? ($existingAbsensi->details->where('student_id', $siswa->id)->first()->status ?? 'H') : 'H';
-                                $currentKet = $existingAbsensi ? ($existingAbsensi->details->where('student_id', $siswa->id)->first()->keterangan ?? '') : '';
+                                $currentStatus = $existingAbsensi ? ($existingAbsensi->details->where('student_id', $siswa->id)->first()?->status ?? 'H') : 'H';
+                                $currentKet = $existingAbsensi ? ($existingAbsensi->details->where('student_id', $siswa->id)->first()?->keterangan ?? '') : '';
                             @endphp
                             <tr>
                                 <td class="text-center">{{ $loop->iteration }}</td>

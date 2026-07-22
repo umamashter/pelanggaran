@@ -106,9 +106,9 @@
                     <tr>
                         <td class="text-center">{{ $loop->iteration }}</td>
                         <td class="text-center">{{ $absensi->tanggal->format('d-m-Y') }}</td>
-                        <td><strong>{{ $absensi->kelas->nama_kelas ?? '-' }}</strong></td>
+                        <td><strong>{{ $absensi->kelas?->nama_kelas ?? '-' }}</strong></td>
                         <td class="text-center"><span class="badge-siswa-count">{{ $absensi->details->count() }} Siswa</span></td>
-                        <td>{{ $absensi->user->name ?? '-' }}</td>
+                        <td>{{ $absensi->user?->name ?? '-' }}</td>
                         <td class="text-center">
                             <a href="{{ route('absensi.detail', $absensi->id) }}" class="btn-aksi-ms btn-info-ms" title="Detail">
                                 <i class="fas fa-eye"></i>

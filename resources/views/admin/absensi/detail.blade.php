@@ -46,9 +46,9 @@
     </div>
 
     <div class="info-card-modern mb-4">
-        <div class="info-item"><i class="fas fa-chalkboard"></i><span><strong>Kelas :</strong> {{ $absensi->kelas->nama_kelas }}</span></div>
-        <div class="info-item"><i class="fas fa-graduation-cap"></i><span><strong>Tahun Ajaran :</strong> {{ $absensi->tahunAjaran->tahun_ajaran }}</span></div>
-        <div class="info-item"><i class="fas fa-user"></i><span><strong>Dicatat oleh :</strong> {{ $absensi->user->name ?? '-' }}</span></div>
+        <div class="info-item"><i class="fas fa-chalkboard"></i><span><strong>Kelas :</strong> {{ $absensi->kelas?->nama_kelas ?? '-' }}</span></div>
+        <div class="info-item"><i class="fas fa-graduation-cap"></i><span><strong>Tahun Ajaran :</strong> {{ $absensi->tahunAjaran?->tahun_ajaran ?? '-' }}</span></div>
+        <div class="info-item"><i class="fas fa-user"></i><span><strong>Dicatat oleh :</strong> {{ $absensi->user?->name ?? '-' }}</span></div>
     </div>
 
     <div class="card table-card">

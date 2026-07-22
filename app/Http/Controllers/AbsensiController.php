@@ -151,7 +151,8 @@ class AbsensiController extends Controller
             ->findOrFail($id);
 
         $siswas = Student::whereHas('kelasAktif', function ($q) use ($absensi) {
-            $q->where('kelas_id', $absensi->kelas_id);
+            $q->where('kelas_id', $absensi->kelas_id)
+              ->where('tahun_ajaran_id', $absensi->tahun_ajaran_id);
         })->orderBy('nama')->get();
 
         $detailMap = $absensi->details->pluck('status', 'student_id');
@@ -206,56 +207,61 @@ class AbsensiController extends Controller
 
     public function rekap(Request $request)
     {
-        $request->validate([
-            'kelas_id' => 'required|exists:kelas,id',
-        ]);
-
         $tahunAktif = TahunAjaran::where('status', 'Aktif')->firstOrFail();
-        $kelas = Kelas::findOrFail($request->kelas_id);
-
-        $bulan = $request->input('bulan');
-        $tanggalAwal = $request->input('tanggal_awal');
-        $tanggalAkhir = $request->input('tanggal_akhir');
-
-        $siswas = Student::whereHas('kelasAktif', function ($q) use ($kelas, $tahunAktif) {
-            $q->where('kelas_id', $kelas->id)
-              ->where('tahun_ajaran_id', $tahunAktif->id);
-        })->orderBy('nama')->get();
-
-        $rekapData = [];
-        foreach ($siswas as $siswa) {
-            $query = AbsensiDetail::where('student_id', $siswa->id)
-                ->whereHas('absensi', function ($q) use ($kelas, $tahunAktif) {
-                    $q->where('kelas_id', $kelas->id)
-                      ->where('tahun_ajaran_id', $tahunAktif->id);
-                });
-
-            if ($tanggalAwal && $tanggalAkhir) {
-                $query->whereHas('absensi', function ($q) use ($tanggalAwal, $tanggalAkhir) {
-                    $q->whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir]);
-                });
-            } elseif ($bulan) {
-                $query->whereHas('absensi', function ($q) use ($bulan) {
-                    $q->whereYear('tanggal', date('Y', strtotime($bulan)))
-                      ->whereMonth('tanggal', date('m', strtotime($bulan)));
-                });
-            }
-
-            $details = $query->get();
-
-            $rekapData[$siswa->id] = [
-                'siswa' => $siswa,
-                'hadir' => $details->where('status', 'H')->count(),
-                'izin' => $details->where('status', 'I')->count(),
-                'sakit' => $details->where('status', 'S')->count(),
-                'alpa' => $details->where('status', 'A')->count(),
-                'total' => $details->count(),
-            ];
-        }
 
         $kelasList = Kelas::whereHas('siswaAktif', function ($q) use ($tahunAktif) {
             $q->where('tahun_ajaran_id', $tahunAktif->id);
         })->orderBy('nama_kelas')->get();
+
+        $kelas = null;
+        $siswas = collect();
+        $rekapData = [];
+        $bulan = $request->input('bulan');
+        $tanggalAwal = $request->input('tanggal_awal');
+        $tanggalAkhir = $request->input('tanggal_akhir');
+
+        if ($request->filled('kelas_id')) {
+            $request->validate([
+                'kelas_id' => 'required|exists:kelas,id',
+            ]);
+
+            $kelas = Kelas::findOrFail($request->kelas_id);
+
+            $siswas = Student::whereHas('kelasAktif', function ($q) use ($kelas, $tahunAktif) {
+                $q->where('kelas_id', $kelas->id)
+                  ->where('tahun_ajaran_id', $tahunAktif->id);
+            })->orderBy('nama')->get();
+
+            foreach ($siswas as $siswa) {
+                $query = AbsensiDetail::where('student_id', $siswa->id)
+                    ->whereHas('absensi', function ($q) use ($kelas, $tahunAktif) {
+                        $q->where('kelas_id', $kelas->id)
+                          ->where('tahun_ajaran_id', $tahunAktif->id);
+                    });
+
+                if ($tanggalAwal && $tanggalAkhir) {
+                    $query->whereHas('absensi', function ($q) use ($tanggalAwal, $tanggalAkhir) {
+                        $q->whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir]);
+                    });
+                } elseif ($bulan) {
+                    $query->whereHas('absensi', function ($q) use ($bulan) {
+                        $q->whereYear('tanggal', date('Y', strtotime($bulan)))
+                          ->whereMonth('tanggal', date('m', strtotime($bulan)));
+                    });
+                }
+
+                $details = $query->get();
+
+                $rekapData[$siswa->id] = [
+                    'siswa' => $siswa,
+                    'hadir' => $details->where('status', 'H')->count(),
+                    'izin' => $details->where('status', 'I')->count(),
+                    'sakit' => $details->where('status', 'S')->count(),
+                    'alpa' => $details->where('status', 'A')->count(),
+                    'total' => $details->count(),
+                ];
+            }
+        }
 
         return view('admin.absensi.rekap', compact(
             'kelas',
