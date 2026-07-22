@@ -122,9 +122,111 @@ php artisan serve
 - `absensi.index` has `+ Input Absensi` button linking to `absensi.create` (step 1). Per-row "Absen" button for quick today access preserved.
 - All routes behind `CekRole:1` (admin only). Store/update wrapped in `DB::beginTransaction`.
 - `updateOrCreate` pattern for both header and details — prevents duplicates on re-submit.
+- Save/update forms use Bootstrap 5 modal confirmation — counts H/I/S/A from current dropdown values before submitting. Create view adapts modal text for existing absensi (update flow).
 - Rekap controller: `kelas_id` validation is conditional (form shown without it, query only when filled). `rekapPdf` requires `kelas_id`.
 - Students fetched via `Student::whereHas('kelasAktif')` scoped by `kelas_id` + `tahun_ajaran_id`.
-- **Known UX gaps** (not bugs, future iterations): no explicit date range filter in riwayat (DataTables search only), no confirmation dialog before save.
+- **Known UX gaps** (not bugs, future iterations): none.
+
+## Absensi Guru (GPS + Selfie)
+
+### Arsitektur
+- **Database**: `lokasi_madrasah` (configurable GPS point) + `absensi_gurus` (attendance records)
+- **Tabel terpisah** dari Absensi Siswa — tidak ada hubungan dengan `absensis` / `absensi_details`
+- **Unique constraint**: `(user_id, tanggal)` — satu guru hanya boleh absen sekali per hari
+- **Waktu server** (`Asia/Jakarta`) sebagai waktu resmi absensi — tidak mempercayai waktu perangkat
+- **Haversine formula** untuk perhitungan jarak GPS di server-side
+- **Foto selfie** disimpan di `storage/absensi-guru/foto/` dengan nama file unik
+
+### Database
+- **`lokasi_madrasah`**: `id`, `nama`, `latitude` (decimal 10,7), `longitude` (decimal 10,7), `radius` (unsigned int, default 40), `aktif` (boolean), timestamps
+- **`absensi_gurus`**: `id`, `user_id` (FK → users), `tanggal` (date), `jam_masuk` (time), `foto_masuk` (string), `latitude_masuk` (decimal 10,7), `longitude_masuk` (decimal 10,7), `jarak_masuk` (decimal 8,2), `akurasi_gps` (unsigned int, nullable), timestamps
+
+### Models
+- **`LokasiMadrasah`** (`app/Models/LokasiMadrasah.php`): `$table='lokasi_madrasah'`, `$guarded=['id']`, `scopeAktif()`, `getLokasiAktif()`
+- **`AbsensiGuru`** (`app/Models/AbsensiGuru.php`): `$table='absensi_gurus'`, `$guarded=['id']`, relationships: `user()` → User
+
+### Controllers
+- **`AdminAbsensiGuruController`** (`app/Http/Controllers/AdminAbsensiGuruController.php`):
+  - `index()` — rekap absensi guru dengan filter (user_id, tanggal_mulai, tanggal_selesai)
+  - `detail($id)` — detail absensi guru dengan foto, lokasi, jarak
+- **`GuruAbsensiGuruController`** (`app/Http/Controllers/GuruAbsensiGuruController.php`):
+  - `show()` — halaman absensi dengan GPS + kamera selfie
+  - `store()` — validasi GPS (server-side Haversine), simpan foto + data
+  - `riwayat()` — riwayat absensi guru
+  - `haversine()` — helper function untuk perhitungan jarak
+
+### Routes
+- **Guru** (role:2): `GET /guru/absensi-guru` → `guru.absensi-guru.show`, `POST /guru/absensi-guru` → `guru.absensi-guru.store`, `GET /guru/absensi-guru/riwayat` → `guru.absensi-guru.riwayat`
+- **Admin** (role:1): `GET /admin/absensi-guru` → `admin.absensi-guru.index`, `GET /admin/absensi-guru/{id}` → `admin.absensi-guru.detail`
+
+### Keamanan
+- Semua route dilindungi autentikasi + role middleware
+- `Auth::id()` sebagai sumber user_id — tidak menerima dari form
+- Validasi GPS dilakukan ulang di server (Haversine) — tidak mempercayai nilai jarak dari JavaScript
+- Validasi tipe/ukuran foto (image, jpeg/jpg/png, max 5MB)
+- Database transaction saat menyimpan absensi + foto
+- Jika insert gagal, foto yang sudah di-upload dihapus dari storage
+
+### Guru Flow
+1. Guru login → buka halaman Absensi Guru
+2. Browser meminta izin GPS → sistem mendapatkan latitude/longitude
+3. Sistem menghitung jarak via Haversine → tampilkan status
+4. Jika dalam radius → aktifkan kamera selfie
+5. Guru ambil foto → preview → klik "Ambil Absensi"
+6. Sistem simpan: user_id, tanggal, jam_masuk, foto, lat, lng, jarak
+
+### Admin Flow
+1. Admin buka `/admin/absensi-guru` → lihat rekap semua guru
+2. Filter: guru, tanggal mulai, tanggal selesai
+3. Klik detail → lihat foto selfie, koordinat, jarak, jam masuk
+
+### Views
+- `resources/views/guru/absensi-guru/show.blade.php` — halaman absensi GPS + kamera
+- `resources/views/guru/absensi-guru/riwayat.blade.php` — riwayat absensi guru
+- `resources/views/admin/absensi-guru/index.blade.php` — rekap admin dengan DataTables
+- `resources/views/admin/absensi-guru/detail.blade.php` — detail absensi guru
+
+### Sidebar
+- **Admin**: Absensi Guru di bawah menu Akademik (setelah Absensi Siswa)
+- **Guru**: Absensi Guru di sidebar guru (sebelum Penanganan)
+
+## Lokasi Madrasah (GPS Config)
+
+### Arsitektur
+- **Database**: `lokasi_madrasah` table — single record (always id=1)
+- **Constraint**: Hanya boleh ada **satu** lokasi aktif (`aktif=true` di seluruh tabel)
+- **Controller**: `LokasiMadrasahController` (`app/Http/Controllers/LokasiMadrasahController.php`)
+
+### Database
+- **`lokasi_madrasah`**: `id`, `nama` (string), `latitude` (decimal 10,7), `longitude` (decimal 10,7), `radius` (unsigned int, default 40 meter), `aktif` (boolean), timestamps
+
+### Models
+- **`LokasiMadrasah`** (`app/Models/LokasiMadrasah.php`): `$table='lokasi_madrasah'`, `$guarded=['id']`, `scopeAktif()`, `getLokasiAktif()`
+
+### Controllers
+- **`LokasiMadrasahController`** (`app/Http/Controllers/LokasiMadrasahController.php`):
+  - `index()` — tampilkan info lokasi aktif (GET `/admin/lokasi-madrasah`)
+  - `store()` — buat/update lokasi dengan `updateOrCreate` (POST)
+  - `update()` — edit nama/lat/lng/radius (PUT)
+  - `toggleAktif()` — toggle status aktif/nonaktif (POST `/admin/lokasi-madrasah/toggle`)
+
+### Routes
+- **Admin** (role:1): `GET /admin/lokasi-madrasah` → `lokasi-madrasah.index`, `POST /admin/lokasi-madrasah` → `lokasi-madrasah.store`, `PUT /admin/lokasi-madrasah` → `lokasi-madrasah.update`, `POST /admin/lokasi-madrasah/toggle` → `lokasi-madrasah.toggle`
+
+### Views
+- `resources/views/admin/lokasi-madrasah/index.blade.php` — admin config page: info card (current location) + edit form + "Gunakan Lokasi Saya" GPS button
+
+### Flow
+1. Admin buka `/admin/lokasi-madrasah`
+2. Lihat info lokasi aktif: nama, koordinat, radius, status
+3. Klik tombol GPS → browser minta izin → koordinat terisi otomatis
+4. Klik "Simpan Perubahan"
+5. Toggle aktif/nonaktif jika perlu (nonaktif = absensi guru tidak berfungsi)
+
+### Keamanan
+- Satu lokasi aktif: `updateOrCreate(['id' => 1])` — selalu record yang sama
+- Admin harus masuk ke halaman ini manual untuk mengkonfigurasi lokasi
+- Guru membaca lokasi aktif dari `LokasiMadrasah::aktif()->first()` — tidak bisa mengubah
 
 ## Admin Page Pattern
 Every admin table page:

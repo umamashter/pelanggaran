@@ -60,6 +60,15 @@
                         <div class="c-menu-item__title"><span>Histori Siswa</span></div>
                     </a>
                 </li>
+                <li class="c-menu__item {{ request()->is('guru/absensi-guru*') ? 'is-active' : '' }} has-submenu"
+                    data-toggle="tooltip" title="Absensi Guru">
+                    <a class="c-menu__item__inner" href="{{ route('guru.absensi-guru.show') }}">
+                        <div class="ic">
+                            <i class="fas fa-fingerprint"></i>
+                        </div>
+                        <div class="c-menu-item__title"><span>Absensi Guru</span></div>
+                    </a>
+                </li>
                 <li class="c-menu__item {{ request()->is('guru/penanganan*') ? 'is-active' : '' }} has-submenu "
                     data-toggle="tooltip" title="Penanganan">
                     <a class="c-menu__item__inner" href="/guru/penanganan">

@@ -1,5 +1,5 @@
 @extends('layouts.main')
-@section('title','Riwayat Absensi')
+@section('title','Absensi Guru')
 @section('content')
 <style>
 .page-title-content { display: none !important; }
@@ -8,9 +8,6 @@
 .header-icon { width: 52px; height: 52px; border-radius: 14px; background: linear-gradient(135deg, #16a34a, #22c55e); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 24px; box-shadow: 0 4px 14px rgba(22,163,74,.3); flex-shrink: 0; }
 .badge-modern { display: inline-flex; align-items: center; padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 500; white-space: nowrap; }
 .badge-ta { background: #f0fdf4; color: #16a34a; }
-.btn-header-ms { padding: 8px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; transition: all .25s; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; border: none; text-decoration: none; }
-.btn-header-ms:hover { transform: translateY(-2px); color: #fff; }
-.btn-header-ms.btn-rekap-ms { background: linear-gradient(135deg, #16a34a, #22c55e); color: #fff; box-shadow: 0 2px 8px rgba(22,163,74,.25); }
 .filter-card { border: none; border-radius: 18px; box-shadow: 0 4px 16px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.04); }
 .filter-card .card-body { padding: 16px 20px; }
 .filter-card .form-label { font-weight: 600; font-size: 13px; color: #475569; margin-bottom: 4px; }
@@ -33,23 +30,19 @@
 .dataTables_wrapper .dataTables_paginate .paginate_button.previous, .dataTables_wrapper .dataTables_paginate .paginate_button.next { font-size: 15px; padding: 6px 10px; }
 .dataTables_wrapper .dataTables_paginate .paginate_button.disabled { opacity: .4; cursor: default; pointer-events: none; background: #f8fafc; }
 .dataTables_wrapper .dataTables_info { font-size: 13px; color: var(--ms-text-soft); padding-top: 16px !important; clear: both; }
-#riwayatTable { border-collapse: collapse; width: 100% !important; border: 1px solid var(--ms-border); border-radius: 12px; margin: 0 !important; }
-#riwayatTable thead th { background: #f8fafc; color: #475569; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .4px; padding: 11px 14px; border-bottom: 2px solid var(--ms-border); white-space: nowrap; text-align: center; }
-#riwayatTable tbody td { padding: 10px 14px; font-size: 13px; color: #334155; border-bottom: 1px solid #f1f5f9; vertical-align: middle; line-height: 1.5; }
-#riwayatTable tbody tr:last-child td { border-bottom: none; }
-#riwayatTable tbody tr:hover td { background: #f8fafc; }
+#absensiGuruTable { border-collapse: collapse; width: 100% !important; border: 1px solid var(--ms-border); border-radius: 12px; margin: 0 !important; }
+#absensiGuruTable thead th { background: #f8fafc; color: #475569; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .4px; padding: 11px 14px; border-bottom: 2px solid var(--ms-border); white-space: nowrap; text-align: center; }
+#absensiGuruTable tbody td { padding: 10px 14px; font-size: 13px; color: #334155; border-bottom: 1px solid #f1f5f9; vertical-align: middle; line-height: 1.5; }
+#absensiGuruTable tbody tr:last-child td { border-bottom: none; }
+#absensiGuruTable tbody tr:hover td { background: #f8fafc; }
 .btn-aksi-ms { width: 32px; height: 32px; border: none !important; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; padding: 0; font-size: 12px; transition: all .25s; box-shadow: 0 1px 2px rgba(0,0,0,.05); line-height: 1; text-decoration: none; margin: 0 2px; }
 .btn-aksi-ms:hover { transform: translateY(-1px); box-shadow: 0 3px 8px rgba(0,0,0,.12); }
 .btn-aksi-ms.btn-info-ms { background: #eff6ff; color: #2563eb; }
 .btn-aksi-ms.btn-info-ms:hover { background: #2563eb; color: #fff; }
-.btn-aksi-ms.btn-warning-ms { background: #fffbeb; color: #d97706; }
-.btn-aksi-ms.btn-warning-ms:hover { background: #d97706; color: #fff; }
-.badge-count { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; min-width: 24px; text-align: center; }
-.badge-count.hadir { background: #f0fdf4; color: #16a34a; }
-.badge-count.izin { background: #fffbeb; color: #d97706; }
-.badge-count.sakit { background: #fef2f2; color: #dc2626; }
-.badge-count.alpha { background: #f1f5f9; color: #64748b; }
-@media (max-width: 768px) { .table-card .card-body { padding: 12px 14px 16px; } .dataTables_wrapper .dataTables_filter { float: none; text-align: left; } .dataTables_wrapper .dataTables_filter label input { width: 100%; } #riwayatTable thead th { font-size: 11px; padding: 9px 8px; } #riwayatTable tbody td { padding: 8px; font-size: 12px; } .filter-card .card-body { padding: 12px 14px; } }
+.foto-thumb { width: 36px; height: 36px; border-radius: 8px; object-fit: cover; border: 2px solid var(--ms-border); }
+.badge-jarak { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+.badge-jarak.valid { background: #f0fdf4; color: #16a34a; }
+@media (max-width: 768px) { .table-card .card-body { padding: 12px 14px 16px; } .dataTables_wrapper .dataTables_filter { float: none; text-align: left; } .dataTables_wrapper .dataTables_filter label input { width: 100%; } #absensiGuruTable thead th { font-size: 11px; padding: 9px 8px; } #absensiGuruTable tbody td { padding: 8px; font-size: 12px; } .filter-card .card-body { padding: 12px 14px; } }
 </style>
 
 <div class="master-absensi-page">
@@ -57,19 +50,13 @@
         <div class="card-body p-4">
             <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3">
                 <div class="d-flex align-items-center gap-3">
-                    <div class="header-icon"><i class="fas fa-history"></i></div>
+                    <div class="header-icon"><i class="fas fa-chalkboard-teacher"></i></div>
                     <div>
-                        <h4 class="mb-1 fw-bold" style="color: var(--ms-text); font-size: 20px;">Riwayat Absensi</h4>
+                        <h4 class="mb-1 fw-bold" style="color: var(--ms-text); font-size: 20px;">Absensi Guru</h4>
                         <div class="d-flex flex-wrap gap-2 mt-1">
                             <span class="badge-modern badge-ta"><i class="fas fa-clipboard-check me-1"></i>{{ $absensis->count() }} Data</span>
-                            <span class="badge-modern badge-ta"><i class="fas fa-graduation-cap me-1"></i>{{ $tahunAktif->tahun_ajaran }}</span>
                         </div>
                     </div>
-                </div>
-                <div class="d-flex gap-2">
-                    <a href="{{ route('absensi.rekap') }}" class="btn-header-ms btn-rekap-ms">
-                        <i class="fas fa-file-alt me-1"></i> Rekap Absensi
-                    </a>
                 </div>
             </div>
         </div>
@@ -79,26 +66,26 @@
         <div class="card-body">
             <form method="GET" class="row g-3 align-items-end">
                 <div class="col-lg-3 col-md-6">
-                    <label class="form-label"><i class="fas fa-chalkboard me-1" style="color:var(--ms-primary);"></i>Kelas</label>
-                    <select name="kelas_id" class="form-select">
-                        <option value="">Semua Kelas</option>
-                        @foreach($kelasList as $item)
-                        <option value="{{ $item->id }}" {{ request('kelas_id') == $item->id ? 'selected' : '' }}>{{ $item->nama_kelas }}</option>
+                    <label class="form-label"><i class="fas fa-user-tie me-1" style="color:var(--ms-primary);"></i>Guru</label>
+                    <select name="user_id" class="form-select">
+                        <option value="">Semua Guru</option>
+                        @foreach($guruList as $g)
+                        <option value="{{ $g->id }}" {{ request('user_id') == $g->id ? 'selected' : '' }}>{{ $g->name }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div class="col-lg-3 col-md-6">
                     <label class="form-label"><i class="fas fa-calendar me-1" style="color:var(--ms-primary);"></i>Dari Tanggal</label>
-                    <input type="date" name="tanggal_mulai" class="form-control" value="{{ $tanggalMulai ?? request('tanggal_mulai') }}">
+                    <input type="date" name="tanggal_mulai" class="form-control" value="{{ request('tanggal_mulai') }}">
                 </div>
                 <div class="col-lg-3 col-md-6">
                     <label class="form-label"><i class="fas fa-calendar me-1" style="color:var(--ms-primary);"></i>Sampai Tanggal</label>
-                    <input type="date" name="tanggal_selesai" class="form-control" value="{{ $tanggalSelesai ?? request('tanggal_selesai') }}">
+                    <input type="date" name="tanggal_selesai" class="form-control" value="{{ request('tanggal_selesai') }}">
                 </div>
                 <div class="col-lg-3 col-md-6">
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn-filter-ms"><i class="fas fa-search"></i> Filter</button>
-                        <a href="{{ route('absensi.riwayat') }}" class="btn-reset-ms"><i class="fas fa-undo"></i> Reset</a>
+                        <a href="{{ route('admin.absensi-guru.index') }}" class="btn-reset-ms"><i class="fas fa-undo"></i> Reset</a>
                     </div>
                 </div>
             </form>
@@ -107,44 +94,38 @@
 
     <div class="card table-card">
         <div class="card-body">
-            <table id="riwayatTable" class="table display" cellspacing="0" width="100%">
+            <table id="absensiGuruTable" class="table display" cellspacing="0" width="100%">
                 <thead>
                     <tr>
                         <th width="5%">No</th>
+                        <th>Foto</th>
+                        <th>Nama Guru</th>
                         <th>Tanggal</th>
-                        <th>Kelas</th>
-                        <th>Hadir</th>
-                        <th>Izin</th>
-                        <th>Sakit</th>
-                        <th>Alpha</th>
-                        <th>Dicatat Oleh</th>
-                        <th width="100">Aksi</th>
+                        <th>Jam</th>
+                        <th>Jarak</th>
+                        <th>Lat</th>
+                        <th>Long</th>
+                        <th width="60">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($absensis as $absensi)
-                    @php
-                        $details = $absensi->details;
-                        $hadir = $details->where('status', 'H')->count();
-                        $izin = $details->where('status', 'I')->count();
-                        $sakit = $details->where('status', 'S')->count();
-                        $alpha = $details->where('status', 'A')->count();
-                    @endphp
                     <tr>
                         <td class="text-center">{{ $loop->iteration }}</td>
-                        <td class="text-center">{{ $absensi->tanggal->format('d-m-Y') }}</td>
-                        <td><strong>{{ $absensi->kelas?->nama_kelas ?? '-' }}</strong></td>
-                        <td class="text-center"><span class="badge-count hadir">{{ $hadir }}</span></td>
-                        <td class="text-center"><span class="badge-count izin">{{ $izin }}</span></td>
-                        <td class="text-center"><span class="badge-count sakit">{{ $sakit }}</span></td>
-                        <td class="text-center"><span class="badge-count alpha">{{ $alpha }}</span></td>
-                        <td>{{ $absensi->user?->name ?? '-' }}</td>
                         <td class="text-center">
-                            <a href="{{ route('absensi.detail', $absensi->id) }}" class="btn-aksi-ms btn-info-ms" title="Detail">
+                            <img src="{{ asset('storage/absensi-guru/foto/' . $absensi->foto_masuk) }}" class="foto-thumb" alt="Foto">
+                        </td>
+                        <td><strong>{{ $absensi->user->name ?? '-' }}</strong></td>
+                        <td class="text-center">{{ $absensi->tanggal->format('d-m-Y') }}</td>
+                        <td class="text-center">{{ substr($absensi->jam_masuk, 0, 5) }}</td>
+                        <td class="text-center">
+                            <span class="badge-jarak valid">{{ round($absensi->jarak_masuk) }}m</span>
+                        </td>
+                        <td class="text-center" style="font-size:11px;">{{ $absensi->latitude_masuk }}</td>
+                        <td class="text-center" style="font-size:11px;">{{ $absensi->longitude_masuk }}</td>
+                        <td class="text-center">
+                            <a href="{{ route('admin.absensi-guru.detail', $absensi->id) }}" class="btn-aksi-ms btn-info-ms" title="Detail">
                                 <i class="fas fa-eye"></i>
-                            </a>
-                            <a href="{{ route('absensi.edit', $absensi->id) }}" class="btn-aksi-ms btn-warning-ms" title="Edit">
-                                <i class="fas fa-edit"></i>
                             </a>
                         </td>
                     </tr>
@@ -158,12 +139,12 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
-    $('#riwayatTable').DataTable({
+    $('#absensiGuruTable').DataTable({
         pageLength: 10,
         pagingType: 'simple_numbers',
         responsive: false,
         scrollX: true,
-        columnDefs: [{ orderable: false, targets: 8 }],
+        columnDefs: [{ orderable: false, targets: [1, 8] }],
         language: {
             search: "Cari:",
             lengthMenu: "Tampilkan _MENU_ data",
@@ -174,7 +155,7 @@ $(document).ready(function() {
             paginate: { first: '«', previous: '‹', next: '›', last: '»' }
         }
     });
-    $('#riwayatTable_filter input').attr('placeholder', 'Cari riwayat...');
+    $('#absensiGuruTable_filter input').attr('placeholder', 'Cari absensi guru...');
 });
 </script>
 @endpush

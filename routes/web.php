@@ -54,6 +54,9 @@ use App\Http\Controllers\TwoFactorPolicyController;
 use App\Http\Controllers\SecurityDashboardController;
 use App\Http\Controllers\AccountCenterController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\GuruAbsensiGuruController;
+use App\Http\Controllers\AdminAbsensiGuruController;
+use App\Http\Controllers\LokasiMadrasahController;
 
 /*
 |--------------------------------------------------------------------------
@@ -152,6 +155,11 @@ Route::group(['middleware' => ['auth', '2fa', 'require.2fa']], function () {
         Route::get('/guru/penanganan', [PenangananController::class, 'guru_index']);
         Route::post('/guru/penanganan/{id}', [PenangananController::class, 'guru_konfirmasi']);
 
+        // Absensi Guru
+        Route::get('/guru/absensi-guru', [GuruAbsensiGuruController::class, 'show'])->name('guru.absensi-guru.show');
+        Route::post('/guru/absensi-guru', [GuruAbsensiGuruController::class, 'store'])->name('guru.absensi-guru.store');
+        Route::get('/guru/absensi-guru/riwayat', [GuruAbsensiGuruController::class, 'riwayat'])->name('guru.absensi-guru.riwayat');
+
 
         // Tambah Poin
 
@@ -232,6 +240,10 @@ Route::group(['middleware' => ['auth', '2fa', 'require.2fa']], function () {
         Route::get('/absensi-riwayat', [AbsensiController::class, 'riwayat'])->name('absensi.riwayat');
         Route::get('/absensi-rekap', [AbsensiController::class, 'rekap'])->name('absensi.rekap');
         Route::get('/absensi-rekap/pdf', [AbsensiController::class, 'rekapPdf'])->name('absensi.rekap.pdf');
+
+        // Absensi Guru (Admin)
+        Route::get('/admin/absensi-guru', [AdminAbsensiGuruController::class, 'index'])->name('admin.absensi-guru.index');
+        Route::get('/admin/absensi-guru/{id}', [AdminAbsensiGuruController::class, 'detail'])->name('admin.absensi-guru.detail');
         //Tahun Ajaran
         Route::resource('tahun-ajaran', TahunAjaranController::class);
         Route::put('/tahun-ajaran/{id}/aktifkan', [TahunAjaranController::class, 'aktifkan'])->name('tahun-ajaran.aktifkan');
@@ -349,6 +361,12 @@ Route::group(['middleware' => ['auth', '2fa', 'require.2fa']], function () {
         // Profil Madrasah
         Route::get('/profil-madrasah', [ProfilMadrasahController::class, 'index'])->name('profil-madrasah.index');
         Route::post('/profil-madrasah', [ProfilMadrasahController::class, 'update'])->name('profil-madrasah.update');
+
+        // Lokasi Madrasah
+        Route::get('/lokasi-madrasah', [LokasiMadrasahController::class, 'index'])->name('lokasi-madrasah.index');
+        Route::post('/lokasi-madrasah', [LokasiMadrasahController::class, 'store'])->name('lokasi-madrasah.store');
+        Route::put('/lokasi-madrasah', [LokasiMadrasahController::class, 'update'])->name('lokasi-madrasah.update');
+        Route::post('/lokasi-madrasah/toggle', [LokasiMadrasahController::class, 'toggleAktif'])->name('lokasi-madrasah.toggle');
 
         // Pengumuman
         Route::get('/pengumuman', [PengumumanController::class, 'index'])->name('pengumuman.index');

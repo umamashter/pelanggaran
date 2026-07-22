@@ -51,7 +51,7 @@
 
     <div class="card form-card">
         <div class="card-body">
-            <form action="{{ route('absensi.update', $absensi->id) }}" method="POST">
+            <form id="absensiForm" action="{{ route('absensi.update', $absensi->id) }}" method="POST">
                 @csrf
                 @method('PUT')
 
@@ -90,7 +90,7 @@
                 </div>
 
                 <div class="d-flex gap-2 mt-4">
-                    <button type="submit" class="btn-update-ms">
+                    <button type="button" id="btnSimpan" class="btn-update-ms">
                         <i class="fas fa-save"></i> Update Absensi
                     </button>
                     <a href="{{ route('absensi.riwayat') }}" class="btn-kembali-ms">
@@ -101,4 +101,91 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:16px;border:none;box-shadow:0 8px 32px rgba(0,0,0,.12);">
+            <div class="modal-body p-4">
+                <div class="text-center mb-3">
+                    <div class="d-inline-flex align-items-center justify-content-center" style="width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#f59e0b,#d97706);box-shadow:0 4px 14px rgba(245,158,11,.3);">
+                        <i class="fas fa-clipboard-check text-white" style="font-size:24px;"></i>
+                    </div>
+                    <h5 class="mt-3 fw-bold" style="color:#1e293b;">Konfirmasi Update Absensi</h5>
+                </div>
+                <div style="background:#f8fafc;border-radius:12px;padding:16px 20px;margin-bottom:16px;">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span style="color:#64748b;font-size:13px;"><i class="fas fa-chalkboard me-1"></i>Kelas</span>
+                        <strong style="color:#1e293b;font-size:13px;">{{ $absensi->kelas?->nama_kelas ?? '-' }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span style="color:#64748b;font-size:13px;"><i class="fas fa-calendar me-1"></i>Tanggal</span>
+                        <strong style="color:#1e293b;font-size:13px;">{{ $absensi->tanggal->translatedFormat('d F Y') }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span style="color:#64748b;font-size:13px;"><i class="fas fa-users me-1"></i>Total Siswa</span>
+                        <strong style="color:#1e293b;font-size:13px;">{{ $siswas->count() }} Siswa</strong>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-center gap-3 mb-3">
+                    <div class="text-center">
+                        <div style="font-size:22px;font-weight:700;color:#16a34a;" id="confirmH">0</div>
+                        <div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;">Hadir</div>
+                    </div>
+                    <div class="text-center">
+                        <div style="font-size:22px;font-weight:700;color:#d97706;" id="confirmI">0</div>
+                        <div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;">Izin</div>
+                    </div>
+                    <div class="text-center">
+                        <div style="font-size:22px;font-weight:700;color:#dc2626;" id="confirmS">0</div>
+                        <div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;">Sakit</div>
+                    </div>
+                    <div class="text-center">
+                        <div style="font-size:22px;font-weight:700;color:#64748b;" id="confirmA">0</div>
+                        <div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;">Alpha</div>
+                    </div>
+                </div>
+                <p class="text-center" style="color:#64748b;font-size:13px;">Apakah Anda yakin ingin memperbarui absensi ini?</p>
+            </div>
+            <div class="modal-footer border-0 pt-0 pb-4 px-4" style="justify-content:center;gap:8px;">
+                <button type="button" class="btn" data-bs-dismiss="modal" style="padding:8px 20px;border-radius:10px;font-size:13px;font-weight:500;border:1.5px solid #e2e8f0;background:#fff;color:#475569;">Batal</button>
+                <button type="button" class="btn" id="confirmBtn" style="padding:8px 20px;border-radius:10px;font-size:13px;font-weight:600;border:none;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;box-shadow:0 2px 8px rgba(245,158,11,.25);">
+                    <i class="fas fa-save me-1"></i>Ya, Update Absensi
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var form = document.getElementById('absensiForm');
+    var btnSimpan = document.getElementById('btnSimpan');
+    var confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+
+    btnSimpan.addEventListener('click', function() {
+        var h = 0, i = 0, s = 0, a = 0;
+        document.querySelectorAll('select[name^="status"]').forEach(function(sel) {
+            switch(sel.value) {
+                case 'H': h++; break;
+                case 'I': i++; break;
+                case 'S': s++; break;
+                case 'A': a++; break;
+            }
+        });
+
+        document.getElementById('confirmH').textContent = h;
+        document.getElementById('confirmI').textContent = i;
+        document.getElementById('confirmS').textContent = s;
+        document.getElementById('confirmA').textContent = a;
+
+        confirmModal.show();
+    });
+
+    document.getElementById('confirmBtn').addEventListener('click', function() {
+        confirmModal.hide();
+        form.submit();
+    });
+});
+</script>
+@endpush

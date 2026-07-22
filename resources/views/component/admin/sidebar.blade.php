@@ -72,7 +72,7 @@
                 </li>
 
                 {{-- Akademik --}}
-                <li class="menu-item has-submenu{{ request()->is('pengampu-mapel*', 'jadwal-pelajaran*', 'jadwal-jenjang*', 'jadwal-per-kelas*', 'jadwal-grid*', 'jadwal-siswa*', 'absensi*', 'penilaian', 'penilaian/*', 'penilaian-riwayat*', 'penilaian-hasil*') ? ' has-active' : '' }}">
+                <li class="menu-item has-submenu{{ request()->is('pengampu-mapel*', 'jadwal-pelajaran*', 'jadwal-jenjang*', 'jadwal-per-kelas*', 'jadwal-grid*', 'jadwal-siswa*', 'absensi*', 'penilaian', 'penilaian/*', 'penilaian-riwayat*', 'penilaian-hasil*', 'admin/absensi-guru*') ? ' has-active' : '' }}">
                     <a href="#" class="menu-link menu-toggle" title="Akademik" data-flyout-toggle aria-haspopup="true" aria-expanded="false">
                         <span class="menu-icon"><i class="fas fa-school"></i></span>
                         <span class="menu-text">Akademik</span>
@@ -90,7 +90,10 @@
                             <a href="{{ route('jadwal-siswa') }}" class="menu-submenu-link">Jadwal Siswa</a>
                         </li>
                         <li class="menu-submenu-item{{ request()->is('absensi*') ? ' is-active' : '' }}">
-                            <a href="{{ route('absensi.index') }}" class="menu-submenu-link">Absensi</a>
+                            <a href="{{ route('absensi.index') }}" class="menu-submenu-link">Absensi Siswa</a>
+                        </li>
+                        <li class="menu-submenu-item{{ request()->is('admin/absensi-guru*') ? ' is-active' : '' }}">
+                            <a href="{{ route('admin.absensi-guru.index') }}" class="menu-submenu-link">Absensi Guru</a>
                         </li>
                         <li class="menu-submenu-item{{ request()->is('penilaian', 'penilaian/*', 'penilaian-riwayat*', 'penilaian-hasil*') ? ' is-active' : '' }}">
                             <a href="{{ route('penilaian.index') }}" class="menu-submenu-link">Penilaian</a>
@@ -202,7 +205,7 @@
                 </li>
 
                 {{-- Pengaturan --}}
-                <li class="menu-item has-submenu{{ request()->is('2fa*', 'admin/keamanan*', 'admin/riwayat-login*', 'riwayat-login*', 'perangkat*', 'admin/kebijakan-2fa*') ? ' has-active' : '' }}">
+                <li class="menu-item has-submenu{{ request()->is('2fa*', 'admin/keamanan*', 'admin/riwayat-login*', 'riwayat-login*', 'perangkat*', 'admin/kebijakan-2fa*', 'admin/lokasi-madrasah*') ? ' has-active' : '' }}">
                     <a href="#" class="menu-link menu-toggle" title="Pengaturan" data-flyout-toggle aria-haspopup="true" aria-expanded="false">
                         <span class="menu-icon"><i class="fas fa-cog"></i></span>
                         <span class="menu-text">Pengaturan</span>
@@ -224,6 +227,9 @@
                         </li>
                         <li class="menu-submenu-item{{ request()->is('admin/kebijakan-2fa*') ? ' is-active' : '' }}">
                             <a href="{{ route('admin.2fa-policy.index') }}" class="menu-submenu-link">Kebijakan 2FA</a>
+                        </li>
+                        <li class="menu-submenu-item{{ request()->is('admin/lokasi-madrasah*') ? ' is-active' : '' }}">
+                            <a href="{{ route('lokasi-madrasah.index') }}" class="menu-submenu-link">Lokasi Madrasah</a>
                         </li>
                     </ul>
                 </li>
