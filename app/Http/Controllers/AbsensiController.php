@@ -46,7 +46,8 @@ class AbsensiController extends Controller
         })->orderBy('nama_kelas')->get();
 
         if (!$request->filled('kelas_id') || !$request->filled('tanggal')) {
-            return view('admin.absensi.create', compact('tahunAktif', 'kelasList'));
+            $existingAbsensi = null;
+            return view('admin.absensi.create', compact('tahunAktif', 'kelasList', 'existingAbsensi'));
         }
 
         $request->validate([
