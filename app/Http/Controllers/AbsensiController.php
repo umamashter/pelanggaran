@@ -39,12 +39,29 @@ class AbsensiController extends Controller
 
     public function create(Request $request)
     {
+        $tahunAktif = TahunAjaran::where('status', 'Aktif')->firstOrFail();
+
+        $kelasList = Kelas::whereHas('siswaAktif', function ($q) use ($tahunAktif) {
+            $q->where('tahun_ajaran_id', $tahunAktif->id);
+        })->orderBy('nama_kelas')->get();
+
+        if (!$request->filled('kelas_id') || !$request->filled('tanggal')) {
+            return view('admin.absensi.create', compact('tahunAktif', 'kelasList'));
+        }
+
         $request->validate([
             'kelas_id' => 'required|exists:kelas,id',
             'tanggal' => 'required|date',
         ]);
 
-        $tahunAktif = TahunAjaran::where('status', 'Aktif')->firstOrFail();
+        $tanggalAbsensi = \Carbon\Carbon::parse($request->tanggal);
+
+        if ($tahunAktif->tanggal_mulai && $tanggalAbsensi->lt(\Carbon\Carbon::parse($tahunAktif->tanggal_mulai))) {
+            return back()->withInput()->with('error', 'Tanggal absensi tidak boleh sebelum tanggal mulai tahun ajaran (' . \Carbon\Carbon::parse($tahunAktif->tanggal_mulai)->translatedFormat('d F Y') . ').');
+        }
+        if ($tahunAktif->tanggal_selesai && $tanggalAbsensi->gt(\Carbon\Carbon::parse($tahunAktif->tanggal_selesai))) {
+            return back()->withInput()->with('error', 'Tanggal absensi tidak boleh setelah tanggal selesai tahun ajaran (' . \Carbon\Carbon::parse($tahunAktif->tanggal_selesai)->translatedFormat('d F Y') . ').');
+        }
 
         $kelas = Kelas::findOrFail($request->kelas_id);
 
@@ -63,6 +80,7 @@ class AbsensiController extends Controller
             'kelas',
             'siswas',
             'tahunAktif',
+            'kelasList',
             'existingAbsensi'
         ));
     }

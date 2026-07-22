@@ -31,6 +31,9 @@
 .btn-absen-ms.btn-success-ms { background: #16a34a; color: #fff; box-shadow: 0 2px 6px rgba(22,163,74,.25); }
 .btn-absen-ms.btn-success-ms:hover { background: #15803d; box-shadow: 0 4px 12px rgba(22,163,74,.35); }
 .btn-absen-ms.btn-secondary-ms { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; }
+.btn-header-ms { padding: 8px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; transition: all .25s; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; border: none; text-decoration: none; }
+.btn-header-ms:hover { transform: translateY(-2px); color: #fff; }
+.btn-header-ms.btn-add-ms { background: linear-gradient(135deg, #16a34a, #22c55e); color: #fff; box-shadow: 0 2px 8px rgba(22,163,74,.25); }
 @media (max-width: 768px) { .table-card .card-body { padding: 12px 14px 16px; } .dataTables_wrapper .dataTables_filter { float: none; text-align: left; } .dataTables_wrapper .dataTables_filter label input { width: 100%; } #table_absensi thead th { font-size: 11px; padding: 9px 8px; } #table_absensi tbody td { padding: 8px; font-size: 12px; } }
 </style>
 
@@ -47,6 +50,11 @@
                             <span class="badge-modern badge-ta"><i class="fas fa-graduation-cap me-1"></i>{{ $tahunAktif->tahun_ajaran }}</span>
                         </div>
                     </div>
+                </div>
+                <div>
+                    <a href="{{ route('absensi.create') }}" class="btn-header-ms btn-add-ms">
+                        <i class="fas fa-plus"></i> Input Absensi
+                    </a>
                 </div>
             </div>
         </div>

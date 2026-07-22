@@ -118,11 +118,13 @@ php artisan serve
 - DB schema (`absensi_details`): `absensi_id`, `student_id`, `status` (enum H/I/S/A), `keterangan`. Unique constraint: `(absensi_id, student_id)`.
 - `jadwal_pelajaran_id` is nullable for backward compatibility — old records have `kelas_id=NULL, tahun_ajaran_id=NULL, user_id=NULL`. Views use null-safe operators (`?->`) to handle these.
 - **Route naming**: `absensi.index`, `absensi.create`, `absensi.store`, `absensi.detail`, `absensi.edit`, `absensi.update`, `absensi.riwayat`, `absensi.rekap`, `absensi.rekap.pdf`.
+- `absensi.create` is a two-step flow: **Step 1** (no params) shows kelas dropdown + date picker; **Step 2** (with `kelas_id` + `tanggal`) shows student form. Date validated against `tahun_ajaran.tanggal_mulai`/`tanggal_selesai` when present.
+- `absensi.index` has `+ Input Absensi` button linking to `absensi.create` (step 1). Per-row "Absen" button for quick today access preserved.
 - All routes behind `CekRole:1` (admin only). Store/update wrapped in `DB::beginTransaction`.
 - `updateOrCreate` pattern for both header and details — prevents duplicates on re-submit.
 - Rekap controller: `kelas_id` validation is conditional (form shown without it, query only when filled). `rekapPdf` requires `kelas_id`.
 - Students fetched via `Student::whereHas('kelasAktif')` scoped by `kelas_id` + `tahun_ajaran_id`.
-- **Known UX gaps** (not bugs, future iterations): no date picker on index (hardcoded to today), no explicit date range filter in riwayat (DataTables search only), no confirmation dialog before save.
+- **Known UX gaps** (not bugs, future iterations): no explicit date range filter in riwayat (DataTables search only), no confirmation dialog before save.
 
 ## Admin Page Pattern
 Every admin table page:
