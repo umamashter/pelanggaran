@@ -222,16 +222,16 @@ Route::group(['middleware' => ['auth', '2fa', 'require.2fa']], function () {
 
         //Guru Mata pelajaran
         Route::resource('master-guru', MasterGuruController::class);
-        //absensi
-        Route::resource('absensi', AbsensiController::class);
-        Route::get('/absensi/{jadwal}', [AbsensiController::class, 'create'])->name('absensi.create');
+        //Absensi
+        Route::get('/absensi', [AbsensiController::class, 'index'])->name('absensi.index');
+        Route::get('/absensi/create', [AbsensiController::class, 'create'])->name('absensi.create');
         Route::post('/absensi', [AbsensiController::class, 'store'])->name('absensi.store');
-        Route::get('/absensi-riwayat', [AbsensiController::class, 'riwayat'])->name('absensi.riwayat');
-        Route::get('/absensi-detail/{id}', [AbsensiController::class, 'detail'])->name('absensi.detail');
         Route::get('/absensi/{id}/edit', [AbsensiController::class, 'edit'])->name('absensi.edit');
         Route::put('/absensi/{id}', [AbsensiController::class, 'update'])->name('absensi.update');
+        Route::get('/absensi/{id}', [AbsensiController::class, 'detail'])->name('absensi.detail');
+        Route::get('/absensi-riwayat', [AbsensiController::class, 'riwayat'])->name('absensi.riwayat');
         Route::get('/absensi-rekap', [AbsensiController::class, 'rekap'])->name('absensi.rekap');
-        Route::get('/absensi/rekap/pdf',  [AbsensiController::class, 'rekapPdf'])->name('absensi.rekap.pdf');
+        Route::get('/absensi-rekap/pdf', [AbsensiController::class, 'rekapPdf'])->name('absensi.rekap.pdf');
         //Tahun Ajaran
         Route::resource('tahun-ajaran', TahunAjaranController::class);
         Route::put('/tahun-ajaran/{id}/aktifkan', [TahunAjaranController::class, 'aktifkan'])->name('tahun-ajaran.aktifkan');

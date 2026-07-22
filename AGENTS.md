@@ -2,6 +2,8 @@
 
 School Management Information System (Sistem Informasi Akademik) for an Indonesian Islamic elementary school.
 
+README.md is the default Laravel template — contains no project-specific info.
+
 ## Quick Start
 
 ```bash
@@ -40,7 +42,7 @@ php artisan serve
 - Web group order: `auth` -> `2fa` -> `require.2fa` -> `datasiswa` (per-controller) -> `role`.
 - `2fa/challenge` and `2fa/verify` are **outside** the auth group (unauthenticated access).
 - Login (`POST /login`) and 2FA verify throttled (`throttle:5,1`).
-- `datasiswa` middleware (currently only on `HomeController`): forces role 3 (`info=false`) to data-completion form; logs out guru without `waliKelas` assignment; logs out non-siswa with `info=false`.
+- `datasiswa` middleware (currently only on `HomeController`): forces role 3 (`info=false`) to data-completion form; logs out guru without `waliKelas` or with `kelas_id == null`; logs out non-siswa with `info=false`.
 - Roles are ints: `1=admin`, `2=guru`, `3=siswa`, `4=BK`. **BK (4) routes in `routes/web.php:366-379` are fully commented out** — but `layouts/main.blade.php` still renders sidebar/navbar for role 4.
 - `admin` middleware alias exists in Kernel but is unused — use `role` middleware instead.
 - `laravel/sanctum` installed, but its middleware is commented out in the `api` group (`Kernel.php:45`).

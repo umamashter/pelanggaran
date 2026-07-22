@@ -3,257 +3,336 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\JadwalPelajaran;
-use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use App\Models\Kelas;
 use App\Models\Student;
+use App\Models\StudentKelas;
+use App\Models\TahunAjaran;
 use App\Models\Absensi;
 use App\Models\AbsensiDetail;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class AbsensiController extends Controller
 {
     public function index()
     {
-        $jadwals = JadwalPelajaran::with([
-            'kelas',
-            'guru',
-            'mapel'
-        ])->get();
-        $kelasSudahAbsen = Absensi::whereDate(
-            'tanggal',
-            now()->toDateString()
-        )
-            ->with('jadwal')
-            ->get()
-            ->pluck('jadwal.kelas_id')
-            ->unique()
+        $tahunAktif = TahunAjaran::with('semesterAktif')
+            ->where('status', 'Aktif')
+            ->firstOrFail();
+
+        $kelasList = Kelas::whereHas('siswaAktif', function ($q) use ($tahunAktif) {
+            $q->where('tahun_ajaran_id', $tahunAktif->id);
+        })->orderBy('nama_kelas')->get();
+
+        $absensiHariIni = Absensi::where('tanggal', now()->toDateString())
+            ->where('tahun_ajaran_id', $tahunAktif->id)
+            ->pluck('kelas_id')
             ->toArray();
 
-        return view(
-            'admin.absensi.index',
-            compact(
-                'jadwals',
-                'kelasSudahAbsen'
-            )
-        );
+        return view('admin.absensi.index', compact(
+            'kelasList',
+            'absensiHariIni',
+            'tahunAktif'
+        ));
     }
-    public function create($id)
+
+    public function create(Request $request)
     {
-        $jadwal = JadwalPelajaran::with([
+        $request->validate([
+            'kelas_id' => 'required|exists:kelas,id',
+            'tanggal' => 'required|date',
+        ]);
+
+        $tahunAktif = TahunAjaran::where('status', 'Aktif')->firstOrFail();
+
+        $kelas = Kelas::findOrFail($request->kelas_id);
+
+        $siswas = Student::whereHas('kelasAktif', function ($q) use ($request, $tahunAktif) {
+            $q->where('kelas_id', $request->kelas_id)
+              ->where('tahun_ajaran_id', $tahunAktif->id);
+        })->orderBy('nama')->get();
+
+        $existingAbsensi = Absensi::where('kelas_id', $request->kelas_id)
+            ->where('tanggal', $request->tanggal)
+            ->where('tahun_ajaran_id', $tahunAktif->id)
+            ->with('details')
+            ->first();
+
+        return view('admin.absensi.create', compact(
             'kelas',
-            'guru',
-            'mapel'
-        ])->findOrFail($id);
-
-        $siswas = Student::where(
-            'kelas_id',
-            $jadwal->kelas_id
-        )->orderBy('nama')
-            ->get();
-
-        return view(
-            'admin.absensi.create',
-            compact(
-                'jadwal',
-                'siswas'
-            )
-        );
+            'siswas',
+            'tahunAktif',
+            'existingAbsensi'
+        ));
     }
-    public function show($id)
-    {
-        $jadwal = JadwalPelajaran::with([
-            'kelas',
-            'guru',
-            'mapel'
-        ])->findOrFail($id);
 
-        $students = Student::where(
-            'kelas_id',
-            $jadwal->kelas_id
-        )->orderBy('nama')
-            ->get();
-
-        return view(
-            'admin.absensi.show',
-            compact(
-                'jadwal',
-                'students'
-            )
-        );
-    }
     public function store(Request $request)
     {
         $request->validate([
-            'jadwal_pelajaran_id' => 'required|exists:jadwal_pelajaran,id',
+            'kelas_id' => 'required|exists:kelas,id',
             'tanggal' => 'required|date',
-            'status' => 'required|array'
+            'status' => 'required|array',
+            'status.*' => 'required|in:H,I,S,A',
         ]);
 
-        // Ambil data jadwal yang dipilih
-        $jadwal = JadwalPelajaran::findOrFail(
-            $request->jadwal_pelajaran_id
-        );
+        $tahunAktif = TahunAjaran::where('status', 'Aktif')->firstOrFail();
 
-        // Cek apakah kelas tersebut sudah diabsen pada tanggal yang sama
-        $cek = Absensi::whereDate(
-            'tanggal',
-            $request->tanggal
-        )
-            ->whereHas('jadwal', function ($query) use ($jadwal) {
-                $query->where(
-                    'kelas_id',
-                    $jadwal->kelas_id
+        DB::beginTransaction();
+
+        try {
+            $absensi = Absensi::updateOrCreate(
+                [
+                    'kelas_id' => $request->kelas_id,
+                    'tanggal' => $request->tanggal,
+                    'tahun_ajaran_id' => $tahunAktif->id,
+                ],
+                [
+                    'user_id' => Auth::id(),
+                ]
+            );
+
+            foreach ($request->status as $studentId => $status) {
+                AbsensiDetail::updateOrCreate(
+                    [
+                        'absensi_id' => $absensi->id,
+                        'student_id' => $studentId,
+                    ],
+                    [
+                        'status' => $status,
+                        'keterangan' => $request->input("keterangan.{$studentId}"),
+                    ]
                 );
-            })
-            ->first();
+            }
 
-        if ($cek) {
-            return back()->with(
-                'error',
-                'Absensi pada tanggal tersebut sudah ada.'
-            );
+            DB::commit();
+
+            return redirect()
+                ->route('absensi.index')
+                ->with('success', 'Absensi berhasil disimpan.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withInput()->with('error', 'Gagal menyimpan absensi: ' . $e->getMessage());
         }
-
-        $absensi = Absensi::create([
-            'jadwal_pelajaran_id' => $request->jadwal_pelajaran_id,
-            'tanggal' => $request->tanggal,
-        ]);
-
-        foreach ($request->status as $studentId => $status) {
-
-            AbsensiDetail::create([
-                'absensi_id' => $absensi->id,
-                'student_id' => $studentId,
-                'status' => $status,
-            ]);
-        }
-
-        return redirect()
-            ->route('absensi.index')
-            ->with(
-                'success',
-                'Absensi berhasil disimpan.'
-            );
     }
-    public function riwayat()
+
+    public function riwayat(Request $request)
     {
-        $absensis = Absensi::with([
-            'jadwal.kelas',
-            'jadwal.mapel',
-            'jadwal.guru'
-        ])
-            ->latest()
+        $tahunAktif = TahunAjaran::where('status', 'Aktif')->firstOrFail();
+
+        $absensis = Absensi::with(['kelas', 'user'])
+            ->where('tahun_ajaran_id', $tahunAktif->id)
+            ->when($request->kelas_id, function ($q) use ($request) {
+                $q->where('kelas_id', $request->kelas_id);
+            })
+            ->latest('tanggal')
+            ->latest('id')
             ->get();
 
-        return view(
-            'admin.absensi.riwayat',
-            compact('absensis')
-        );
+        $kelasList = Kelas::whereHas('siswaAktif', function ($q) use ($tahunAktif) {
+            $q->where('tahun_ajaran_id', $tahunAktif->id);
+        })->orderBy('nama_kelas')->get();
+
+        return view('admin.absensi.riwayat', compact('absensis', 'kelasList', 'tahunAktif'));
     }
+
     public function detail($id)
     {
-        $absensi = Absensi::with([
-            'jadwal.kelas',
-            'jadwal.mapel',
-            'details.student'
-        ])->findOrFail($id);
+        $absensi = Absensi::with(['details.student', 'kelas', 'user', 'tahunAjaran'])
+            ->findOrFail($id);
 
-        return view(
-            'admin.absensi.detail',
-            compact('absensi')
-        );
+        return view('admin.absensi.detail', compact('absensi'));
     }
+
     public function edit($id)
     {
-        $absensi = Absensi::with([
-            'jadwal.kelas',
-            'jadwal.mapel',
-            'details.student'
-        ])->findOrFail($id);
+        $absensi = Absensi::with(['details.student', 'kelas', 'tahunAjaran'])
+            ->findOrFail($id);
 
-        return view(
-            'admin.absensi.edit',
-            compact('absensi')
-        );
+        $siswas = Student::whereHas('kelasAktif', function ($q) use ($absensi) {
+            $q->where('kelas_id', $absensi->kelas_id);
+        })->orderBy('nama')->get();
+
+        $detailMap = $absensi->details->pluck('status', 'student_id');
+        $keteranganMap = $absensi->details->pluck('keterangan', 'student_id');
+
+        return view('admin.absensi.edit', compact(
+            'absensi',
+            'siswas',
+            'detailMap',
+            'keteranganMap'
+        ));
     }
+
     public function update(Request $request, $id)
     {
+        $request->validate([
+            'status' => 'required|array',
+            'status.*' => 'required|in:H,I,S,A',
+        ]);
+
         $absensi = Absensi::findOrFail($id);
 
-        foreach ($request->status as $detailId => $status) {
+        DB::beginTransaction();
 
-            AbsensiDetail::where(
-                'id',
-                $detailId
-            )->update([
-                'status' => $status
-            ]);
+        try {
+            $absensi->update(['user_id' => Auth::id()]);
+
+            foreach ($request->status as $studentId => $status) {
+                AbsensiDetail::updateOrCreate(
+                    [
+                        'absensi_id' => $absensi->id,
+                        'student_id' => $studentId,
+                    ],
+                    [
+                        'status' => $status,
+                        'keterangan' => $request->input("keterangan.{$studentId}"),
+                    ]
+                );
+            }
+
+            DB::commit();
+
+            return redirect()
+                ->route('absensi.riwayat')
+                ->with('success', 'Absensi berhasil diperbarui.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withInput()->with('error', 'Gagal memperbarui absensi: ' . $e->getMessage());
         }
-
-        return redirect()
-            ->route('absensi.riwayat')
-            ->with(
-                'success',
-                'Absensi berhasil diperbarui'
-            );
     }
+
     public function rekap(Request $request)
     {
-        $kelas = \App\Models\Kelas::orderBy('nama_kelas')->get();
+        $request->validate([
+            'kelas_id' => 'required|exists:kelas,id',
+        ]);
 
-        $siswas = Student::with('kelas');
+        $tahunAktif = TahunAjaran::where('status', 'Aktif')->firstOrFail();
+        $kelas = Kelas::findOrFail($request->kelas_id);
 
-        if ($request->kelas_id) {
-            $siswas->where('kelas_id', $request->kelas_id);
+        $bulan = $request->input('bulan');
+        $tanggalAwal = $request->input('tanggal_awal');
+        $tanggalAkhir = $request->input('tanggal_akhir');
+
+        $siswas = Student::whereHas('kelasAktif', function ($q) use ($kelas, $tahunAktif) {
+            $q->where('kelas_id', $kelas->id)
+              ->where('tahun_ajaran_id', $tahunAktif->id);
+        })->orderBy('nama')->get();
+
+        $rekapData = [];
+        foreach ($siswas as $siswa) {
+            $query = AbsensiDetail::where('student_id', $siswa->id)
+                ->whereHas('absensi', function ($q) use ($kelas, $tahunAktif) {
+                    $q->where('kelas_id', $kelas->id)
+                      ->where('tahun_ajaran_id', $tahunAktif->id);
+                });
+
+            if ($tanggalAwal && $tanggalAkhir) {
+                $query->whereHas('absensi', function ($q) use ($tanggalAwal, $tanggalAkhir) {
+                    $q->whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir]);
+                });
+            } elseif ($bulan) {
+                $query->whereHas('absensi', function ($q) use ($bulan) {
+                    $q->whereYear('tanggal', date('Y', strtotime($bulan)))
+                      ->whereMonth('tanggal', date('m', strtotime($bulan)));
+                });
+            }
+
+            $details = $query->get();
+
+            $rekapData[$siswa->id] = [
+                'siswa' => $siswa,
+                'hadir' => $details->where('status', 'H')->count(),
+                'izin' => $details->where('status', 'I')->count(),
+                'sakit' => $details->where('status', 'S')->count(),
+                'alpa' => $details->where('status', 'A')->count(),
+                'total' => $details->count(),
+            ];
         }
 
-        $siswas = $siswas->orderBy('nama')->get();
+        $kelasList = Kelas::whereHas('siswaAktif', function ($q) use ($tahunAktif) {
+            $q->where('tahun_ajaran_id', $tahunAktif->id);
+        })->orderBy('nama_kelas')->get();
 
-        $bulan = $request->bulan;
-
-        return view(
-            'admin.absensi.rekap',
-            compact(
-                'siswas',
-                'kelas',
-                'bulan'
-            )
-        );
+        return view('admin.absensi.rekap', compact(
+            'kelas',
+            'kelasList',
+            'rekapData',
+            'tahunAktif',
+            'bulan',
+            'tanggalAwal',
+            'tanggalAkhir'
+        ));
     }
+
     public function rekapPdf(Request $request)
     {
-        $siswas = Student::with('kelas');
+        $request->validate([
+            'kelas_id' => 'required|exists:kelas,id',
+        ]);
 
-        if ($request->kelas_id) {
-            $siswas->where('kelas_id', $request->kelas_id);
+        $tahunAktif = TahunAjaran::where('status', 'Aktif')->firstOrFail();
+        $kelas = Kelas::findOrFail($request->kelas_id);
+
+        $bulan = $request->input('bulan');
+        $tanggalAwal = $request->input('tanggal_awal');
+        $tanggalAkhir = $request->input('tanggal_akhir');
+
+        $siswas = Student::whereHas('kelasAktif', function ($q) use ($kelas, $tahunAktif) {
+            $q->where('kelas_id', $kelas->id)
+              ->where('tahun_ajaran_id', $tahunAktif->id);
+        })->orderBy('nama')->get();
+
+        $rekapData = [];
+        foreach ($siswas as $siswa) {
+            $query = AbsensiDetail::where('student_id', $siswa->id)
+                ->whereHas('absensi', function ($q) use ($kelas, $tahunAktif) {
+                    $q->where('kelas_id', $kelas->id)
+                      ->where('tahun_ajaran_id', $tahunAktif->id);
+                });
+
+            if ($tanggalAwal && $tanggalAkhir) {
+                $query->whereHas('absensi', function ($q) use ($tanggalAwal, $tanggalAkhir) {
+                    $q->whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir]);
+                });
+            } elseif ($bulan) {
+                $query->whereHas('absensi', function ($q) use ($bulan) {
+                    $q->whereYear('tanggal', date('Y', strtotime($bulan)))
+                      ->whereMonth('tanggal', date('m', strtotime($bulan)));
+                });
+            }
+
+            $details = $query->get();
+
+            $rekapData[$siswa->id] = [
+                'siswa' => $siswa,
+                'hadir' => $details->where('status', 'H')->count(),
+                'izin' => $details->where('status', 'I')->count(),
+                'sakit' => $details->where('status', 'S')->count(),
+                'alpa' => $details->where('status', 'A')->count(),
+                'total' => $details->count(),
+            ];
         }
 
-        $siswas = $siswas
-            ->orderBy('nama')
-            ->get();
-
-        $bulan = $request->bulan;
-
-        $kelas = null;
-
-        if ($request->kelas_id) {
-            $kelas = \App\Models\Kelas::find($request->kelas_id);
+        $periodeLabel = 'Semua Bulan';
+        if ($tanggalAwal && $tanggalAkhir) {
+            $periodeLabel = \Carbon\Carbon::parse($tanggalAwal)->translatedFormat('d F Y')
+                . ' - ' . \Carbon\Carbon::parse($tanggalAkhir)->translatedFormat('d F Y');
+        } elseif ($bulan) {
+            $periodeLabel = \Carbon\Carbon::parse($bulan . '-01')->translatedFormat('F Y');
         }
 
-        $semester = 'Genap'; // sementara manual
+        $pdf = Pdf::loadView('admin.absensi.rekap-pdf', compact(
+            'kelas',
+            'siswas',
+            'rekapData',
+            'tahunAktif',
+            'periodeLabel'
+        ));
 
-        $tahunAjaran = '2025 / 2026'; // sementara manual
-
-        $pdf = Pdf::loadView(
-            'admin.absensi.rekap-pdf',
-            compact(
-                'siswas',
-                'bulan',
-                'kelas',
-                'semester',
-                'tahunAjaran'
-            )
-        );
-
-        return $pdf->stream('rekap-absensi.pdf');
+        return $pdf->stream('rekap-absensi-' . $kelas->nama_kelas . '.pdf');
     }
 }

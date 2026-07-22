@@ -686,6 +686,8 @@ class JadwalPelajaranController extends Controller
 
         $jenjangCetak = $jenjang_id ? Jenjang::find($jenjang_id) : null;
 
+        $semesterGanjil = $tahunAjaran->semesters()->where('nama', 'Ganjil')->first();
+
         return view(
             'admin.jadwalpelajaran.cetak-jadwal-siswa',
             compact(
@@ -698,7 +700,8 @@ class JadwalPelajaranController extends Controller
                 'guruKodeMap',
                 'profil',
                 'jenjang_id',
-                'jenjangCetak'
+                'jenjangCetak',
+                'semesterGanjil'
             )
         );
     }

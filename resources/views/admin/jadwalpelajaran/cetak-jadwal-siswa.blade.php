@@ -287,11 +287,15 @@
                         </div>
                     </div>
                     <div class="ttd-area">
-                        <div class="tanggal">Guluk-Guluk, {{ tanggal_indonesia(\Carbon\Carbon::now()->format('Y-m-d')) }}</div>
+                        <div class="tanggal">Guluk-Guluk, {{ tanggal_indonesia(optional($semesterGanjil)->tanggal_mulai ? $semesterGanjil->tanggal_mulai->format('Y-m-d') : now()->format('Y-m-d'), false) }}</div>
                         <div style="margin-top:2px;">Kepala {{ $jenjangLabel }} Nurul Ulum,</div>
                         <div style="height:48px;"></div>
                         @if($jenjangLabel === 'MI')
                         <div>Ach. Fathorrosi, S.Pd.I</div>
+                        @elseif($jenjangLabel === 'MTs')
+                        <div>Nasir, S.Pd.I</div>
+                        @elseif($jenjangLabel === 'MA')
+                        <div>Minhaji, S.Kom</div>
                         @endif
                     </div>
                 </div>
