@@ -14,14 +14,16 @@ class GuruController extends Controller
 {
     public function daftar_siswa()
     {
-        $wali_kelas = WaliKelas::firstWhere('user_id', auth()->user()->id);
+        $guru = \App\Models\Guru::where('user_id', auth()->user()->id)->first();
+        $wali_kelas = $guru ? WaliKelas::where('guru_id', $guru->id)->first() : null;
         $siswas = Student::where('kelas_id', $wali_kelas->kelas_id)->paginate(null)->withQueryString();
         return view('guru.page.daftar-siswa', compact('siswas', 'wali_kelas'));
     }
 
     public function master_history()
     {
-        $wali_kelas = WaliKelas::firstWhere('user_id', auth()->user()->id);
+        $guru = \App\Models\Guru::where('user_id', auth()->user()->id)->first();
+        $wali_kelas = $guru ? WaliKelas::where('guru_id', $guru->id)->first() : null;
         $siswas = Student::firstWhere('kelas_id', $wali_kelas->kelas_id);
 
         $siswa = Student::whereHas('history', function ($q) use ($wali_kelas) {
@@ -46,7 +48,8 @@ class GuruController extends Controller
 
     public function history_siswa($id)
     {
-        $wali_kelas = WaliKelas::firstWhere('user_id', auth()->user()->id);
+        $guru = \App\Models\Guru::where('user_id', auth()->user()->id)->first();
+        $wali_kelas = $guru ? WaliKelas::where('guru_id', $guru->id)->first() : null;
         $siswas = Student::firstWhere('kelas_id', $wali_kelas->kelas_id);
 
         if (request('tanggal')) {

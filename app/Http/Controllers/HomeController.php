@@ -55,7 +55,8 @@ class HomeController extends Controller
 
         // wali kelas
         if (auth()->user()->role == 2) {
-            $wali_kelas_id = WaliKelas::firstWhere('user_id', auth()->user()->id);
+            $guru = \App\Models\Guru::where('user_id', auth()->user()->id)->first();
+            $wali_kelas_id = $guru ? WaliKelas::where('guru_id', $guru->id)->first() : null;
             if (!$wali_kelas_id) {
                 // Jika guru tidak punya data wali kelas, arahkan ke halaman dengan pesan error
                 return redirect()->back()->with('error', 'Akun ini belum terdaftar sebagai wali kelas.');

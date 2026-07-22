@@ -69,7 +69,8 @@ class PenangananController extends Controller
 
     public function guru_index()
     {
-        $wali_kelas = WaliKelas::where('user_id', auth()->user()->id)->first();
+        $guru = \App\Models\Guru::where('user_id', auth()->user()->id)->first();
+        $wali_kelas = $guru ? WaliKelas::where('guru_id', $guru->id)->first() : null;
         $siswas = Student::where('kelas_id', $wali_kelas->kelas_id)->get();
 
         $siswa = Student::whereHas('penanganan', function ($q) use ($wali_kelas) {

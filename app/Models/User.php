@@ -64,7 +64,7 @@ class User extends Authenticatable
     }
     public function waliKelas()
     {
-    return $this->hasOne(WaliKelas::class, 'user_id');
+        return $this->hasOneThrough(WaliKelas::class, Guru::class, 'user_id', 'guru_id');
     }
 
 
