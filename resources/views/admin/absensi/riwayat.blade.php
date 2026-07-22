@@ -14,10 +14,12 @@
 .filter-card { border: none; border-radius: 18px; box-shadow: 0 4px 16px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.04); }
 .filter-card .card-body { padding: 16px 20px; }
 .filter-card .form-label { font-weight: 600; font-size: 13px; color: #475569; margin-bottom: 4px; }
-.filter-card .form-select { border-radius: 10px; border: 1.5px solid var(--ms-border); font-size: 13px; height: 40px; padding: 0 14px; background-color: #f8fafc; transition: all .2s; color: var(--ms-text); }
-.filter-card .form-select:focus { border-color: var(--ms-primary); box-shadow: 0 0 0 3px rgba(22,163,74,.1); background-color: #fff; }
+.filter-card .form-select, .filter-card .form-control { border-radius: 10px; border: 1.5px solid var(--ms-border); font-size: 13px; height: 40px; padding: 0 14px; background-color: #f8fafc; transition: all .2s; color: var(--ms-text); }
+.filter-card .form-select:focus, .filter-card .form-control:focus { border-color: var(--ms-primary); box-shadow: 0 0 0 3px rgba(22,163,74,.1); background-color: #fff; }
 .btn-filter-ms { padding: 8px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; border: none; background: linear-gradient(135deg, #16a34a, #22c55e); color: #fff; transition: all .25s; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(22,163,74,.25); height: 40px; }
 .btn-filter-ms:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(22,163,74,.35); color: #fff; }
+.btn-reset-ms { padding: 8px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; border: 1.5px solid var(--ms-border); background: #fff; color: #475569; transition: all .25s; display: inline-flex; align-items: center; gap: 6px; height: 40px; text-decoration: none; }
+.btn-reset-ms:hover { border-color: var(--ms-primary); color: var(--ms-primary); background: var(--ms-primary-light); }
 .table-card { border: none; border-radius: 18px; box-shadow: 0 4px 16px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.04); }
 .table-card .card-body { padding: 16px 20px 20px; }
 .dataTables_wrapper .dataTables_filter { float: none; text-align: right; margin-bottom: 8px; }
@@ -42,8 +44,12 @@
 .btn-aksi-ms.btn-info-ms:hover { background: #2563eb; color: #fff; }
 .btn-aksi-ms.btn-warning-ms { background: #fffbeb; color: #d97706; }
 .btn-aksi-ms.btn-warning-ms:hover { background: #d97706; color: #fff; }
-.badge-siswa-count { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; background: #f0fdf4; color: #16a34a; }
-@media (max-width: 768px) { .table-card .card-body { padding: 12px 14px 16px; } .dataTables_wrapper .dataTables_filter { float: none; text-align: left; } .dataTables_wrapper .dataTables_filter label input { width: 100%; } #riwayatTable thead th { font-size: 11px; padding: 9px 8px; } #riwayatTable tbody td { padding: 8px; font-size: 12px; } }
+.badge-count { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; min-width: 24px; text-align: center; }
+.badge-count.hadir { background: #f0fdf4; color: #16a34a; }
+.badge-count.izin { background: #fffbeb; color: #d97706; }
+.badge-count.sakit { background: #fef2f2; color: #dc2626; }
+.badge-count.alpha { background: #f1f5f9; color: #64748b; }
+@media (max-width: 768px) { .table-card .card-body { padding: 12px 14px 16px; } .dataTables_wrapper .dataTables_filter { float: none; text-align: left; } .dataTables_wrapper .dataTables_filter label input { width: 100%; } #riwayatTable thead th { font-size: 11px; padding: 9px 8px; } #riwayatTable tbody td { padding: 8px; font-size: 12px; } .filter-card .card-body { padding: 12px 14px; } }
 </style>
 
 <div class="master-absensi-page">
@@ -72,7 +78,7 @@
     <div class="card filter-card mb-4">
         <div class="card-body">
             <form method="GET" class="row g-3 align-items-end">
-                <div class="col-md-4">
+                <div class="col-lg-3 col-md-6">
                     <label class="form-label"><i class="fas fa-chalkboard me-1" style="color:var(--ms-primary);"></i>Kelas</label>
                     <select name="kelas_id" class="form-select">
                         <option value="">Semua Kelas</option>
@@ -81,8 +87,19 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-2">
-                    <button class="btn-filter-ms"><i class="fas fa-search"></i> Filter</button>
+                <div class="col-lg-3 col-md-6">
+                    <label class="form-label"><i class="fas fa-calendar me-1" style="color:var(--ms-primary);"></i>Dari Tanggal</label>
+                    <input type="date" name="tanggal_mulai" class="form-control" value="{{ $tanggalMulai ?? request('tanggal_mulai') }}">
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <label class="form-label"><i class="fas fa-calendar me-1" style="color:var(--ms-primary);"></i>Sampai Tanggal</label>
+                    <input type="date" name="tanggal_selesai" class="form-control" value="{{ $tanggalSelesai ?? request('tanggal_selesai') }}">
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn-filter-ms"><i class="fas fa-search"></i> Filter</button>
+                        <a href="{{ route('absensi.riwayat') }}" class="btn-reset-ms"><i class="fas fa-undo"></i> Reset</a>
+                    </div>
                 </div>
             </form>
         </div>
@@ -96,18 +113,31 @@
                         <th width="5%">No</th>
                         <th>Tanggal</th>
                         <th>Kelas</th>
-                        <th>Jumlah Siswa</th>
+                        <th>Hadir</th>
+                        <th>Izin</th>
+                        <th>Sakit</th>
+                        <th>Alpha</th>
                         <th>Dicatat Oleh</th>
-                        <th width="120">Aksi</th>
+                        <th width="100">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($absensis as $absensi)
+                    @php
+                        $details = $absensi->details;
+                        $hadir = $details->where('status', 'H')->count();
+                        $izin = $details->where('status', 'I')->count();
+                        $sakit = $details->where('status', 'S')->count();
+                        $alpha = $details->where('status', 'A')->count();
+                    @endphp
                     <tr>
                         <td class="text-center">{{ $loop->iteration }}</td>
                         <td class="text-center">{{ $absensi->tanggal->format('d-m-Y') }}</td>
                         <td><strong>{{ $absensi->kelas?->nama_kelas ?? '-' }}</strong></td>
-                        <td class="text-center"><span class="badge-siswa-count">{{ $absensi->details->count() }} Siswa</span></td>
+                        <td class="text-center"><span class="badge-count hadir">{{ $hadir }}</span></td>
+                        <td class="text-center"><span class="badge-count izin">{{ $izin }}</span></td>
+                        <td class="text-center"><span class="badge-count sakit">{{ $sakit }}</span></td>
+                        <td class="text-center"><span class="badge-count alpha">{{ $alpha }}</span></td>
                         <td>{{ $absensi->user?->name ?? '-' }}</td>
                         <td class="text-center">
                             <a href="{{ route('absensi.detail', $absensi->id) }}" class="btn-aksi-ms btn-info-ms" title="Detail">

@@ -139,10 +139,23 @@ class AbsensiController extends Controller
     {
         $tahunAktif = TahunAjaran::where('status', 'Aktif')->firstOrFail();
 
-        $absensis = Absensi::with(['kelas', 'user'])
+        $tanggalMulai = $request->input('tanggal_mulai');
+        $tanggalSelesai = $request->input('tanggal_selesai');
+
+        if ($tanggalMulai && $tanggalSelesai && $tanggalMulai > $tanggalSelesai) {
+            return back()->withInput()->with('error', 'Tanggal mulai tidak boleh lebih besar dari tanggal selesai.');
+        }
+
+        $absensis = Absensi::with(['kelas', 'user', 'details'])
             ->where('tahun_ajaran_id', $tahunAktif->id)
             ->when($request->kelas_id, function ($q) use ($request) {
                 $q->where('kelas_id', $request->kelas_id);
+            })
+            ->when($tanggalMulai, function ($q) use ($tanggalMulai) {
+                $q->whereDate('tanggal', '>=', $tanggalMulai);
+            })
+            ->when($tanggalSelesai, function ($q) use ($tanggalSelesai) {
+                $q->whereDate('tanggal', '<=', $tanggalSelesai);
             })
             ->latest('tanggal')
             ->latest('id')
@@ -152,7 +165,7 @@ class AbsensiController extends Controller
             $q->where('tahun_ajaran_id', $tahunAktif->id);
         })->orderBy('nama_kelas')->get();
 
-        return view('admin.absensi.riwayat', compact('absensis', 'kelasList', 'tahunAktif'));
+        return view('admin.absensi.riwayat', compact('absensis', 'kelasList', 'tahunAktif', 'tanggalMulai', 'tanggalSelesai'));
     }
 
     public function detail($id)
