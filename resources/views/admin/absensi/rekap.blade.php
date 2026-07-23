@@ -88,6 +88,20 @@
     @if(request('kelas_id'))
     <div class="card table-card">
         <div class="card-body">
+            @if($effectiveDays > 0)
+            <div class="d-flex align-items-center gap-2 mb-3" style="padding:10px 16px;background:#f0fdf4;border-radius:10px;border:1px solid #bbf7d0;font-size:13px;color:#166534;">
+                <i class="fas fa-calendar-check" style="color:#16a34a;"></i>
+                <span><strong>Hari Efektif :</strong> {{ $effectiveDays }} hari (tidak termasuk hari Jumat)</span>
+            </div>
+            @endif
+
+            @if(empty($rekapData))
+            <div class="text-center py-5">
+                <i class="fas fa-clipboard fa-3x mb-3" style="color:#cbd5e1;"></i>
+                <h5 style="color:#64748b;">Belum Ada Data Absensi</h5>
+                <p style="color:#94a3b8;font-size:13px;">Belum ada data absensi untuk kelas ini pada periode yang dipilih.</p>
+            </div>
+            @else
             <div class="table-responsive">
                 <table class="table table-rekap">
                     <thead>
@@ -141,6 +155,7 @@
                     <i class="fas fa-arrow-left"></i> Kembali ke Riwayat
                 </a>
             </div>
+            @endif
         </div>
     </div>
     @endif

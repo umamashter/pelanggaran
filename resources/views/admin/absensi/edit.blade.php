@@ -43,6 +43,24 @@
         </div>
     </div>
 
+    @if(session('error'))
+    <div class="alert alert-danger d-flex align-items-center gap-2" style="border-radius:12px;font-size:13px;border:none;background:linear-gradient(135deg,#fef2f2,#fee2e2);color:#991b1b;">
+        <i class="fas fa-exclamation-circle"></i>
+        <div>{{ session('error') }}</div>
+    </div>
+    @endif
+
+    @if($errors->any())
+    <div class="alert alert-danger d-flex align-items-center gap-2" style="border-radius:12px;font-size:13px;border:none;background:linear-gradient(135deg,#fef2f2,#fee2e2);color:#991b1b;">
+        <i class="fas fa-exclamation-circle"></i>
+        <div>
+            @foreach($errors->all() as $error)
+                <div>{{ $error }}</div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
     <div class="info-card-modern mb-4">
         <div class="info-item"><i class="fas fa-chalkboard"></i><span><strong>Kelas :</strong> {{ $absensi->kelas?->nama_kelas ?? '-' }}</span></div>
         <div class="info-item"><i class="fas fa-graduation-cap"></i><span><strong>Tahun Ajaran :</strong> {{ $absensi->tahunAjaran?->tahun_ajaran ?? '-' }}</span></div>

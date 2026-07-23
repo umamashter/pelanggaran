@@ -77,7 +77,7 @@
                 $sakit = $data['sakit'];
                 $alpha = $data['alpa'];
                 $total = $data['total'];
-                $persen = $total > 0 ? ($hadir / $total) * 100 : 0;
+                $persen = $effectiveDays > 0 ? ($hadir / $effectiveDays) * 100 : ($total > 0 ? ($hadir / $total) * 100 : 0);
                 $totalHadir += $hadir;
                 $totalIzin += $izin;
                 $totalSakit += $sakit;
@@ -112,6 +112,7 @@
         <h4>Ringkasan Absensi</h4>
         <table>
             <tr><td>Jumlah Siswa</td><td>{{ count($rekapData) }}</td></tr>
+            <tr><td>Hari Efektif (tanpa Jumat)</td><td>{{ $effectiveDays }} hari</td></tr>
             <tr><td>Total Hadir</td><td>{{ $totalHadir }}</td></tr>
             <tr><td>Total Izin</td><td>{{ $totalIzin }}</td></tr>
             <tr><td>Total Sakit</td><td>{{ $totalSakit }}</td></tr>

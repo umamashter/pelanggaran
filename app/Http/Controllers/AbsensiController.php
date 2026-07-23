@@ -14,6 +14,62 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class AbsensiController extends Controller
 {
+    private function isDateBlocked($date, TahunAjaran $tahunAktif)
+    {
+        if ($date->isFriday()) {
+            return 'Hari Jumat adalah hari libur madrasah. Absensi siswa tidak dapat dilakukan pada hari ini.';
+        }
+        if ($date->isFuture()) {
+            return 'Tanggal absensi tidak boleh tanggal yang belum terjadi.';
+        }
+        if ($tahunAktif->tanggal_mulai && $date->lt(\Carbon\Carbon::parse($tahunAktif->tanggal_mulai))) {
+            return 'Tanggal absensi tidak boleh sebelum tanggal mulai tahun ajaran (' . \Carbon\Carbon::parse($tahunAktif->tanggal_mulai)->translatedFormat('d F Y') . ').';
+        }
+        if ($tahunAktif->tanggal_selesai && $date->gt(\Carbon\Carbon::parse($tahunAktif->tanggal_selesai))) {
+            return 'Tanggal absensi tidak boleh setelah tanggal selesai tahun ajaran (' . \Carbon\Carbon::parse($tahunAktif->tanggal_selesai)->translatedFormat('d F Y') . ').';
+        }
+        return null;
+    }
+
+    private function getDisabledDates(TahunAjaran $tahunAktif)
+    {
+        $start = $tahunAktif->tanggal_mulai ? \Carbon\Carbon::parse($tahunAktif->tanggal_mulai) : now()->startOfYear();
+        $end = $tahunAktif->tanggal_selesai ? \Carbon\Carbon::parse($tahunAktif->tanggal_selesai) : now()->endOfYear();
+        $today = now()->startOfDay();
+        $disabled = [];
+        $d = $start->copy();
+        while ($d->lte($end)) {
+            if ($d->isFriday() || $d->gt($today)) {
+                $disabled[] = $d->format('Y-m-d');
+            }
+            $d->addDay();
+        }
+        return $disabled;
+    }
+
+    private function countEffectiveDays($startDate, $endDate, TahunAjaran $tahunAktif)
+    {
+        $taStart = $tahunAktif->tanggal_mulai ? \Carbon\Carbon::parse($tahunAktif->tanggal_mulai) : null;
+        $taEnd = $tahunAktif->tanggal_selesai ? \Carbon\Carbon::parse($tahunAktif->tanggal_selesai) : null;
+        $effectiveStart = $startDate->copy();
+        if ($taStart && $effectiveStart->lt($taStart)) {
+            $effectiveStart = $taStart->copy();
+        }
+        $effectiveEnd = $endDate->copy();
+        if ($taEnd && $effectiveEnd->gt($taEnd)) {
+            $effectiveEnd = $taEnd->copy();
+        }
+        $count = 0;
+        $d = $effectiveStart->copy();
+        while ($d->lte($effectiveEnd)) {
+            if (!$d->isFriday()) {
+                $count++;
+            }
+            $d->addDay();
+        }
+        return $count;
+    }
+
     public function index()
     {
         $tahunAktif = TahunAjaran::with('semesterAktif')
@@ -58,9 +114,11 @@ class AbsensiController extends Controller
             $q->where('tahun_ajaran_id', $tahunAktif->id);
         })->orderBy('nama_kelas')->get();
 
+        $disabledDates = $this->getDisabledDates($tahunAktif);
+
         if (!$request->filled('kelas_id') || !$request->filled('tanggal')) {
             $existingAbsensi = null;
-            return view('admin.absensi.create', compact('tahunAktif', 'kelasList', 'existingAbsensi'));
+            return view('admin.absensi.create', compact('tahunAktif', 'kelasList', 'existingAbsensi', 'disabledDates'));
         }
 
         $request->validate([
@@ -70,15 +128,9 @@ class AbsensiController extends Controller
 
         $tanggalAbsensi = \Carbon\Carbon::parse($request->tanggal);
 
-        if ($tanggalAbsensi->isFriday()) {
-            return back()->withInput()->with('error', 'Hari Jumat adalah hari libur madrasah. Absensi siswa tidak dapat dilakukan pada hari ini.');
-        }
-
-        if ($tahunAktif->tanggal_mulai && $tanggalAbsensi->lt(\Carbon\Carbon::parse($tahunAktif->tanggal_mulai))) {
-            return back()->withInput()->with('error', 'Tanggal absensi tidak boleh sebelum tanggal mulai tahun ajaran (' . \Carbon\Carbon::parse($tahunAktif->tanggal_mulai)->translatedFormat('d F Y') . ').');
-        }
-        if ($tahunAktif->tanggal_selesai && $tanggalAbsensi->gt(\Carbon\Carbon::parse($tahunAktif->tanggal_selesai))) {
-            return back()->withInput()->with('error', 'Tanggal absensi tidak boleh setelah tanggal selesai tahun ajaran (' . \Carbon\Carbon::parse($tahunAktif->tanggal_selesai)->translatedFormat('d F Y') . ').');
+        $blocked = $this->isDateBlocked($tanggalAbsensi, $tahunAktif);
+        if ($blocked) {
+            return back()->withInput()->with('error', $blocked);
         }
 
         $kelas = Kelas::findOrFail($request->kelas_id);
@@ -99,7 +151,8 @@ class AbsensiController extends Controller
             'siswas',
             'tahunAktif',
             'kelasList',
-            'existingAbsensi'
+            'existingAbsensi',
+            'disabledDates'
         ));
     }
 
@@ -112,11 +165,12 @@ class AbsensiController extends Controller
             'status.*' => 'required|in:H,I,S,A',
         ]);
 
-        if (\Carbon\Carbon::parse($request->tanggal)->isFriday()) {
-            return back()->withInput()->with('error', 'Hari Jumat adalah hari libur madrasah. Absensi siswa tidak dapat dilakukan pada hari ini.');
-        }
-
         $tahunAktif = TahunAjaran::where('status', 'Aktif')->firstOrFail();
+
+        $blocked = $this->isDateBlocked(\Carbon\Carbon::parse($request->tanggal), $tahunAktif);
+        if ($blocked) {
+            return back()->withInput()->with('error', $blocked);
+        }
 
         DB::beginTransaction();
 
@@ -261,6 +315,11 @@ class AbsensiController extends Controller
                 ->with('error', 'Hari Jumat adalah hari libur madrasah. Absensi siswa tidak dapat diedit pada hari ini.');
         }
 
+        if ($absensi->tanggal->isFuture()) {
+            return redirect()->route('absensi.index')
+                ->with('error', 'Tanggal absensi tidak boleh tanggal yang belum terjadi.');
+        }
+
         $siswas = Student::whereHas('kelasAktif', function ($q) use ($absensi) {
             $q->where('kelas_id', $absensi->kelas_id)
               ->where('tahun_ajaran_id', $absensi->tahun_ajaran_id);
@@ -285,9 +344,11 @@ class AbsensiController extends Controller
         ]);
 
         $absensi = Absensi::findOrFail($id);
+        $tahunAktif = TahunAjaran::where('status', 'Aktif')->firstOrFail();
 
-        if ($absensi->tanggal->isFriday()) {
-            return back()->with('error', 'Hari Jumat adalah hari libur madrasah. Absensi siswa tidak dapat diupdate pada hari ini.');
+        $blocked = $this->isDateBlocked($absensi->tanggal, $tahunAktif);
+        if ($blocked) {
+            return back()->with('error', $blocked);
         }
 
         DB::beginTransaction();
@@ -418,6 +479,7 @@ class AbsensiController extends Controller
         $bulan = $request->input('bulan');
         $tanggalAwal = $request->input('tanggal_awal');
         $tanggalAkhir = $request->input('tanggal_akhir');
+        $effectiveDays = 0;
 
         if ($request->filled('kelas_id')) {
             $request->validate([
@@ -460,6 +522,21 @@ class AbsensiController extends Controller
                     'total' => $details->count(),
                 ];
             }
+
+            if ($tanggalAwal && $tanggalAkhir) {
+                $effectiveDays = $this->countEffectiveDays(
+                    \Carbon\Carbon::parse($tanggalAwal),
+                    \Carbon\Carbon::parse($tanggalAkhir),
+                    $tahunAktif
+                );
+            } elseif ($bulan) {
+                $bulanStart = \Carbon\Carbon::parse($bulan . '-01');
+                $effectiveDays = $this->countEffectiveDays(
+                    $bulanStart->copy()->startOfMonth(),
+                    $bulanStart->copy()->endOfMonth(),
+                    $tahunAktif
+                );
+            }
         }
 
         return view('admin.absensi.rekap', compact(
@@ -469,7 +546,8 @@ class AbsensiController extends Controller
             'tahunAktif',
             'bulan',
             'tanggalAwal',
-            'tanggalAkhir'
+            'tanggalAkhir',
+            'effectiveDays'
         ));
     }
 
@@ -513,13 +591,29 @@ class AbsensiController extends Controller
             $details = $query->get();
 
             $rekapData[$siswa->id] = [
-                'siswa' => $siswa,
-                'hadir' => $details->where('status', 'H')->count(),
-                'izin' => $details->where('status', 'I')->count(),
-                'sakit' => $details->where('status', 'S')->count(),
-                'alpa' => $details->where('status', 'A')->count(),
-                'total' => $details->count(),
-            ];
+                    'siswa' => $siswa,
+                    'hadir' => $details->where('status', 'H')->count(),
+                    'izin' => $details->where('status', 'I')->count(),
+                    'sakit' => $details->where('status', 'S')->count(),
+                    'alpa' => $details->where('status', 'A')->count(),
+                    'total' => $details->count(),
+                ];
+        }
+
+        $effectiveDays = 0;
+        if ($tanggalAwal && $tanggalAkhir) {
+            $effectiveDays = $this->countEffectiveDays(
+                \Carbon\Carbon::parse($tanggalAwal),
+                \Carbon\Carbon::parse($tanggalAkhir),
+                $tahunAktif
+            );
+        } elseif ($bulan) {
+            $bulanStart = \Carbon\Carbon::parse($bulan . '-01');
+            $effectiveDays = $this->countEffectiveDays(
+                $bulanStart->copy()->startOfMonth(),
+                $bulanStart->copy()->endOfMonth(),
+                $tahunAktif
+            );
         }
 
         $periodeLabel = 'Semua Bulan';
@@ -535,7 +629,8 @@ class AbsensiController extends Controller
             'siswas',
             'rekapData',
             'tahunAktif',
-            'periodeLabel'
+            'periodeLabel',
+            'effectiveDays'
         ));
 
         return $pdf->stream('rekap-absensi-' . $kelas->nama_kelas . '.pdf');

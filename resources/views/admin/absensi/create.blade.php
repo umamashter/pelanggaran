@@ -50,9 +50,27 @@
         </div>
     </div>
 
-    @if(!isset($kelas))
-    {{-- STEP 1: Pilih Kelas & Tanggal --}}
-    <div class="card select-card">
+@if(session('error'))
+<div class="alert alert-danger d-flex align-items-center gap-2" style="border-radius:12px;font-size:13px;border:none;background:linear-gradient(135deg,#fef2f2,#fee2e2);color:#991b1b;">
+    <i class="fas fa-exclamation-circle"></i>
+    <div>{{ session('error') }}</div>
+</div>
+@endif
+
+@if($errors->any())
+<div class="alert alert-danger d-flex align-items-center gap-2" style="border-radius:12px;font-size:13px;border:none;background:linear-gradient(135deg,#fef2f2,#fee2e2);color:#991b1b;">
+    <i class="fas fa-exclamation-circle"></i>
+    <div>
+        @foreach($errors->all() as $error)
+            <div>{{ $error }}</div>
+        @endforeach
+    </div>
+</div>
+@endif
+
+@if(!isset($kelas))
+{{-- STEP 1: Pilih Kelas & Tanggal --}}
+<div class="card select-card">
         <div class="card-body">
             <div class="card-title"><i class="fas fa-calendar-check me-2" style="color:var(--ms-primary);"></i>Pilih Kelas & Tanggal</div>
             <form method="GET" action="{{ route('absensi.create') }}">
@@ -70,7 +88,8 @@
                         <label class="form-label"><i class="fas fa-calendar me-1" style="color:var(--ms-primary);"></i>Tanggal <span class="text-danger">*</span></label>
                         <input type="date" name="tanggal" class="form-control" value="{{ request('tanggal', now()->toDateString()) }}" required
                             @if($tahunAktif->tanggal_mulai) min="{{ $tahunAktif->tanggal_mulai }}" @endif
-                            @if($tahunAktif->tanggal_selesai) max="{{ $tahunAktif->tanggal_selesai }}" @endif
+                            @if($tahunAktif->tanggal_selesai) max="{{ $tahunAktif->tanggal_selesai }}" @else max="{{ now()->toDateString() }}" @endif
+                            id="tanggalInput"
                         >
                     </div>
                 </div>
@@ -233,6 +252,22 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    var tanggalInput = document.getElementById('tanggalInput');
+    var disabledDates = @json($disabledDates ?? []);
+
+    if (tanggalInput) {
+        tanggalInput.addEventListener('change', function() {
+            var val = this.value;
+            if (val && disabledDates.indexOf(val) !== -1) {
+                this.setCustomValidity('Tanggal ini tidak tersedia (Jumat/libur/tanggal depan).');
+                this.reportValidity();
+                this.value = '';
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+    }
+
     var form = document.getElementById('absensiForm');
     var btnSimpan = document.getElementById('btnSimpan');
     var confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
