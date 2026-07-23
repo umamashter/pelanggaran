@@ -27,6 +27,25 @@
         .text-bold { font-weight: 700; }
         tfoot td { background: #f1f5f9; font-weight: 700; border-top: 2px solid #1e293b; }
         .footer { margin-top: 16px; font-size: 9px; color: #475569; }
+        .signature-section {
+            display: flex; justify-content: space-between; margin-top: 30px; padding: 0 20px;
+        }
+        .sig-left, .sig-right { width: 45%; }
+        .sig-right { text-align: center; }
+        .sig-left { text-align: center; }
+        .sig-date {
+            font-size: 9px; color: #475569; margin-bottom: 4px; text-align: left; padding-left: 20px;
+        }
+        .sig-label {
+            font-size: 9px; color: #475569; line-height: 1.6;
+        }
+        .sig-space { height: 45px; }
+        .sig-line {
+            width: 160px; border-bottom: 1px solid #1e293b; margin: 0 auto 6px;
+        }
+        .sig-name {
+            font-size: 10px; font-weight: 700; color: #1e293b;
+        }
     </style>
 </head>
 <body>
@@ -104,5 +123,21 @@
         </tfoot>
         @endif
     </table>
+
+    <div class="signature-section">
+        <div class="sig-left">
+            <div class="sig-date">Guluk-Guluk, ..............................................</div>
+            <div class="sig-space"></div>
+            <div class="sig-label">Wali Kelas {{ strtoupper($kelas->nama_kelas) }}</div>
+            <div class="sig-line"></div>
+            <div class="sig-name">{{ $waliKelasName ?? 'Mahbubah, S.Pd' }}</div>
+        </div>
+        <div class="sig-right">
+            <div class="sig-label">Mengetahui,<br>Kepala MI. Nurul Ulum Patapan</div>
+            <div class="sig-space"></div>
+            <div class="sig-line"></div>
+            <div class="sig-name">Ach. Fathorrosi, S.Pd.I</div>
+        </div>
+    </div>
 </body>
 </html>

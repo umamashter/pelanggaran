@@ -380,6 +380,15 @@ class AbsensiController extends Controller
 
         $bulanLabel = $tanggalAwal->translatedFormat('F Y');
 
+        $waliKelasName = 'Mahbubah, S.Pd';
+        $waliKelas = $kelas->waliKelas;
+        if ($waliKelas && $waliKelas->guru && $waliKelas->guru->user_id) {
+            $user = \App\Models\User::find($waliKelas->guru->user_id);
+            if ($user) {
+                $waliKelasName = $user->name;
+            }
+        }
+
         $pdf = Pdf::loadView('admin.absensi.riwayat-pdf', compact(
             'kelas',
             'siswas',
@@ -388,7 +397,8 @@ class AbsensiController extends Controller
             'bulanLabel',
             'hariDalamBulan',
             'tanggalAwal',
-            'fridaySet'
+            'fridaySet',
+            'waliKelasName'
         ))->setPaper('a4', 'landscape');
 
         return $pdf->stream('rekap-absensi-' . $kelas->nama_kelas . '-' . $bulan . '.pdf');
