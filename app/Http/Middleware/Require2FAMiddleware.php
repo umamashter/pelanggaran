@@ -55,6 +55,10 @@ class Require2FAMiddleware
 
         // Skip bila user SUDAH punya 2FA secret (sudah setup)
         if (!empty($user->google2fa_secret)) {
+            // Bersihkan flag peringatan bila sudah setup
+            if (session('require_2fa_warned')) {
+                session()->forget('require_2fa_warned');
+            }
             return $next($request);
         }
 
@@ -70,7 +74,14 @@ class Require2FAMiddleware
             return $next($request);
         }
 
-        // Redirect ke setup 2FA
+        // Redirect hanya SEKALI per sesi — setelah itu izinkan navigasi bebas
+        // agar user tidak terjebak redirect loop di sidebar
+        if (session('require_2fa_warned')) {
+            return $next($request);
+        }
+
+        session(['require_2fa_warned' => true]);
+
         return redirect()->route('2fa.setup')
             ->with('warning', 'Peran Anda mewajibkan Autentikasi Dua Faktor (2FA). Silakan aktifkan terlebih dahulu.');
     }

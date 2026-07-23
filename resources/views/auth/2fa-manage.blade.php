@@ -51,6 +51,16 @@
                             Lihat Kode Recovery
                         </a>
 
+                        @if (\App\Models\RoleTwoFaRequirement::roleRequires((int) Auth::user()->role))
+                        <div class="bg-light rounded-3 p-3 mt-2" style="border-left: 4px solid #f59e0b;">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="fas fa-info-circle text-warning"></i>
+                                <span class="text-muted small">
+                                    2FA diwajibkan untuk peran Anda. Hubungi administrator untuk mengubah kebijakan.
+                                </span>
+                            </div>
+                        </div>
+                        @else
                         <button type="button" class="btn btn-outline-danger py-2 fw-semibold"
                             style="border-radius: 10px;"
                             onclick="document.getElementById('disableForm').classList.toggle('d-none')">
@@ -70,6 +80,7 @@
                                 Nonaktifkan 2FA
                             </button>
                         </form>
+                        @endif
                     </div>
 
                 </div>

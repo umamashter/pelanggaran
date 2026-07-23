@@ -69,6 +69,7 @@ class TwoFactorController extends Controller
 
         session()->forget('2fa:secret');
         session()->put('2fa_passed', true);
+        session()->forget('require_2fa_warned');
 
         event(new TwoFactorEnabled($user));
 
@@ -140,16 +141,22 @@ class TwoFactorController extends Controller
 
     public function disable(Request $request)
     {
+        $user = auth()->user();
+
+        if (\App\Models\RoleTwoFaRequirement::roleRequires((int) $user->role)) {
+            return back()->with('error', '2FA tidak dapat dinonaktifkan karena diwajibkan oleh kebijakan peran Anda. Hubungi administrator untuk mengubah kebijakan 2FA peran.');
+        }
+
         $request->validate([
             'password' => 'required|current_password',
         ]);
 
-        $user = auth()->user();
         $user->google2fa_secret = null;
         $user->recovery_codes = null;
         $user->save();
 
         session()->forget('2fa_passed');
+        session()->forget('require_2fa_warned');
 
         event(new TwoFactorDisabled($user));
 

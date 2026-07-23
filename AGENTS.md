@@ -42,10 +42,10 @@ php artisan serve
 - Web group order: `auth` -> `2fa` -> `require.2fa` -> `datasiswa` (per-controller) -> `role`.
 - `2fa/challenge` and `2fa/verify` are **outside** the auth group (unauthenticated access).
 - Login (`POST /login`) and 2FA verify throttled (`throttle:5,1`).
-- `datasiswa` middleware (currently only on `HomeController`): forces role 3 (`info=false`) to data-completion form; logs out guru without `waliKelas` or with `kelas_id == null`; logs out non-siswa with `info=false`.
-- Roles are ints: `1=admin`, `2=guru`, `3=siswa`, `4=BK`. **BK (4) routes in `routes/web.php:384-397` are fully commented out** — but `layouts/main.blade.php` still renders sidebar/navbar for role 4.
+- `datasiswa` middleware (currently only on `HomeController`): forces role 3 (`info=false`) to data-completion form. Guru redirect logic (non-waliKelas → absensi guru) is in `HomeController::index()`, not the middleware.
+- Roles are ints: `1=admin`, `2=guru`, `3=siswa`, `4=BK`. **BK (4) routes in `routes/web.php:386-398` are fully commented out** — but `layouts/main.blade.php` still renders sidebar/navbar for role 4.
 - `admin` middleware alias exists in Kernel but is unused — use `role` middleware instead.
-- `laravel/sanctum` installed, but its middleware is commented out in the `api` group (`Kernel.php:45`).
+- `laravel/sanctum` installed, but its middleware is commented out in the `api` group (`Kernel.php:44`).
 - `2fa.disable` not allowlisted by `require.2fa`. Allowlist also includes `login-history.index`, `active-sessions.index` (plus path prefixes `riwayat-login`, `perangkat`) so users with role-required 2FA can access those before setup.
 - `RouteServiceProvider::$namespace` commented out — all routes use `[Controller::class, 'method']` syntax.
 - `HaflahMiddleware` runs on every authenticated web request: flips Haflah status by date, seeds `session('haflah_id')`, shares `semuaHaflah`/`haflahAktif` (both eager-loaded with `tahunAjaran`) to all views.
@@ -54,7 +54,8 @@ php artisan serve
 - `Paginator::useBootstrap()` in `AppServiceProvider::boot()`.
 - `Semester` model observed by `SemesterObserver` (registered in `AppServiceProvider::boot()`).
 - Login auto-detects field: `FILTER_VALIDATE_EMAIL` -> `email` column, otherwise `username` (`LoginController`).
-- Duplicate route definitions: `master-user` (lines 188 & 196), `jadwal-pelajaran/kelas/{id}` (lines 204 & 208), `alumni/pdf` (lines 278 & 279). Check both before touching.
+- Duplicate route definitions: `master-user` (lines 188 & 196), `jadwal-pelajaran/kelas/{id}` (lines 204 & 208), `alumni/pdf` (lines 279 & 280). Check both before touching.
+- Admin-only routes under `role:1` group include: `/admin/keamanan` (SecurityDashboardController), `/admin/kebijakan-2fa` (TwoFactorPolicyController), `/lokasi-madrasah` (LokasiMadrasahController — note: prefix is NOT `/admin/lokasi-madrasah`).
 
 ## User / Guru
 - `master-guru` is the resource route for `Guru` records.
@@ -125,109 +126,20 @@ php artisan serve
 - Save/update forms use Bootstrap 5 modal confirmation — counts H/I/S/A from current dropdown values before submitting. Create view adapts modal text for existing absensi (update flow).
 - Rekap controller: `kelas_id` validation is conditional (form shown without it, query only when filled). `rekapPdf` requires `kelas_id`.
 - Students fetched via `Student::whereHas('kelasAktif')` scoped by `kelas_id` + `tahun_ajaran_id`.
-- **Known UX gaps** (not bugs, future iterations): none.
 
 ## Absensi Guru (GPS + Selfie)
-
-### Arsitektur
-- **Database**: `lokasi_madrasah` (configurable GPS point) + `absensi_gurus` (attendance records)
-- **Tabel terpisah** dari Absensi Siswa — tidak ada hubungan dengan `absensis` / `absensi_details`
-- **Unique constraint**: `(user_id, tanggal)` — satu guru hanya boleh absen sekali per hari
-- **Waktu server** (`Asia/Jakarta`) sebagai waktu resmi absensi — tidak mempercayai waktu perangkat
-- **Haversine formula** untuk perhitungan jarak GPS di server-side
-- **Foto selfie** disimpan di `storage/absensi-guru/foto/` dengan nama file unik
-
-### Database
-- **`lokasi_madrasah`**: `id`, `nama`, `latitude` (decimal 10,7), `longitude` (decimal 10,7), `radius` (unsigned int, default 40), `aktif` (boolean), timestamps
-- **`absensi_gurus`**: `id`, `user_id` (FK -> users), `tanggal` (date), `jam_masuk` (time), `foto_masuk` (string), `latitude_masuk` (decimal 10,7), `longitude_masuk` (decimal 10,7), `jarak_masuk` (decimal 8,2), `akurasi_gps` (unsigned int, nullable), timestamps
-
-### Models
-- **`LokasiMadrasah`** (`app/Models/LokasiMadrasah.php`): `$table='lokasi_madrasah'`, `$guarded=['id']`, `scopeAktif()`, `getLokasiAktif()`
-- **`AbsensiGuru`** (`app/Models/AbsensiGuru.php`): `$table='absensi_gurus'`, `$guarded=['id']`, relationships: `user()` -> User
-
-### Controllers
-- **`AdminAbsensiGuruController`** (`app/Http/Controllers/AdminAbsensiGuruController.php`):
-  - `index()` — rekap absensi guru dengan filter (user_id, tanggal_mulai, tanggal_selesai)
-  - `detail($id)` — detail absensi guru dengan foto, lokasi, jarak
-- **`GuruAbsensiGuruController`** (`app/Http/Controllers/GuruAbsensiGuruController.php`):
-  - `show()` — halaman absensi dengan GPS + kamera selfie
-  - `store()` — validasi GPS (server-side Haversine), simpan foto + data
-  - `riwayat()` — riwayat absensi guru
-  - `haversine()` — helper function untuk perhitungan jarak
-
-### Routes
-- **Guru** (role:2): `GET /guru/absensi-guru` -> `guru.absensi-guru.show`, `POST /guru/absensi-guru` -> `guru.absensi-guru.store`, `GET /guru/absensi-guru/riwayat` -> `guru.absensi-guru.riwayat`
-- **Admin** (role:1): `GET /admin/absensi-guru` -> `admin.absensi-guru.index`, `GET /admin/absensi-guru/{id}` -> `admin.absensi-guru.detail`
-
-### Keamanan
-- Semua route dilindungi autentikasi + role middleware
-- `Auth::id()` sebagai sumber user_id — tidak menerima dari form
-- Validasi GPS dilakukan ulang di server (Haversine) — tidak mempercayai nilai jarak dari JavaScript
-- Validasi tipe/ukuran foto (image, jpeg/jpg/png, max 5MB)
-- Database transaction saat menyimpan absensi + foto
-- Jika insert gagal, foto yang sudah di-upload dihapus dari storage
-
-### Guru Flow
-1. Guru login -> buka halaman Absensi Guru
-2. Browser meminta izin GPS -> sistem mendapatkan latitude/longitude
-3. Sistem menghitung jarak via Haversine -> tampilkan status
-4. Jika dalam radius -> aktifkan kamera selfie
-5. Guru ambil foto -> preview -> klik "Ambil Absensi"
-6. Sistem simpan: user_id, tanggal, jam_masuk, foto, lat, lng, jarak
-
-### Admin Flow
-1. Admin buka `/admin/absensi-guru` -> lihat rekap semua guru
-2. Filter: guru, tanggal mulai, tanggal selesai
-3. Klik detail -> lihat foto selfie, koordinat, jarak, jam masuk
-
-### Views
-- `resources/views/guru/absensi-guru/show.blade.php` — halaman absensi GPS + kamera
-- `resources/views/guru/absensi-guru/riwayat.blade.php` — riwayat absensi guru
-- `resources/views/admin/absensi-guru/index.blade.php` — rekap admin dengan DataTables
-- `resources/views/admin/absensi-guru/detail.blade.php` — detail absensi guru
-
-### Sidebar
-- **Admin**: Absensi Guru di bawah menu Akademik (setelah Absensi Siswa)
-- **Guru**: Absensi Guru di sidebar guru (sebelum Penanganan)
+- Separate tables from Absensi Siswa — no relationship with `absensis` / `absensi_details`.
+- **`absensi_gurus`**: unique constraint `(user_id, tanggal)` — one attendance per teacher per day.
+- **`lokasi_madrasah`**: configurable GPS point; `LokasiMadrasah::aktif()->first()` reads the active location.
+- Server time (`Asia/Jakarta`) is authoritative — device time is never trusted.
+- GPS distance validated server-side via Haversine formula (not trusting client-side values).
+- Selfie stored in `storage/absensi-guru/foto/`; DB transaction wraps insert + photo save; photo deleted on failure.
+- Routes: guru `GET/POST /guru/absensi-guru` (show/store), `GET /guru/absensi-guru/riwayat`; admin `GET /admin/absensi-guru` (index), `GET /admin/absensi-guru/{id}` (detail).
 
 ## Lokasi Madrasah (GPS Config)
-
-### Arsitektur
-- **Database**: `lokasi_madrasah` table — single record (always id=1)
-- **Constraint**: Hanya boleh ada **satu** lokasi aktif (`aktif=true` di seluruh tabel)
-- **Controller**: `LokasiMadrasahController` (`app/Http/Controllers/LokasiMadrasahController.php`)
-
-### Database
-- **`lokasi_madrasah`**: `id`, `nama` (string), `latitude` (decimal 10,7), `longitude` (decimal 10,7), `radius` (unsigned int, default 300 meter), `aktif` (boolean), timestamps
-
-### Models
-- **`LokasiMadrasah`** (`app/Models/LokasiMadrasah.php`): `$table='lokasi_madrasah'`, `$guarded=['id']`, `scopeAktif()`, `getLokasiAktif()`
-
-### Controllers
-- **`LokasiMadrasahController`** (`app/Http/Controllers/LokasiMadrasahController.php`):
-  - `index()` — tampilkan info lokasi aktif (GET `/lokasi-madrasah`)
-  - `store()` — buat/update lokasi dengan `updateOrCreate` (POST)
-  - `update()` — edit nama/lat/lng/radius (PUT)
-  - `toggleAktif()` — toggle status aktif/nonaktif (POST `/lokasi-madrasah/toggle`)
-
-### Routes
-- **Admin** (role:1): `GET /lokasi-madrasah` -> `lokasi-madrasah.index`, `POST /lokasi-madrasah` -> `lokasi-madrasah.store`, `PUT /lokasi-madrasah` -> `lokasi-madrasah.update`, `POST /lokasi-madrasah/toggle` -> `lokasi-madrasah.toggle`
-- **Note**: Routes are inside the admin `role:1` group in `routes/web.php:365-369` but use `/lokasi-madrasah` prefix (not `/admin/lokasi-madrasah`).
-
-### Views
-- `resources/views/admin/lokasi-madrasah/index.blade.php` — admin config page: info card (current location) + edit form + "Gunakan Lokasi Saya" GPS button
-
-### Flow
-1. Admin buka `/lokasi-madrasah`
-2. Lihat info lokasi aktif: nama, koordinat, radius, status
-3. Klik tombol GPS -> browser minta izin -> koordinat terisi otomatis
-4. Klik "Simpan Perubahan"
-5. Toggle aktif/nonaktif jika perlu (nonaktif = absensi guru tidak berfungsi)
-
-### Keamanan
-- Satu lokasi aktif: `updateOrCreate(['id' => 1])` — selalu record yang sama
-- Admin harus masuk ke halaman ini manual untuk mengkonfigurasi lokasi
-- Guru membaca lokasi aktif dari `LokasiMadrasah::aktif()->first()` — tidak bisa mengubah
+- `lokasi_madrasah` table — always single record (`id=1`, via `updateOrCreate`).
+- Only one location can be active (`aktif=true`) at a time.
+- Routes are inside admin `role:1` group but use `/lokasi-madrasah` prefix (NOT `/admin/lokasi-madrasah`).
 
 ## Admin Page Pattern
 Every admin table page:

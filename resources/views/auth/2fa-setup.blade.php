@@ -17,6 +17,12 @@
                         Lindungi akun Anda dengan autentikasi dua faktor.
                     </p>
 
+                    @if (session()->has('warning'))
+                    <div class="alert alert-warning d-flex align-items-center gap-2 py-2 px-3" style="border-radius: 10px;">
+                        <i class="fas fa-exclamation-triangle"></i> {{ session('warning') }}
+                    </div>
+                    @endif
+
                     @if (session()->has('success'))
                     <div class="alert alert-success d-flex align-items-center gap-2 py-2 px-3" style="border-radius: 10px;">
                         <i class="fas fa-check-circle"></i> {{ session('success') }}
