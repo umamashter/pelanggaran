@@ -251,10 +251,10 @@
 
 <div class="absensi-main-page">
     {{-- ── Hero Header ── --}}
-    <div class="hero-header">
+    <div class="hero-header" @if($isJumat) style="background: linear-gradient(135deg, #64748b 0%, #475569 50%, #334155 100%); box-shadow: 0 8px 30px rgba(100,116,139,.3);" @endif>
         <div class="hero-top">
             <div class="hero-left">
-                <div class="hero-icon"><i class="fas fa-clipboard-check"></i></div>
+                <div class="hero-icon"><i class="fas {{ $isJumat ? 'fa-mug-hot' : 'fa-clipboard-check' }}"></i></div>
                 <div>
                     <div class="hero-title">Absensi Siswa</div>
                     <div class="hero-badges">
@@ -263,10 +263,14 @@
                         @if(isset($tahunAktif->semesterAktif))
                         <span class="hero-badge"><i class="fas fa-bookmark"></i> {{ $tahunAktif->semesterAktif->nama ?? '-' }}</span>
                         @endif
+                        @if($isJumat)
+                        <span class="hero-badge" style="background:rgba(255,255,255,.3);border-color:rgba(255,255,255,.3);"><i class="fas fa-moon"></i> Hari Libur</span>
+                        @endif
                     </div>
                 </div>
             </div>
             <div class="hero-right">
+                @if(!$isJumat)
                 <a href="{{ route('absensi.rekap') }}" class="btn-hero btn-hero-glass">
                     <i class="fas fa-file-alt"></i> Rekap
                 </a>
@@ -276,9 +280,25 @@
                 <a href="{{ route('absensi.create') }}" class="btn-hero btn-hero-white">
                     <i class="fas fa-plus"></i> Input Absensi
                 </a>
+                @else
+                <a href="{{ route('absensi.riwayat') }}" class="btn-hero btn-hero-glass">
+                    <i class="fas fa-calendar-check"></i> Riwayat Bulanan
+                </a>
+                @endif
             </div>
         </div>
     </div>
+
+    @if($isJumat)
+    {{-- ── Jumat Libur Banner ── --}}
+    <div class="stat-card" style="background:linear-gradient(135deg,#fffbeb,#fef3c7);border:1px solid #fde68a;margin-bottom:24px;">
+        <div class="stat-icon stat-icon-pending" style="width:56px;height:56px;font-size:26px;"><i class="fas fa-mug-hot"></i></div>
+        <div class="stat-info">
+            <div style="font-size:20px;font-weight:800;color:#92400e;margin-bottom:4px;">Jumat — Hari Libur</div>
+            <div style="font-size:13px;color:#b45309;">Hari ini adalah hari libur tetap madrasah. Tidak ada kegiatan belajar mengajar dan tidak ada absensi siswa.</div>
+        </div>
+    </div>
+    @endif
 
     {{-- ── Stats ── --}}
     @php
@@ -318,7 +338,11 @@
                 <span style="font-size:12px;font-weight:500;color:#94a3b8;">({{ $totalKelas }} kelas)</span>
             </div>
             <div class="d-flex gap-2 align-items-center">
-                @if($belumAbsen > 0)
+                @if($isJumat)
+                <span style="font-size:12px;color:#92400e;font-weight:600;display:flex;align-items:center;gap:4px;">
+                    <i class="fas fa-mug-hot"></i> Hari Libur — Tidak ada absensi hari ini
+                </span>
+                @elseif($belumAbsen > 0)
                 <span style="font-size:12px;color:#d97706;font-weight:600;display:flex;align-items:center;gap:4px;">
                     <i class="fas fa-exclamation-triangle"></i> {{ $belumAbsen }} kelas belum diabsen hari ini
                 </span>
@@ -362,13 +386,18 @@
                             <span style="font-size:11px;color:#94a3b8;margin-left:2px;">siswa</span>
                         </td>
                         <td class="text-center">
-                            @if($sudahAbsen)
+                            @if($isJumat)
+                                <span class="status-pill" style="background:#f1f5f9;color:#64748b;"><i class="fas fa-moon"></i> Libur</span>
+                            @elseif($sudahAbsen)
                                 <span class="status-pill done"><i class="fas fa-check-circle"></i> Sudah Diabsen</span>
                             @else
                                 <span class="status-pill waiting"><i class="fas fa-hourglass-half"></i> Belum</span>
                             @endif
                         </td>
                         <td class="text-center">
+                            @if($isJumat)
+                                <span style="font-size:12px;color:#94a3b8;font-style:italic;">Tidak tersedia</span>
+                            @else
                             <div class="action-group-absensi">
                                 @if($sudahAbsen)
                                     <a href="{{ route('absensi.edit', $absensiId) }}" class="btn-absen-ms btn-edit-ms" title="Edit Absensi">
@@ -383,6 +412,7 @@
                                     <i class="fas fa-history"></i> <span>Riwayat</span>
                                 </a>
                             </div>
+                            @endif
                         </td>
                     </tr>
                     @endforeach

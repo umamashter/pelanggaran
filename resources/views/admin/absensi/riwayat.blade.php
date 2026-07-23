@@ -175,6 +175,12 @@
 }
 .status-badge.clickable { cursor: pointer; }
 .status-badge.clickable:hover { transform: scale(1.2); box-shadow: 0 2px 8px rgba(0,0,0,.15); }
+.libur-cell {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: auto; min-width: 54px; height: 24px; border-radius: 7px;
+    font-size: 9px; font-weight: 700; letter-spacing: .3px;
+    background: #f1f5f9; color: #94a3b8;
+}
 .s-H { background: #dcfce7; color: #15803d; box-shadow: inset 0 -1px 0 rgba(22,163,74,.15); }
 .s-I { background: #fef3c7; color: #b45309; box-shadow: inset 0 -1px 0 rgba(217,119,6,.15); }
 .s-S { background: #fee2e2; color: #dc2626; box-shadow: inset 0 -1px 0 rgba(220,38,38,.15); }
@@ -414,11 +420,14 @@
                         @for($d = 1; $d <= $hariDalamBulan; $d++)
                         @php
                             $tgl = $tanggalAwal->copy()->day($d)->format('Y-m-d');
-                            $status = $data[$tgl] ?? null;
-                            $m = $meta[$tgl] ?? null;
+                            $isFriday = isset($fridaySet[$tgl]);
+                            $status = $isFriday ? null : ($data[$tgl] ?? null);
+                            $m = $isFriday ? null : ($meta[$tgl] ?? null);
                         @endphp
                         <td class="status-cell">
-                            @if($status && $m)
+                            @if($isFriday)
+                                <span class="libur-cell" title="Hari Jumat — Libur Madrasah">LIBUR</span>
+                            @elseif($status && $m)
                                 <span class="status-badge s-{{ $status }} clickable"
                                     onclick="showDetail(this)"
                                     data-nama="{{ $siswa->nama }}"

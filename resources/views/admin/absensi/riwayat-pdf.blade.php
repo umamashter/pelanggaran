@@ -19,6 +19,7 @@
         .status-S { background: #fee2e2; color: #dc2626; font-weight: 700; }
         .status-A { background: #e2e8f0; color: #64748b; font-weight: 700; }
         .status-null { color: #cbd5e1; }
+        .status-libur { background: #f1f5f9; color: #94a3b8; font-weight: 700; font-size: 7px; }
         .rekap-A { color: #64748b; font-weight: 700; }
         .rekap-I { color: #d97706; font-weight: 700; }
         .rekap-S { color: #dc2626; font-weight: 700; }
@@ -45,7 +46,8 @@
             </tr>
             <tr>
                 @for($d = 1; $d <= $hariDalamBulan; $d++)
-                <th style="width:18px;">{{ $d }}</th>
+                @php $pdfTgl = $tanggalAwal->copy()->day($d); @endphp
+                <th style="width:18px;background:{{ $pdfTgl->isFriday() ? '#f1f5f9' : '#e2e8f0' }};color:{{ $pdfTgl->isFriday() ? '#94a3b8' : '#1e293b' }};">{{ $d }}</th>
                 @endfor
                 <th style="width:18px;">A</th>
                 <th style="width:18px;">I</th>
@@ -65,9 +67,10 @@
                 @for($d = 1; $d <= $hariDalamBulan; $d++)
                 @php
                     $tgl = $tanggalAwal->copy()->day($d)->format('Y-m-d');
-                    $status = $data[$tgl] ?? null;
+                    $pdfIsFriday = isset($fridaySet[$tgl]);
+                    $status = $pdfIsFriday ? null : ($data[$tgl] ?? null);
                 @endphp
-                <td class="{{ $status ? 'status-'.$status : 'status-null' }}">{{ $status ?? '-' }}</td>
+                <td class="{{ $pdfIsFriday ? 'status-libur' : ($status ? 'status-'.$status : 'status-null') }}">{{ $pdfIsFriday ? 'LIBUR' : ($status ?? '-') }}</td>
                 @endfor
                 <td class="rekap-A">{{ $rekap['A'] }}</td>
                 <td class="rekap-I">{{ $rekap['I'] }}</td>

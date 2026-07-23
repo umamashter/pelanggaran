@@ -20,25 +20,33 @@ class AbsensiController extends Controller
             ->where('status', 'Aktif')
             ->firstOrFail();
 
+        $isJumat = now()->isFriday();
+
         $kelasList = Kelas::whereHas('siswaAktif', function ($q) use ($tahunAktif) {
             $q->where('tahun_ajaran_id', $tahunAktif->id);
         })->orderBy('nama_kelas')->get();
 
-        $absensiHariIni = Absensi::where('tanggal', now()->toDateString())
-            ->where('tahun_ajaran_id', $tahunAktif->id)
-            ->pluck('kelas_id')
-            ->toArray();
+        if (!$isJumat) {
+            $absensiHariIni = Absensi::where('tanggal', now()->toDateString())
+                ->where('tahun_ajaran_id', $tahunAktif->id)
+                ->pluck('kelas_id')
+                ->toArray();
 
-        $absensiMap = Absensi::where('tanggal', now()->toDateString())
-            ->where('tahun_ajaran_id', $tahunAktif->id)
-            ->pluck('id', 'kelas_id')
-            ->toArray();
+            $absensiMap = Absensi::where('tanggal', now()->toDateString())
+                ->where('tahun_ajaran_id', $tahunAktif->id)
+                ->pluck('id', 'kelas_id')
+                ->toArray();
+        } else {
+            $absensiHariIni = [];
+            $absensiMap = [];
+        }
 
         return view('admin.absensi.index', compact(
             'kelasList',
             'absensiHariIni',
             'absensiMap',
-            'tahunAktif'
+            'tahunAktif',
+            'isJumat'
         ));
     }
 
@@ -61,6 +69,10 @@ class AbsensiController extends Controller
         ]);
 
         $tanggalAbsensi = \Carbon\Carbon::parse($request->tanggal);
+
+        if ($tanggalAbsensi->isFriday()) {
+            return back()->withInput()->with('error', 'Hari Jumat adalah hari libur madrasah. Absensi siswa tidak dapat dilakukan pada hari ini.');
+        }
 
         if ($tahunAktif->tanggal_mulai && $tanggalAbsensi->lt(\Carbon\Carbon::parse($tahunAktif->tanggal_mulai))) {
             return back()->withInput()->with('error', 'Tanggal absensi tidak boleh sebelum tanggal mulai tahun ajaran (' . \Carbon\Carbon::parse($tahunAktif->tanggal_mulai)->translatedFormat('d F Y') . ').');
@@ -99,6 +111,10 @@ class AbsensiController extends Controller
             'status' => 'required|array',
             'status.*' => 'required|in:H,I,S,A',
         ]);
+
+        if (\Carbon\Carbon::parse($request->tanggal)->isFriday()) {
+            return back()->withInput()->with('error', 'Hari Jumat adalah hari libur madrasah. Absensi siswa tidak dapat dilakukan pada hari ini.');
+        }
 
         $tahunAktif = TahunAjaran::where('status', 'Aktif')->firstOrFail();
 
@@ -174,6 +190,14 @@ class AbsensiController extends Controller
                 ->whereBetween('tanggal', [$tanggalAwal->toDateString(), $tanggalAkhir->toDateString()])
                 ->get();
 
+            $fridaySet = [];
+            for ($d = 1; $d <= $hariDalamBulan; $d++) {
+                $tgl = $tanggalAwal->copy()->day($d);
+                if ($tgl->isFriday()) {
+                    $fridaySet[$tgl->format('Y-m-d')] = true;
+                }
+            }
+
             foreach ($absensis as $absensi) {
                 $tgl = $absensi->tanggal->format('Y-m-d');
                 $userName = $absensi->user?->name ?? '-';
@@ -194,6 +218,7 @@ class AbsensiController extends Controller
                 $rekap = ['A' => 0, 'I' => 0, 'S' => 0];
                 for ($d = 1; $d <= $hariDalamBulan; $d++) {
                     $tgl = $tanggalAwal->copy()->day($d)->format('Y-m-d');
+                    if (isset($fridaySet[$tgl])) continue;
                     $status = $matrixData[$siswa->id][$tgl] ?? null;
                     if ($status === 'A') $rekap['A']++;
                     elseif ($status === 'I') $rekap['I']++;
@@ -203,6 +228,8 @@ class AbsensiController extends Controller
             }
         }
 
+        $fridaySet = $fridaySet ?? [];
+
         return view('admin.absensi.riwayat', compact(
             'kelas',
             'kelasList',
@@ -211,7 +238,8 @@ class AbsensiController extends Controller
             'detailMeta',
             'tahunAktif',
             'bulan',
-            'selectedKelasId'
+            'selectedKelasId',
+            'fridaySet'
         ));
     }
 
@@ -227,6 +255,11 @@ class AbsensiController extends Controller
     {
         $absensi = Absensi::with(['details.student', 'kelas', 'tahunAjaran'])
             ->findOrFail($id);
+
+        if ($absensi->tanggal->isFriday()) {
+            return redirect()->route('absensi.index')
+                ->with('error', 'Hari Jumat adalah hari libur madrasah. Absensi siswa tidak dapat diedit pada hari ini.');
+        }
 
         $siswas = Student::whereHas('kelasAktif', function ($q) use ($absensi) {
             $q->where('kelas_id', $absensi->kelas_id)
@@ -252,6 +285,10 @@ class AbsensiController extends Controller
         ]);
 
         $absensi = Absensi::findOrFail($id);
+
+        if ($absensi->tanggal->isFriday()) {
+            return back()->with('error', 'Hari Jumat adalah hari libur madrasah. Absensi siswa tidak dapat diupdate pada hari ini.');
+        }
 
         DB::beginTransaction();
 
@@ -311,6 +348,14 @@ class AbsensiController extends Controller
 
         $matrixData = [];
 
+        $fridaySet = [];
+        for ($d = 1; $d <= $hariDalamBulan; $d++) {
+            $tgl = $tanggalAwal->copy()->day($d);
+            if ($tgl->isFriday()) {
+                $fridaySet[$tgl->format('Y-m-d')] = true;
+            }
+        }
+
         foreach ($absensis as $absensi) {
             $tgl = $absensi->tanggal->format('Y-m-d');
 
@@ -324,6 +369,7 @@ class AbsensiController extends Controller
             $rekap = ['A' => 0, 'I' => 0, 'S' => 0];
             for ($d = 1; $d <= $hariDalamBulan; $d++) {
                 $tgl = $tanggalAwal->copy()->day($d)->format('Y-m-d');
+                if (isset($fridaySet[$tgl])) continue;
                 $status = $matrixData[$siswa->id][$tgl] ?? null;
                 if ($status === 'A') $rekap['A']++;
                 elseif ($status === 'I') $rekap['I']++;
@@ -341,7 +387,8 @@ class AbsensiController extends Controller
             'tahunAktif',
             'bulanLabel',
             'hariDalamBulan',
-            'tanggalAwal'
+            'tanggalAwal',
+            'fridaySet'
         ))->setPaper('a4', 'landscape');
 
         return $pdf->stream('rekap-absensi-' . $kelas->nama_kelas . '-' . $bulan . '.pdf');
