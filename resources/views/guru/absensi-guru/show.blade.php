@@ -1,6 +1,7 @@
 @extends('layouts.main')
 @section('title','Absensi Guru')
 @section('content')
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
 .page-title-content { display: none !important; }
 :root { --ms-primary: #16a34a; --ms-primary-dark: #15803d; --ms-primary-light: #dcfce7; --ms-border: #e2e8f0; --ms-text: #1e293b; --ms-text-soft: #64748b; }
@@ -115,18 +116,41 @@
         </div>
     </div>
     @else
-    <div class="info-grid mb-4">
+    <div class="info-grid mb-3">
         <div class="info-box" id="infoLokasi">
             <div class="info-icon"><i class="fas fa-map-marker-alt"></i></div>
             <div class="info-label">Lokasi Anda</div>
-            <div class="info-value" id="lokasiStatus">Memeriksa lokasi...</div>
-            <div class="info-sub" id="lokasiSub">&nbsp;</div>
+            <div class="info-value" id="lokasiStatus">Menunggu...</div>
+            <div class="info-sub" id="lokasiSub">Klik tombol di bawah untuk mengambil lokasi</div>
         </div>
         <div class="info-box" id="infoJarak">
             <div class="info-icon"><i class="fas fa-ruler"></i></div>
             <div class="info-label">Jarak dari Madrasah</div>
             <div class="info-value" id="jarakValue">--</div>
             <div class="info-sub" id="jarakSub">@if($lokasi) Radius: {{ $lokasi->radius }}m @else Lokasi belum dikonfigurasi @endif</div>
+        </div>
+    </div>
+
+    <div id="gpsAccuracyBox" style="display:none;" class="alert-absensi mb-3">
+        <i class="fas fa-satellite-dish"></i>
+        <div>
+            <div id="gpsAccuracyText" style="font-weight:600;"></div>
+            <div id="gpsAccuracyTip" style="font-size:12px;opacity:.8;margin-top:2px;"></div>
+        </div>
+    </div>
+
+    <div class="text-center mb-4">
+        <button type="button" class="btn-camera-ms btn-start" id="btnAmbilLokasi" onclick="ambilLokasi()">
+            <i class="fas fa-crosshairs"></i> Ambil Lokasi
+        </button>
+    </div>
+
+    <div class="card camera-card mb-4" id="mapCard" style="display:none;">
+        <div class="card-body">
+            <div class="text-center mb-3">
+                <h6 class="fw-bold" style="color:#1e293b;"><i class="fas fa-map me-1" style="color:var(--ms-primary);"></i>Peta Lokasi</h6>
+            </div>
+            <div id="absensiMap" style="height:350px;border-radius:14px;z-index:0;"></div>
         </div>
     </div>
 
@@ -183,11 +207,15 @@
 </div>
 @endsection
 @push('scripts')
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 var stream = null;
 var lokasiValid = false;
 var hasFoto = false;
 var lokasiData = @json($lokasi);
+var map = null;
+var userMarker = null;
+var mapInitialized = false;
 
 function startCamera() {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -259,6 +287,70 @@ function updateSimpanBtn() {
     if (btn) { btn.disabled = !(lokasiValid && hasFoto); }
 }
 
+function ambilLokasi() {
+    var btn = document.getElementById('btnAmbilLokasi');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengambil Lokasi...';
+    var accBox = document.getElementById('gpsAccuracyBox');
+    accBox.style.display = 'flex';
+    accBox.className = 'alert-absensi mb-3';
+    accBox.style.background = '#fffbeb';
+    accBox.style.borderLeft = '4px solid #f59e0b';
+    accBox.style.color = '#92400e';
+    document.getElementById('gpsAccuracyText').textContent = 'Mengambil pembacaan GPS...';
+    document.getElementById('gpsAccuracyTip').textContent = 'Pastikan GPS aktif dan berada di area terbuka';
+    updateLokasiStatus();
+}
+
+function initMap(lat, lng) {
+    if (mapInitialized) {
+        if (userMarker) {
+            userMarker.setLatLng([lat, lng]);
+        }
+        map.setView([lat, lng], 16);
+        return;
+    }
+    document.getElementById('mapCard').style.display = 'block';
+    map = L.map('absensiMap', { zoomControl: false }).setView([lat, lng], 16);
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap',
+        maxZoom: 19
+    }).addTo(map);
+    var userIcon = L.divIcon({
+        html: '<div style="width:20px;height:20px;background:#2563eb;border:3px solid #fff;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,.3);"></div>',
+        iconSize: [20, 20],
+        iconAnchor: [10, 10],
+        className: ''
+    });
+    userMarker = L.marker([lat, lng], { icon: userIcon }).addTo(map).bindPopup('<b>Lokasi Anda</b>');
+    if (lokasiData) {
+        var madrasahIcon = L.divIcon({
+            html: '<div style="width:24px;height:24px;background:#dc2626;border:3px solid #fff;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;"><i class="fas fa-mosque" style="color:#fff;font-size:11px;"></i></div>',
+            iconSize: [24, 24],
+            iconAnchor: [12, 12],
+            className: ''
+        });
+        L.marker([parseFloat(lokasiData.latitude), parseFloat(lokasiData.longitude)], { icon: madrasahIcon })
+            .addTo(map)
+            .bindPopup('<b>Madrasah</b><br>' + lokasiData.nama);
+        L.circle([parseFloat(lokasiData.latitude), parseFloat(lokasiData.longitude)], {
+            radius: lokasiData.radius,
+            color: '#16a34a',
+            fillColor: '#16a34a',
+            fillOpacity: 0.1,
+            weight: 2,
+            dashArray: '6 4'
+        }).addTo(map);
+        var bounds = L.latLngBounds([
+            [lat, lng],
+            [parseFloat(lokasiData.latitude), parseFloat(lokasiData.longitude)]
+        ]);
+        map.fitBounds(bounds, { padding: [40, 40] });
+    }
+    mapInitialized = true;
+}
+
 function updateLokasiStatus() {
     var box = document.getElementById('infoLokasi');
     var status = document.getElementById('lokasiStatus');
@@ -279,6 +371,40 @@ function updateLokasiStatus() {
         box.className = 'info-box valid';
         status.textContent = 'Lokasi Ditemukan';
         sub.textContent = 'Lat: ' + lat.toFixed(6) + ', Lng: ' + lng.toFixed(6);
+        initMap(lat, lng);
+        resetBtnLokasi(true);
+        var accBox = document.getElementById('gpsAccuracyBox');
+        var accText = document.getElementById('gpsAccuracyText');
+        var accTip = document.getElementById('gpsAccuracyTip');
+        if (acc <= 10) {
+            accBox.style.background = '#f0fdf4';
+            accBox.style.borderLeft = '4px solid #16a34a';
+            accBox.style.color = '#166534';
+            accText.textContent = 'Akurasi GPS: ' + Math.round(acc) + 'm (Sangat Baik)';
+            accTip.textContent = 'Lokasi sangat presisi';
+        } else if (acc <= 30) {
+            accBox.style.background = '#f0fdf4';
+            accBox.style.borderLeft = '4px solid #16a34a';
+            accBox.style.color = '#166534';
+            accText.textContent = 'Akurasi GPS: ' + Math.round(acc) + 'm (Baik)';
+            accTip.textContent = 'Akurasi cukup untuk absensi';
+        } else if (acc <= 80) {
+            accBox.style.background = '#fffbeb';
+            accBox.style.borderLeft = '4px solid #f59e0b';
+            accBox.style.color = '#92400e';
+            accText.textContent = 'Akurasi GPS: ' + Math.round(acc) + 'm (Kurang)';
+            accTip.textContent = 'Coba geser ke dekat jendela atau area terbuka';
+        } else {
+            accBox.style.background = '#fef2f2';
+            accBox.style.borderLeft = '4px solid #dc2626';
+            accBox.style.color = '#991b1b';
+            accText.textContent = 'Akurasi GPS: ' + Math.round(acc) + 'm (Sangat Rendah)';
+            accTip.textContent = 'GPS tidak akurat! Aktifkan WiFi atau keluar ke area terbuka, lalu klik "Coba Lagi"';
+        }
+        if (!window._lokasiIntervalStarted) {
+            setInterval(updateLokasiStatus, 10000);
+            window._lokasiIntervalStarted = true;
+        }
         if (lokasiData) {
             var jarak = haversine(lat, lng, parseFloat(lokasiData.latitude), parseFloat(lokasiData.longitude));
             var jarakBox = document.getElementById('infoJarak');
@@ -301,17 +427,37 @@ function updateLokasiStatus() {
         var status = document.getElementById('lokasiStatus');
         var sub = document.getElementById('lokasiSub');
         box.className = 'info-box invalid';
+        var accBox = document.getElementById('gpsAccuracyBox');
+        var accText = document.getElementById('gpsAccuracyText');
+        var accTip = document.getElementById('gpsAccuracyTip');
+        accBox.style.display = 'flex';
         if (err.code === 1) {
             status.textContent = 'Izin Lokasi Ditolak';
             sub.textContent = 'Aktifkan izin lokasi di pengaturan browser';
+            accBox.style.background = '#fef2f2';
+            accBox.style.borderLeft = '4px solid #dc2626';
+            accBox.style.color = '#991b1b';
+            accText.textContent = 'Izin lokasi ditolak';
+            accTip.textContent = 'Buka pengaturan browser → Izin Lokasi → Izinkan untuk situs ini';
         } else if (err.code === 2) {
             status.textContent = 'Lokasi Tidak Tersedia';
             sub.textContent = 'Pastikan GPS perangkat aktif';
+            accBox.style.background = '#fef2f2';
+            accBox.style.borderLeft = '4px solid #dc2626';
+            accBox.style.color = '#991b1b';
+            accText.textContent = 'Lokasi tidak tersedia';
+            accTip.textContent = 'Aktifkan GPS/WiFi di pengaturan hp, lalu coba lagi';
         } else {
             status.textContent = 'Timeout Lokasi';
             sub.textContent = 'Coba lagi atau periksa koneksi GPS';
+            accBox.style.background = '#fef2f2';
+            accBox.style.borderLeft = '4px solid #dc2626';
+            accBox.style.color = '#991b1b';
+            accText.textContent = 'Timeout — lokasi gagal diambil';
+            accTip.textContent = 'Pastikan GPS aktif dan coba lagi dari area terbuka';
         }
-    }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
+        resetBtnLokasi(false);
+    }, { enableHighAccuracy: true, timeout: 30000, maximumAge: 0 });
 }
 
 function haversine(lat1, lon1, lat2, lon2) {
@@ -323,10 +469,19 @@ function haversine(lat1, lon1, lat2, lon2) {
     return R * c;
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    updateLokasiStatus();
-    setInterval(updateLokasiStatus, 10000);
-});
+function resetBtnLokasi(success) {
+    var btn = document.getElementById('btnAmbilLokasi');
+    if (success) {
+        btn.innerHTML = '<i class="fas fa-check-circle"></i> Lokasi Ditemukan';
+        btn.className = 'btn-camera-ms btn-start';
+        btn.style.background = 'linear-gradient(135deg, #16a34a, #22c55e)';
+    } else {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-crosshairs"></i> Coba Lagi';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {});
 </script>
 <style>
 .detail-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f5f9; font-size: 13px; }

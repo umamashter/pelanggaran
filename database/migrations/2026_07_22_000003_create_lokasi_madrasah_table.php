@@ -13,7 +13,7 @@ return new class extends Migration
             $table->string('nama');
             $table->decimal('latitude', 10, 7);
             $table->decimal('longitude', 10, 7);
-            $table->unsignedInteger('radius')->default(40);
+            $table->unsignedInteger('radius')->default(300);
             $table->boolean('aktif')->default(true);
             $table->timestamps();
         });

@@ -198,7 +198,7 @@ php artisan serve
 - **Controller**: `LokasiMadrasahController` (`app/Http/Controllers/LokasiMadrasahController.php`)
 
 ### Database
-- **`lokasi_madrasah`**: `id`, `nama` (string), `latitude` (decimal 10,7), `longitude` (decimal 10,7), `radius` (unsigned int, default 40 meter), `aktif` (boolean), timestamps
+- **`lokasi_madrasah`**: `id`, `nama` (string), `latitude` (decimal 10,7), `longitude` (decimal 10,7), `radius` (unsigned int, default 300 meter), `aktif` (boolean), timestamps
 
 ### Models
 - **`LokasiMadrasah`** (`app/Models/LokasiMadrasah.php`): `$table='lokasi_madrasah'`, `$guarded=['id']`, `scopeAktif()`, `getLokasiAktif()`
