@@ -28,20 +28,18 @@
         tfoot td { background: #f1f5f9; font-weight: 700; border-top: 2px solid #1e293b; }
         .footer { margin-top: 16px; font-size: 9px; color: #475569; }
         .signature-section {
-            display: flex; justify-content: space-between; margin-top: 30px; padding: 0 20px;
+            width: 100%; margin-top: 30px; border-collapse: collapse;
         }
-        .sig-left, .sig-right { width: 45%; }
-        .sig-right { text-align: center; }
-        .sig-left { text-align: center; }
+        .signature-section td { vertical-align: top; width: 50%; padding: 0 10px; }
         .sig-date {
-            font-size: 9px; color: #475569; margin-bottom: 4px; text-align: left; padding-left: 20px;
+            font-size: 9px; color: #475569; margin-bottom: 4px;
         }
         .sig-label {
             font-size: 9px; color: #475569; line-height: 1.6;
         }
-        .sig-space { height: 45px; }
+        .sig-space { height: 50px; }
         .sig-line {
-            width: 160px; border-bottom: 1px solid #1e293b; margin: 0 auto 6px;
+            width: 160px; border-bottom: 1px solid #1e293b; margin: 0 0 6px;
         }
         .sig-name {
             font-size: 10px; font-weight: 700; color: #1e293b;
@@ -124,20 +122,22 @@
         @endif
     </table>
 
-    <div class="signature-section">
-        <div class="sig-left">
-            <div class="sig-date">Guluk-Guluk, ..............................................</div>
-            <div class="sig-space"></div>
-            <div class="sig-label">Wali Kelas {{ strtoupper($kelas->nama_kelas) }}</div>
-            <div class="sig-line"></div>
-            <div class="sig-name">{{ $waliKelasName ?? 'Mahbubah, S.Pd' }}</div>
-        </div>
-        <div class="sig-right">
-            <div class="sig-label">Mengetahui,<br>Kepala MI. Nurul Ulum Patapan</div>
-            <div class="sig-space"></div>
-            <div class="sig-line"></div>
-            <div class="sig-name">Ach. Fathorrosi, S.Pd.I</div>
-        </div>
-    </div>
+    <table class="signature-section">
+        <tr>
+            <td>
+                <div class="sig-date">Guluk-Guluk, ..............................................</div>
+                <div class="sig-space"></div>
+                <div class="sig-label">Wali Kelas {{ strtoupper($kelas->nama_kelas) }}</div>
+                <div class="sig-line"></div>
+                <div class="sig-name">{{ $waliKelasName ?? 'Mahbubah, S.Pd' }}</div>
+            </td>
+            <td>
+                <div class="sig-label">Mengetahui,<br>Kepala MI. Nurul Ulum Patapan</div>
+                <div class="sig-space"></div>
+                <div class="sig-line"></div>
+                <div class="sig-name">Ach. Fathorrosi, S.Pd.I</div>
+            </td>
+        </tr>
+    </table>
 </body>
 </html>
