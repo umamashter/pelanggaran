@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\Kelas;
 use App\Models\Student;
-use App\Models\StudentKelas;
 use App\Models\TahunAjaran;
 use App\Models\Absensi;
 use App\Models\AbsensiDetail;
@@ -153,7 +152,7 @@ class AbsensiController extends Controller
         $kelas = null;
         $siswas = collect();
         $matrixData = [];
-        $absensiByTanggal = [];
+        $detailMeta = [];
         $bulan = $request->input('bulan', now()->format('Y-m'));
         $selectedKelasId = $request->input('kelas_id');
 
@@ -177,43 +176,30 @@ class AbsensiController extends Controller
 
             foreach ($absensis as $absensi) {
                 $tgl = $absensi->tanggal->format('Y-m-d');
-                $userId = $absensi->user_id;
                 $userName = $absensi->user?->name ?? '-';
 
                 foreach ($absensi->details as $detail) {
                     $studentId = $detail->student_id;
                     $matrixData[$studentId][$tgl] = $detail->status;
-
-                    if (!isset($absensiByTanggal[$tgl])) {
-                        $absensiByTanggal[$tgl] = [];
-                    }
-                    if (!isset($absensiByTanggal[$tgl][$studentId])) {
-                        $absensiByTanggal[$tgl][$studentId] = [];
-                    }
-                    $absensiByTanggal[$tgl][$studentId][] = $userName;
+                    $detailMeta[$studentId][$tgl] = [
+                        'absensi_id' => $absensi->id,
+                        'user_name' => $userName,
+                        'created_at' => $absensi->created_at->translatedFormat('d F Y, H:i'),
+                        'keterangan' => $detail->keterangan ?? '-',
+                    ];
                 }
             }
 
             foreach ($siswas as $siswa) {
                 $rekap = ['A' => 0, 'I' => 0, 'S' => 0];
-                $pencatat = [];
                 for ($d = 1; $d <= $hariDalamBulan; $d++) {
                     $tgl = $tanggalAwal->copy()->day($d)->format('Y-m-d');
                     $status = $matrixData[$siswa->id][$tgl] ?? null;
                     if ($status === 'A') $rekap['A']++;
                     elseif ($status === 'I') $rekap['I']++;
                     elseif ($status === 'S') $rekap['S']++;
-
-                    if (isset($absensiByTanggal[$tgl][$siswa->id])) {
-                        foreach ($absensiByTanggal[$tgl][$siswa->id] as $name) {
-                            if (!in_array($name, $pencatat)) {
-                                $pencatat[] = $name;
-                            }
-                        }
-                    }
                 }
                 $matrixData[$siswa->id]['_rekap'] = $rekap;
-                $matrixData[$siswa->id]['_pencatat'] = $pencatat;
             }
         }
 
@@ -222,6 +208,7 @@ class AbsensiController extends Controller
             'kelasList',
             'siswas',
             'matrixData',
+            'detailMeta',
             'tahunAktif',
             'bulan',
             'selectedKelasId'
@@ -323,46 +310,26 @@ class AbsensiController extends Controller
             ->get();
 
         $matrixData = [];
-        $absensiByTanggal = [];
 
         foreach ($absensis as $absensi) {
             $tgl = $absensi->tanggal->format('Y-m-d');
-            $userName = $absensi->user?->name ?? '-';
 
             foreach ($absensi->details as $detail) {
                 $studentId = $detail->student_id;
                 $matrixData[$studentId][$tgl] = $detail->status;
-
-                if (!isset($absensiByTanggal[$tgl])) {
-                    $absensiByTanggal[$tgl] = [];
-                }
-                if (!isset($absensiByTanggal[$tgl][$studentId])) {
-                    $absensiByTanggal[$tgl][$studentId] = [];
-                }
-                $absensiByTanggal[$tgl][$studentId][] = $userName;
             }
         }
 
         foreach ($siswas as $siswa) {
             $rekap = ['A' => 0, 'I' => 0, 'S' => 0];
-            $pencatat = [];
             for ($d = 1; $d <= $hariDalamBulan; $d++) {
                 $tgl = $tanggalAwal->copy()->day($d)->format('Y-m-d');
                 $status = $matrixData[$siswa->id][$tgl] ?? null;
                 if ($status === 'A') $rekap['A']++;
                 elseif ($status === 'I') $rekap['I']++;
                 elseif ($status === 'S') $rekap['S']++;
-
-                if (isset($absensiByTanggal[$tgl][$siswa->id])) {
-                    foreach ($absensiByTanggal[$tgl][$siswa->id] as $name) {
-                        if (!in_array($name, $pencatat)) {
-                            $pencatat[] = $name;
-                        }
-                    }
-                }
             }
             $matrixData[$siswa->id]['_rekap'] = $rekap;
-            $matrixData[$siswa->id]['_pencatat'] = $pencatat;
         }
 
         $bulanLabel = $tanggalAwal->translatedFormat('F Y');

@@ -8,7 +8,6 @@
     --ms-border: #e2e8f0; --ms-text: #1e293b; --ms-text-soft: #64748b;
     --ms-bg: #f8fafc; --ms-card: #ffffff; --ms-shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
     --ms-shadow-md: 0 4px 6px -1px rgba(0,0,0,.07), 0 2px 4px -1px rgba(0,0,0,.04);
-    --ms-shadow-lg: 0 10px 15px -3px rgba(0,0,0,.07), 0 4px 6px -2px rgba(0,0,0,.04);
     --ms-radius: 14px; --ms-radius-sm: 10px;
 }
 
@@ -140,7 +139,6 @@
 .matrix-table thead th.rekap-h-a { color: #64748b; }
 .matrix-table thead th.rekap-h-i { color: #d97706; }
 .matrix-table thead th.rekap-h-s { color: #dc2626; }
-.matrix-table thead th.pencatat-h { font-size: 10px; font-weight: 700; color: #475569; min-width: 100px; text-align: left; padding-left: 12px; }
 
 /* ── Body cells ── */
 .matrix-table tbody td {
@@ -169,14 +167,14 @@
 .matrix-table tbody tr:last-child td { border-bottom: none; }
 
 /* ── Status badges ── */
-.tgl-cell { width: 26px; min-width: 26px; max-width: 30px; font-size: 10px; font-weight: 700; }
 .status-cell { width: 28px; min-width: 28px; max-width: 32px; }
 .status-badge {
     display: inline-flex; align-items: center; justify-content: center;
     width: 24px; height: 24px; border-radius: 7px; font-size: 10px; font-weight: 700;
-    line-height: 1; transition: transform .15s;
+    line-height: 1; transition: all .15s;
 }
-.status-badge:hover { transform: scale(1.15); }
+.status-badge.clickable { cursor: pointer; }
+.status-badge.clickable:hover { transform: scale(1.2); box-shadow: 0 2px 8px rgba(0,0,0,.15); }
 .s-H { background: #dcfce7; color: #15803d; box-shadow: inset 0 -1px 0 rgba(22,163,74,.15); }
 .s-I { background: #fef3c7; color: #b45309; box-shadow: inset 0 -1px 0 rgba(217,119,6,.15); }
 .s-S { background: #fee2e2; color: #dc2626; box-shadow: inset 0 -1px 0 rgba(220,38,38,.15); }
@@ -188,8 +186,6 @@
 .rekap-A { color: #64748b; }
 .rekap-I { color: #d97706; }
 .rekap-S { color: #dc2626; }
-
-.pencatat-cell { font-size: 11px; color: var(--ms-text-soft); text-align: left; white-space: normal; max-width: 140px; line-height: 1.4; padding-left: 8px !important; }
 
 /* ── Footer ── */
 .matrix-table tfoot td {
@@ -223,6 +219,66 @@
 .empty-state .empty-icon i { font-size: 32px; color: #cbd5e1; }
 .empty-state h6 { font-size: 15px; font-weight: 600; color: var(--ms-text); margin-bottom: 4px; }
 .empty-state p { font-size: 13px; color: var(--ms-text-soft); margin: 0; }
+
+/* ── Detail Modal ── */
+.detail-modal .modal-content {
+    border: none; border-radius: 16px; overflow: hidden;
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,.15);
+}
+.detail-modal .modal-header {
+    border-bottom: none; padding: 20px 24px 12px;
+}
+.detail-modal .modal-title {
+    font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 10px;
+}
+.detail-modal .modal-body { padding: 0 24px 20px; }
+.detail-modal .modal-footer {
+    border-top: 1px solid #f1f5f9; padding: 14px 24px;
+    display: flex; gap: 8px; justify-content: flex-end;
+}
+
+.detail-status-badge {
+    display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px;
+    border-radius: 10px; font-size: 13px; font-weight: 700;
+}
+.detail-status-badge.status-hadir { background: #dcfce7; color: #15803d; }
+.detail-status-badge.status-izin { background: #fef3c7; color: #b45309; }
+.detail-status-badge.status-sakit { background: #fee2e2; color: #dc2626; }
+.detail-status-badge.status-alpha { background: #e2e8f0; color: #475569; }
+
+.detail-row {
+    display: flex; padding: 10px 0; border-bottom: 1px solid #f1f5f9;
+}
+.detail-row:last-child { border-bottom: none; }
+.detail-label {
+    flex: 0 0 130px; font-size: 12px; font-weight: 600; color: var(--ms-text-soft);
+    display: flex; align-items: center; gap: 6px;
+}
+.detail-label i { font-size: 11px; color: #94a3b8; width: 14px; text-align: center; }
+.detail-value { flex: 1; font-size: 13px; color: var(--ms-text); font-weight: 500; }
+
+.detail-modal .btn-close-modal {
+    padding: 8px 20px; border-radius: var(--ms-radius-sm); font-size: 12px; font-weight: 600;
+    border: 1.5px solid var(--ms-border); background: #fff; color: var(--ms-text-soft);
+    cursor: pointer; transition: all .2s;
+}
+.detail-modal .btn-close-modal:hover { border-color: var(--ms-text-soft); color: var(--ms-text); }
+.detail-modal .btn-edit-modal {
+    padding: 8px 20px; border-radius: var(--ms-radius-sm); font-size: 12px; font-weight: 600;
+    border: none; background: linear-gradient(135deg, #2563eb, #3b82f6); color: #fff;
+    cursor: pointer; transition: all .2s; display: inline-flex; align-items: center; gap: 6px;
+    text-decoration: none;
+}
+.detail-modal .btn-edit-modal:hover { box-shadow: 0 4px 12px rgba(37,99,235,.35); color: #fff; transform: translateY(-1px); }
+
+.detail-modal.modal-header-green .modal-header { background: linear-gradient(135deg, #f0fdf4, #dcfce7); }
+.detail-modal.modal-header-green .modal-title { color: #166534; }
+.detail-modal.modal-header-yellow .modal-header { background: linear-gradient(135deg, #fffbeb, #fef3c7); }
+.detail-modal.modal-header-yellow .modal-title { color: #92400e; }
+.detail-modal.modal-header-red .modal-header { background: linear-gradient(135deg, #fef2f2, #fee2e2); }
+.detail-modal.modal-header-red .modal-title { color: #991b1b; }
+.detail-modal.modal-header-gray .modal-header { background: linear-gradient(180deg, #f8fafc, #f1f5f9); }
+.detail-modal.modal-header-gray .modal-title { color: #475569; }
 
 /* ── Responsive ── */
 @media (max-width: 768px) {
@@ -334,7 +390,6 @@
                         <th class="sticky-nama" rowspan="2" style="width:130px;position:sticky;left:106px;">Nama Siswa</th>
                         <th class="group-date" colspan="{{ $hariDalamBulan }}">Tanggal</th>
                         <th class="group-rekap" colspan="3">Tidak Masuk</th>
-                        <th class="pencatat-h" rowspan="2">Dicatat Oleh</th>
                     </tr>
                     <tr>
                         @for($d = 1; $d <= $hariDalamBulan; $d++)
@@ -350,7 +405,7 @@
                     @php
                         $data = $matrixData[$siswa->id] ?? [];
                         $rekap = $data['_rekap'] ?? ['A' => 0, 'I' => 0, 'S' => 0];
-                        $pencatat = $data['_pencatat'] ?? [];
+                        $meta = $detailMeta[$siswa->id] ?? [];
                     @endphp
                     <tr>
                         <td class="sticky-col">{{ $loop->iteration }}</td>
@@ -360,10 +415,22 @@
                         @php
                             $tgl = $tanggalAwal->copy()->day($d)->format('Y-m-d');
                             $status = $data[$tgl] ?? null;
+                            $m = $meta[$tgl] ?? null;
                         @endphp
                         <td class="status-cell">
-                            @if($status)
-                                <span class="status-badge s-{{ $status }}">{{ $status }}</span>
+                            @if($status && $m)
+                                <span class="status-badge s-{{ $status }} clickable"
+                                    onclick="showDetail(this)"
+                                    data-nama="{{ $siswa->nama }}"
+                                    data-nisn="{{ $siswa->nisn }}"
+                                    data-tanggal="{{ \Carbon\Carbon::parse($tgl)->translatedFormat('d F Y') }}"
+                                    data-status="{{ $status }}"
+                                    data-status-text="{{ $status === 'H' ? 'Hadir' : ($status === 'I' ? 'Izin' : ($status === 'S' ? 'Sakit' : 'Alpha')) }}"
+                                    data-user="{{ $m['user_name'] }}"
+                                    data-waktu="{{ $m['created_at'] }}"
+                                    data-keterangan="{{ $m['keterangan'] }}"
+                                    data-absensi-id="{{ $m['absensi_id'] }}"
+                                >{{ $status }}</span>
                             @else
                                 <span class="status-badge s-null">-</span>
                             @endif
@@ -372,11 +439,10 @@
                         <td class="rekap-cell rekap-A">{{ $rekap['A'] }}</td>
                         <td class="rekap-cell rekap-I">{{ $rekap['I'] }}</td>
                         <td class="rekap-cell rekap-S">{{ $rekap['S'] }}</td>
-                        <td class="pencatat-cell">{{ $pencatat ? implode(', ', $pencatat) : '-' }}</td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="{{ 3 + $hariDalamBulan + 3 + 1 }}">
+                        <td colspan="{{ 3 + $hariDalamBulan + 3 }}">
                             <div class="empty-state">
                                 <div class="empty-icon"><i class="fas fa-user-slash"></i></div>
                                 <h6>Tidak Ada Data</h6>
@@ -403,7 +469,6 @@
                         <td class="rekap-cell rekap-A">{{ $totalA }}</td>
                         <td class="rekap-cell rekap-I">{{ $totalI }}</td>
                         <td class="rekap-cell rekap-S">{{ $totalS }}</td>
-                        <td></td>
                     </tr>
                 </tfoot>
                 @endif
@@ -434,10 +499,100 @@
     </div>
     @endif
 </div>
+
+{{-- ── Detail Modal ── --}}
+<div class="modal fade detail-modal" id="detailAbsensiModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-clipboard-list"></i> Detail Absensi
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="detail-row">
+                    <div class="detail-label"><i class="fas fa-user"></i> Nama Siswa</div>
+                    <div class="detail-value" id="modalNama">-</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label"><i class="fas fa-id-card"></i> NIS</div>
+                    <div class="detail-value" id="modalNisn">-</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label"><i class="fas fa-calendar"></i> Tanggal</div>
+                    <div class="detail-value" id="modalTanggal">-</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label"><i class="fas fa-info-circle"></i> Status</div>
+                    <div class="detail-value" id="modalStatus">-</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label"><i class="fas fa-user-check"></i> Dicatat Oleh</div>
+                    <div class="detail-value" id="modalUser">-</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label"><i class="fas fa-clock"></i> Waktu Dicatat</div>
+                    <div class="detail-value" id="modalWaktu">-</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label"><i class="fas fa-comment-dots"></i> Keterangan</div>
+                    <div class="detail-value" id="modalKeterangan">-</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-close-modal" data-bs-dismiss="modal">Tutup</button>
+                <a href="#" class="btn-edit-modal" id="modalEditBtn">
+                    <i class="fas fa-pen"></i> Edit Absensi
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
 <script>
+function showDetail(el) {
+    var status = el.getAttribute('data-status');
+    var modal = $('#detailAbsensiModal');
+    var modalHeader = modal.find('.modal-header');
+    var headerClass = '';
+
+    modal.find('#modalNama').text(el.getAttribute('data-nama'));
+    modal.find('#modalNisn').text(el.getAttribute('data-nisn'));
+    modal.find('#modalTanggal').text(el.getAttribute('data-tanggal'));
+    modal.find('#modalUser').text(el.getAttribute('data-user'));
+    modal.find('#modalWaktu').text(el.getAttribute('data-waktu'));
+    modal.find('#modalKeterangan').text(el.getAttribute('data-keterangan') || '-');
+
+    var statusText = el.getAttribute('data-status-text');
+    var statusHtml = '';
+    if (status === 'H') {
+        statusHtml = '<span class="detail-status-badge status-hadir"><i class="fas fa-check-circle"></i> Hadir</span>';
+        headerClass = 'modal-header-green';
+    } else if (status === 'I') {
+        statusHtml = '<span class="detail-status-badge status-izin"><i class="fas fa-clipboard-check"></i> Izin</span>';
+        headerClass = 'modal-header-yellow';
+    } else if (status === 'S') {
+        statusHtml = '<span class="detail-status-badge status-sakit"><i class="fas fa-heartbeat"></i> Sakit</span>';
+        headerClass = 'modal-header-red';
+    } else {
+        statusHtml = '<span class="detail-status-badge status-alpha"><i class="fas fa-times-circle"></i> Alpha</span>';
+        headerClass = 'modal-header-gray';
+    }
+    modal.find('#modalStatus').html(statusHtml);
+
+    modalHeader.removeClass('modal-header-green modal-header-yellow modal-header-red modal-header-gray');
+    modalHeader.addClass(headerClass);
+
+    var absensiId = el.getAttribute('data-absensi-id');
+    modal.find('#modalEditBtn').attr('href', '{{ url("absensi") }}/' + absensiId + '/edit');
+
+    var bsModal = new bootstrap.Modal(document.getElementById('detailAbsensiModal'));
+    bsModal.show();
+}
+
 $(document).ready(function() {
     var wrapper = document.querySelector('.matrix-scroll');
     if (wrapper) {

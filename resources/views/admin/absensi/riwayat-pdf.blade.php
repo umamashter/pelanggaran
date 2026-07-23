@@ -42,7 +42,6 @@
                 <th rowspan="2" style="width:90px;" class="text-left">Nama Siswa</th>
                 <th class="group-header" colspan="{{ $hariDalamBulan }}">Tanggal</th>
                 <th class="group-header" colspan="3">Tidak Masuk</th>
-                <th rowspan="2" style="width:70px;">Dicatat Oleh</th>
             </tr>
             <tr>
                 @for($d = 1; $d <= $hariDalamBulan; $d++)
@@ -58,7 +57,6 @@
             @php
                 $data = $matrixData[$siswa->id] ?? [];
                 $rekap = $data['_rekap'] ?? ['A' => 0, 'I' => 0, 'S' => 0];
-                $pencatat = $data['_pencatat'] ?? [];
             @endphp
             <tr>
                 <td>{{ $loop->iteration }}</td>
@@ -74,11 +72,11 @@
                 <td class="rekap-A">{{ $rekap['A'] }}</td>
                 <td class="rekap-I">{{ $rekap['I'] }}</td>
                 <td class="rekap-S">{{ $rekap['S'] }}</td>
-                <td style="font-size:7px;text-align:left;">{{ $pencatat ? implode(', ', $pencatat) : '-' }}</td>
+
             </tr>
             @empty
             <tr>
-                <td colspan="{{ 3 + $hariDalamBulan + 3 + 1 }}" style="text-align:center;padding:20px;">Tidak ada data siswa</td>
+                <td colspan="{{ 3 + $hariDalamBulan + 3 }}" style="text-align:center;padding:20px;">Tidak ada data siswa</td>
             </tr>
             @endforelse
         </tbody>
@@ -99,7 +97,6 @@
                 <td class="rekap-A">{{ $totalA }}</td>
                 <td class="rekap-I">{{ $totalI }}</td>
                 <td class="rekap-S">{{ $totalS }}</td>
-                <td></td>
             </tr>
         </tfoot>
         @endif
