@@ -238,6 +238,7 @@ Route::group(['middleware' => ['auth', '2fa', 'require.2fa']], function () {
         Route::put('/absensi/{id}', [AbsensiController::class, 'update'])->name('absensi.update');
         Route::get('/absensi/{id}', [AbsensiController::class, 'detail'])->name('absensi.detail');
         Route::get('/absensi-riwayat', [AbsensiController::class, 'riwayat'])->name('absensi.riwayat');
+        Route::get('/absensi-riwayat/pdf', [AbsensiController::class, 'riwayatPdf'])->name('absensi.riwayat.pdf');
         Route::get('/absensi-rekap', [AbsensiController::class, 'rekap'])->name('absensi.rekap');
         Route::get('/absensi-rekap/pdf', [AbsensiController::class, 'rekapPdf'])->name('absensi.rekap.pdf');
 

@@ -146,33 +146,86 @@ class AbsensiController extends Controller
     {
         $tahunAktif = TahunAjaran::where('status', 'Aktif')->firstOrFail();
 
-        $tanggalMulai = $request->input('tanggal_mulai');
-        $tanggalSelesai = $request->input('tanggal_selesai');
-
-        if ($tanggalMulai && $tanggalSelesai && $tanggalMulai > $tanggalSelesai) {
-            return back()->withInput()->with('error', 'Tanggal mulai tidak boleh lebih besar dari tanggal selesai.');
-        }
-
-        $absensis = Absensi::with(['kelas', 'user', 'details'])
-            ->where('tahun_ajaran_id', $tahunAktif->id)
-            ->when($request->kelas_id, function ($q) use ($request) {
-                $q->where('kelas_id', $request->kelas_id);
-            })
-            ->when($tanggalMulai, function ($q) use ($tanggalMulai) {
-                $q->whereDate('tanggal', '>=', $tanggalMulai);
-            })
-            ->when($tanggalSelesai, function ($q) use ($tanggalSelesai) {
-                $q->whereDate('tanggal', '<=', $tanggalSelesai);
-            })
-            ->latest('tanggal')
-            ->latest('id')
-            ->get();
-
         $kelasList = Kelas::whereHas('siswaAktif', function ($q) use ($tahunAktif) {
             $q->where('tahun_ajaran_id', $tahunAktif->id);
         })->orderBy('nama_kelas')->get();
 
-        return view('admin.absensi.riwayat', compact('absensis', 'kelasList', 'tahunAktif', 'tanggalMulai', 'tanggalSelesai'));
+        $kelas = null;
+        $siswas = collect();
+        $matrixData = [];
+        $absensiByTanggal = [];
+        $bulan = $request->input('bulan', now()->format('Y-m'));
+        $selectedKelasId = $request->input('kelas_id');
+
+        if ($selectedKelasId) {
+            $kelas = Kelas::findOrFail($selectedKelasId);
+
+            $siswas = Student::whereHas('kelasAktif', function ($q) use ($kelas, $tahunAktif) {
+                $q->where('kelas_id', $kelas->id)
+                  ->where('tahun_ajaran_id', $tahunAktif->id);
+            })->orderBy('nama')->get();
+
+            $tanggalAwal = \Carbon\Carbon::parse($bulan . '-01');
+            $hariDalamBulan = $tanggalAwal->daysInMonth;
+            $tanggalAkhir = $tanggalAwal->copy()->endOfMonth();
+
+            $absensis = Absensi::with(['details.student', 'user'])
+                ->where('kelas_id', $kelas->id)
+                ->where('tahun_ajaran_id', $tahunAktif->id)
+                ->whereBetween('tanggal', [$tanggalAwal->toDateString(), $tanggalAkhir->toDateString()])
+                ->get();
+
+            foreach ($absensis as $absensi) {
+                $tgl = $absensi->tanggal->format('Y-m-d');
+                $userId = $absensi->user_id;
+                $userName = $absensi->user?->name ?? '-';
+
+                foreach ($absensi->details as $detail) {
+                    $studentId = $detail->student_id;
+                    $matrixData[$studentId][$tgl] = $detail->status;
+
+                    if (!isset($absensiByTanggal[$tgl])) {
+                        $absensiByTanggal[$tgl] = [];
+                    }
+                    if (!isset($absensiByTanggal[$tgl][$studentId])) {
+                        $absensiByTanggal[$tgl][$studentId] = [];
+                    }
+                    $absensiByTanggal[$tgl][$studentId][] = $userName;
+                }
+            }
+
+            foreach ($siswas as $siswa) {
+                $rekap = ['A' => 0, 'I' => 0, 'S' => 0];
+                $pencatat = [];
+                for ($d = 1; $d <= $hariDalamBulan; $d++) {
+                    $tgl = $tanggalAwal->copy()->day($d)->format('Y-m-d');
+                    $status = $matrixData[$siswa->id][$tgl] ?? null;
+                    if ($status === 'A') $rekap['A']++;
+                    elseif ($status === 'I') $rekap['I']++;
+                    elseif ($status === 'S') $rekap['S']++;
+
+                    if (isset($absensiByTanggal[$tgl][$siswa->id])) {
+                        foreach ($absensiByTanggal[$tgl][$siswa->id] as $name) {
+                            if (!in_array($name, $pencatat)) {
+                                $pencatat[] = $name;
+                            }
+                        }
+                    }
+                }
+                $matrixData[$siswa->id]['_rekap'] = $rekap;
+                $matrixData[$siswa->id]['_pencatat'] = $pencatat;
+            }
+        }
+
+        return view('admin.absensi.riwayat', compact(
+            'kelas',
+            'kelasList',
+            'siswas',
+            'matrixData',
+            'tahunAktif',
+            'bulan',
+            'selectedKelasId'
+        ));
     }
 
     public function detail($id)
@@ -234,13 +287,97 @@ class AbsensiController extends Controller
             DB::commit();
 
             return redirect()
-                ->route('absensi.riwayat')
+                ->route('absensi.edit', $id)
                 ->with('success', 'Absensi berhasil diperbarui.');
 
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->withInput()->with('error', 'Gagal memperbarui absensi: ' . $e->getMessage());
         }
+    }
+
+    public function riwayatPdf(Request $request)
+    {
+        $request->validate([
+            'kelas_id' => 'required|exists:kelas,id',
+            'bulan' => 'required',
+        ]);
+
+        $tahunAktif = TahunAjaran::where('status', 'Aktif')->firstOrFail();
+        $kelas = Kelas::findOrFail($request->kelas_id);
+        $bulan = $request->input('bulan');
+
+        $siswas = Student::whereHas('kelasAktif', function ($q) use ($kelas, $tahunAktif) {
+            $q->where('kelas_id', $kelas->id)
+              ->where('tahun_ajaran_id', $tahunAktif->id);
+        })->orderBy('nama')->get();
+
+        $tanggalAwal = \Carbon\Carbon::parse($bulan . '-01');
+        $hariDalamBulan = $tanggalAwal->daysInMonth;
+        $tanggalAkhir = $tanggalAwal->copy()->endOfMonth();
+
+        $absensis = Absensi::with(['details.student', 'user'])
+            ->where('kelas_id', $kelas->id)
+            ->where('tahun_ajaran_id', $tahunAktif->id)
+            ->whereBetween('tanggal', [$tanggalAwal->toDateString(), $tanggalAkhir->toDateString()])
+            ->get();
+
+        $matrixData = [];
+        $absensiByTanggal = [];
+
+        foreach ($absensis as $absensi) {
+            $tgl = $absensi->tanggal->format('Y-m-d');
+            $userName = $absensi->user?->name ?? '-';
+
+            foreach ($absensi->details as $detail) {
+                $studentId = $detail->student_id;
+                $matrixData[$studentId][$tgl] = $detail->status;
+
+                if (!isset($absensiByTanggal[$tgl])) {
+                    $absensiByTanggal[$tgl] = [];
+                }
+                if (!isset($absensiByTanggal[$tgl][$studentId])) {
+                    $absensiByTanggal[$tgl][$studentId] = [];
+                }
+                $absensiByTanggal[$tgl][$studentId][] = $userName;
+            }
+        }
+
+        foreach ($siswas as $siswa) {
+            $rekap = ['A' => 0, 'I' => 0, 'S' => 0];
+            $pencatat = [];
+            for ($d = 1; $d <= $hariDalamBulan; $d++) {
+                $tgl = $tanggalAwal->copy()->day($d)->format('Y-m-d');
+                $status = $matrixData[$siswa->id][$tgl] ?? null;
+                if ($status === 'A') $rekap['A']++;
+                elseif ($status === 'I') $rekap['I']++;
+                elseif ($status === 'S') $rekap['S']++;
+
+                if (isset($absensiByTanggal[$tgl][$siswa->id])) {
+                    foreach ($absensiByTanggal[$tgl][$siswa->id] as $name) {
+                        if (!in_array($name, $pencatat)) {
+                            $pencatat[] = $name;
+                        }
+                    }
+                }
+            }
+            $matrixData[$siswa->id]['_rekap'] = $rekap;
+            $matrixData[$siswa->id]['_pencatat'] = $pencatat;
+        }
+
+        $bulanLabel = $tanggalAwal->translatedFormat('F Y');
+
+        $pdf = Pdf::loadView('admin.absensi.riwayat-pdf', compact(
+            'kelas',
+            'siswas',
+            'matrixData',
+            'tahunAktif',
+            'bulanLabel',
+            'hariDalamBulan',
+            'tanggalAwal'
+        ))->setPaper('a4', 'landscape');
+
+        return $pdf->stream('rekap-absensi-' . $kelas->nama_kelas . '-' . $bulan . '.pdf');
     }
 
     public function rekap(Request $request)

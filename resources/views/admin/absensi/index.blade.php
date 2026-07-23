@@ -57,7 +57,10 @@
                         </div>
                     </div>
                 </div>
-                <div>
+                <div class="d-flex gap-2">
+                    <a href="{{ route('absensi.rekap') }}" class="btn-header-ms" style="background: linear-gradient(135deg, #6366f1, #818cf8); color: #fff; box-shadow: 0 2px 8px rgba(99,102,241,.25);">
+                        <i class="fas fa-file-alt"></i> Rekap
+                    </a>
                     <a href="{{ route('absensi.create') }}" class="btn-header-ms btn-add-ms">
                         <i class="fas fa-plus"></i> Input Absensi
                     </a>
