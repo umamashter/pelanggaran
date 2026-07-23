@@ -344,9 +344,6 @@
                     <a href="{{ route('absensi.riwayat.pdf', ['kelas_id' => $kelas->id, 'bulan' => $bulan]) }}" class="btn-hero btn-hero-glass" target="_blank">
                         <i class="fas fa-file-pdf"></i> PDF
                     </a>
-                    <button onclick="window.print()" class="btn-hero btn-hero-white">
-                        <i class="fas fa-print"></i> Cetak
-                    </button>
                     @endif
                 </div>
             </div>
@@ -354,25 +351,19 @@
     </div>
 
     <div class="filter-card">
-        <form method="GET" class="row g-3 align-items-end">
-            <div class="col-lg-3 col-md-6">
+        <form method="GET" id="riwayatFilterForm" class="row g-3 align-items-end">
+            <div class="col-lg-4 col-md-6">
                 <div class="filter-label"><i class="fas fa-chalkboard"></i> Kelas</div>
-                <select name="kelas_id" class="filter-input" required>
+                <select name="kelas_id" class="filter-input" id="filterKelas" required>
                     <option value="">-- Pilih Kelas --</option>
                     @foreach($kelasList as $item)
                     <option value="{{ $item->id }}" {{ request('kelas_id') == $item->id ? 'selected' : '' }}>{{ $item->nama_kelas }}</option>
                     @endforeach
                 </select>
             </div>
-            <div class="col-lg-3 col-md-6">
+            <div class="col-lg-4 col-md-6">
                 <div class="filter-label"><i class="fas fa-calendar"></i> Bulan</div>
-                <input type="month" name="bulan" class="filter-input" value="{{ $bulan }}">
-            </div>
-            <div class="col-lg-3 col-md-6">
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn-filter"><i class="fas fa-search"></i> Tampilkan</button>
-                    <a href="{{ route('absensi.riwayat') }}" class="btn-reset"><i class="fas fa-undo"></i> Reset</a>
-                </div>
+                <input type="month" name="bulan" class="filter-input" id="filterBulan" value="{{ $bulan }}">
             </div>
         </form>
     </div>
@@ -612,6 +603,20 @@ $(document).ready(function() {
         var stickyEls = wrapper.querySelectorAll('.sticky-col, .sticky-nis, .sticky-nama');
         wrapper.addEventListener('scroll', function() {
             stickyEls.forEach(function(el) { el.style.transform = 'translateX(0)'; });
+        });
+    }
+
+    var form = document.getElementById('riwayatFilterForm');
+    var filterKelas = document.getElementById('filterKelas');
+    var filterBulan = document.getElementById('filterBulan');
+    if (filterKelas) {
+        filterKelas.addEventListener('change', function() {
+            if (this.value) form.submit();
+        });
+    }
+    if (filterBulan) {
+        filterBulan.addEventListener('change', function() {
+            if (filterKelas.value) form.submit();
         });
     }
 });
