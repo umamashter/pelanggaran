@@ -31,6 +31,12 @@
 .btn-absen-ms.btn-success-ms { background: #16a34a; color: #fff; box-shadow: 0 2px 6px rgba(22,163,74,.25); }
 .btn-absen-ms.btn-success-ms:hover { background: #15803d; box-shadow: 0 4px 12px rgba(22,163,74,.35); }
 .btn-absen-ms.btn-secondary-ms { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; }
+.btn-absen-ms.btn-edit-ms { background: #f59e0b; color: #fff; box-shadow: 0 2px 6px rgba(245,158,11,.25); }
+.btn-absen-ms.btn-edit-ms:hover { background: #d97706; box-shadow: 0 4px 12px rgba(245,158,11,.35); }
+.btn-absen-ms.btn-history-ms { background: #6366f1; color: #fff; box-shadow: 0 2px 6px rgba(99,102,241,.25); }
+.btn-absen-ms.btn-history-ms:hover { background: #4f46e5; box-shadow: 0 4px 12px rgba(99,102,241,.35); }
+.action-group-absensi { display: inline-flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+@media (max-width: 575.98px) { .action-group-absensi { display: inline-flex !important; gap: 4px !important; flex-wrap: nowrap !important; } .action-group-absensi .btn-absen-ms { width: 28px !important; height: 28px !important; font-size: 11px !important; padding: 0 !important; justify-content: center; } }
 .btn-header-ms { padding: 8px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; transition: all .25s; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; border: none; text-decoration: none; }
 .btn-header-ms:hover { transform: translateY(-2px); color: #fff; }
 .btn-header-ms.btn-add-ms { background: linear-gradient(135deg, #16a34a, #22c55e); color: #fff; box-shadow: 0 2px 8px rgba(22,163,74,.25); }
@@ -77,6 +83,7 @@
                     @php
                         $siswaCount = $kelas->siswaAktif()->where('tahun_ajaran_id', $tahunAktif->id)->count();
                         $sudahAbsen = in_array($kelas->id, $absensiHariIni);
+                        $absensiId = $absensiMap[$kelas->id] ?? null;
                     @endphp
                     <tr>
                         <td class="text-center">{{ $loop->iteration }}</td>
@@ -90,9 +97,20 @@
                             @endif
                         </td>
                         <td class="text-center">
-                            <a href="{{ route('absensi.create', ['kelas_id' => $kelas->id, 'tanggal' => now()->toDateString()]) }}" class="btn-absen-ms btn-success-ms">
-                                <i class="fas fa-clipboard-list"></i> Absen
-                            </a>
+                            <div class="action-group-absensi">
+                                @if($sudahAbsen)
+                                    <a href="{{ route('absensi.edit', $absensiId) }}" class="btn-absen-ms btn-edit-ms" title="Edit Absensi">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+                                @else
+                                    <a href="{{ route('absensi.create', ['kelas_id' => $kelas->id, 'tanggal' => now()->toDateString()]) }}" class="btn-absen-ms btn-success-ms" title="Input Absensi">
+                                        <i class="fas fa-clipboard-list"></i> Absen
+                                    </a>
+                                @endif
+                                <a href="{{ route('absensi.riwayat', ['kelas_id' => $kelas->id]) }}" class="btn-absen-ms btn-history-ms" title="Riwayat Absensi">
+                                    <i class="fas fa-history"></i> Riwayat
+                                </a>
+                            </div>
                         </td>
                     </tr>
                     @endforeach

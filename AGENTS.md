@@ -43,7 +43,7 @@ php artisan serve
 - `2fa/challenge` and `2fa/verify` are **outside** the auth group (unauthenticated access).
 - Login (`POST /login`) and 2FA verify throttled (`throttle:5,1`).
 - `datasiswa` middleware (currently only on `HomeController`): forces role 3 (`info=false`) to data-completion form; logs out guru without `waliKelas` or with `kelas_id == null`; logs out non-siswa with `info=false`.
-- Roles are ints: `1=admin`, `2=guru`, `3=siswa`, `4=BK`. **BK (4) routes in `routes/web.php:366-379` are fully commented out** — but `layouts/main.blade.php` still renders sidebar/navbar for role 4.
+- Roles are ints: `1=admin`, `2=guru`, `3=siswa`, `4=BK`. **BK (4) routes in `routes/web.php:384-397` are fully commented out** — but `layouts/main.blade.php` still renders sidebar/navbar for role 4.
 - `admin` middleware alias exists in Kernel but is unused — use `role` middleware instead.
 - `laravel/sanctum` installed, but its middleware is commented out in the `api` group (`Kernel.php:45`).
 - `2fa.disable` not allowlisted by `require.2fa`. Allowlist also includes `login-history.index`, `active-sessions.index` (plus path prefixes `riwayat-login`, `perangkat`) so users with role-required 2FA can access those before setup.
@@ -53,8 +53,8 @@ php artisan serve
 - Public NISN lookup at `GET /api/{nisn}` (in `routes/web.php`, not `api.php`).
 - `Paginator::useBootstrap()` in `AppServiceProvider::boot()`.
 - `Semester` model observed by `SemesterObserver` (registered in `AppServiceProvider::boot()`).
-- Login auto-detects field: `FILTER_VALIDATE_EMAIL` → `email` column, otherwise `username` (`LoginController`).
-- Duplicate route definitions: `jadwal-pelajaran/kelas/{id}` (lines 196 & 200), `alumni/pdf` (lines 266-267). Check both before touching.
+- Login auto-detects field: `FILTER_VALIDATE_EMAIL` -> `email` column, otherwise `username` (`LoginController`).
+- Duplicate route definitions: `master-user` (lines 188 & 196), `jadwal-pelajaran/kelas/{id}` (lines 204 & 208), `alumni/pdf` (lines 278 & 279). Check both before touching.
 
 ## User / Guru
 - `master-guru` is the resource route for `Guru` records.
@@ -79,7 +79,7 @@ php artisan serve
 - `PenilaianDetail::getNilaiAkhirAttribute()` weighted average: tugas 20%, UH 30%, PTS 20%, PAS 30%.
 - Export/Import via Maatwebsite Excel (`app/Exports/`, `app/Imports/`).
 - `Guru` model has **no** `belongsTo(User)` relationship despite having `user_id` — build guru queries manually.
-- `History` model: duplicate `siswa()`/`student()` (both → `Student` via `student_id`), `rule()`/`pelanggaran()` (both → `Peraturan` via `peraturan_id`). Also has `$with = ['siswa', 'rule', 'kelasSnapshot']` (auto-eager-loads).
+- `History` model: duplicate `siswa()`/`student()` (both -> `Student` via `student_id`), `rule()`/`pelanggaran()` (both -> `Peraturan` via `peraturan_id`). Also has `$with = ['siswa', 'rule', 'kelasSnapshot']` (auto-eager-loads).
 
 ## Controller Traits
 - `ProtectsCompletedHaflah` (`app/Http/Controllers/Traits/`): `blockIfHaflahSelesai($haflahId)` and `blockStoreIfHaflahSelesai()` prevent mutations when haflah status is `Selesai`.
@@ -106,11 +106,11 @@ php artisan serve
   }
   ```
 - All admin DataTables: `scrollX: true` + `responsive: false` (never `table-responsive` wrapper) so only `<tbody>` scrolls.
-- Homepage hides `.navbar`/`.mobile-nav-toggle` on `≤991px`; theme toggle duplicated outside navbar with `d-lg-none`.
+- Homepage hides `.navbar`/`.mobile-nav-toggle` on <=991px; theme toggle duplicated outside navbar with `d-lg-none`.
 - Hero font-size overrides on homepage need `!important`.
 
 ## Absensi Siswa (Stable)
-- **Arsitektur**: Tahun Ajaran Aktif → Kelas → Tanggal → Siswa Aktif → Status (H/I/S/A) → Rekap.
+- **Arsitektur**: Tahun Ajaran Aktif -> Kelas -> Tanggal -> Siswa Aktif -> Status (H/I/S/A) -> Rekap.
 - **No `semester_id`** in attendance — scoping solely by `TahunAjaran` where `status='Aktif'`.
 - `Absensi` model: `$guarded=['id']`, `$casts=['tanggal'=>'date']`. Relationships: `kelas()`, `tahunAjaran()`, `user()`, `details()`, `jadwal()`.
 - `AbsensiDetail` model: `$guarded=['id']`. Relationships: `absensi()`, `student()`.
@@ -139,11 +139,11 @@ php artisan serve
 
 ### Database
 - **`lokasi_madrasah`**: `id`, `nama`, `latitude` (decimal 10,7), `longitude` (decimal 10,7), `radius` (unsigned int, default 40), `aktif` (boolean), timestamps
-- **`absensi_gurus`**: `id`, `user_id` (FK → users), `tanggal` (date), `jam_masuk` (time), `foto_masuk` (string), `latitude_masuk` (decimal 10,7), `longitude_masuk` (decimal 10,7), `jarak_masuk` (decimal 8,2), `akurasi_gps` (unsigned int, nullable), timestamps
+- **`absensi_gurus`**: `id`, `user_id` (FK -> users), `tanggal` (date), `jam_masuk` (time), `foto_masuk` (string), `latitude_masuk` (decimal 10,7), `longitude_masuk` (decimal 10,7), `jarak_masuk` (decimal 8,2), `akurasi_gps` (unsigned int, nullable), timestamps
 
 ### Models
 - **`LokasiMadrasah`** (`app/Models/LokasiMadrasah.php`): `$table='lokasi_madrasah'`, `$guarded=['id']`, `scopeAktif()`, `getLokasiAktif()`
-- **`AbsensiGuru`** (`app/Models/AbsensiGuru.php`): `$table='absensi_gurus'`, `$guarded=['id']`, relationships: `user()` → User
+- **`AbsensiGuru`** (`app/Models/AbsensiGuru.php`): `$table='absensi_gurus'`, `$guarded=['id']`, relationships: `user()` -> User
 
 ### Controllers
 - **`AdminAbsensiGuruController`** (`app/Http/Controllers/AdminAbsensiGuruController.php`):
@@ -156,8 +156,8 @@ php artisan serve
   - `haversine()` — helper function untuk perhitungan jarak
 
 ### Routes
-- **Guru** (role:2): `GET /guru/absensi-guru` → `guru.absensi-guru.show`, `POST /guru/absensi-guru` → `guru.absensi-guru.store`, `GET /guru/absensi-guru/riwayat` → `guru.absensi-guru.riwayat`
-- **Admin** (role:1): `GET /admin/absensi-guru` → `admin.absensi-guru.index`, `GET /admin/absensi-guru/{id}` → `admin.absensi-guru.detail`
+- **Guru** (role:2): `GET /guru/absensi-guru` -> `guru.absensi-guru.show`, `POST /guru/absensi-guru` -> `guru.absensi-guru.store`, `GET /guru/absensi-guru/riwayat` -> `guru.absensi-guru.riwayat`
+- **Admin** (role:1): `GET /admin/absensi-guru` -> `admin.absensi-guru.index`, `GET /admin/absensi-guru/{id}` -> `admin.absensi-guru.detail`
 
 ### Keamanan
 - Semua route dilindungi autentikasi + role middleware
@@ -168,17 +168,17 @@ php artisan serve
 - Jika insert gagal, foto yang sudah di-upload dihapus dari storage
 
 ### Guru Flow
-1. Guru login → buka halaman Absensi Guru
-2. Browser meminta izin GPS → sistem mendapatkan latitude/longitude
-3. Sistem menghitung jarak via Haversine → tampilkan status
-4. Jika dalam radius → aktifkan kamera selfie
-5. Guru ambil foto → preview → klik "Ambil Absensi"
+1. Guru login -> buka halaman Absensi Guru
+2. Browser meminta izin GPS -> sistem mendapatkan latitude/longitude
+3. Sistem menghitung jarak via Haversine -> tampilkan status
+4. Jika dalam radius -> aktifkan kamera selfie
+5. Guru ambil foto -> preview -> klik "Ambil Absensi"
 6. Sistem simpan: user_id, tanggal, jam_masuk, foto, lat, lng, jarak
 
 ### Admin Flow
-1. Admin buka `/admin/absensi-guru` → lihat rekap semua guru
+1. Admin buka `/admin/absensi-guru` -> lihat rekap semua guru
 2. Filter: guru, tanggal mulai, tanggal selesai
-3. Klik detail → lihat foto selfie, koordinat, jarak, jam masuk
+3. Klik detail -> lihat foto selfie, koordinat, jarak, jam masuk
 
 ### Views
 - `resources/views/guru/absensi-guru/show.blade.php` — halaman absensi GPS + kamera
@@ -205,21 +205,22 @@ php artisan serve
 
 ### Controllers
 - **`LokasiMadrasahController`** (`app/Http/Controllers/LokasiMadrasahController.php`):
-  - `index()` — tampilkan info lokasi aktif (GET `/admin/lokasi-madrasah`)
+  - `index()` — tampilkan info lokasi aktif (GET `/lokasi-madrasah`)
   - `store()` — buat/update lokasi dengan `updateOrCreate` (POST)
   - `update()` — edit nama/lat/lng/radius (PUT)
-  - `toggleAktif()` — toggle status aktif/nonaktif (POST `/admin/lokasi-madrasah/toggle`)
+  - `toggleAktif()` — toggle status aktif/nonaktif (POST `/lokasi-madrasah/toggle`)
 
 ### Routes
-- **Admin** (role:1): `GET /admin/lokasi-madrasah` → `lokasi-madrasah.index`, `POST /admin/lokasi-madrasah` → `lokasi-madrasah.store`, `PUT /admin/lokasi-madrasah` → `lokasi-madrasah.update`, `POST /admin/lokasi-madrasah/toggle` → `lokasi-madrasah.toggle`
+- **Admin** (role:1): `GET /lokasi-madrasah` -> `lokasi-madrasah.index`, `POST /lokasi-madrasah` -> `lokasi-madrasah.store`, `PUT /lokasi-madrasah` -> `lokasi-madrasah.update`, `POST /lokasi-madrasah/toggle` -> `lokasi-madrasah.toggle`
+- **Note**: Routes are inside the admin `role:1` group in `routes/web.php:365-369` but use `/lokasi-madrasah` prefix (not `/admin/lokasi-madrasah`).
 
 ### Views
 - `resources/views/admin/lokasi-madrasah/index.blade.php` — admin config page: info card (current location) + edit form + "Gunakan Lokasi Saya" GPS button
 
 ### Flow
-1. Admin buka `/admin/lokasi-madrasah`
+1. Admin buka `/lokasi-madrasah`
 2. Lihat info lokasi aktif: nama, koordinat, radius, status
-3. Klik tombol GPS → browser minta izin → koordinat terisi otomatis
+3. Klik tombol GPS -> browser minta izin -> koordinat terisi otomatis
 4. Klik "Simpan Perubahan"
 5. Toggle aktif/nonaktif jika perlu (nonaktif = absensi guru tidak berfungsi)
 

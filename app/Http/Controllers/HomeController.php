@@ -58,11 +58,13 @@ class HomeController extends Controller
             $guru = \App\Models\Guru::where('user_id', auth()->user()->id)->first();
             $wali_kelas_id = $guru ? WaliKelas::where('guru_id', $guru->id)->first() : null;
             if (!$wali_kelas_id) {
-                // Jika guru tidak punya data wali kelas, arahkan ke halaman dengan pesan error
-                return redirect()->back()->with('error', 'Akun ini belum terdaftar sebagai wali kelas.');
+                // Guru bukan wali kelas → arahkan ke absensi guru
+                return redirect()->route('guru.absensi-guru.show');
             }
 
-            $siswas = Student::where('kelas_id', $wali_kelas_id->kelas_id)->get();
+            $siswas = Student::whereHas('kelasAktif', function ($q) use ($wali_kelas_id) {
+                $q->where('kelas_id', $wali_kelas_id->kelas_id);
+            })->get();
             $peraturan = Peraturan::all();
             $points = Peraturan::all();
 

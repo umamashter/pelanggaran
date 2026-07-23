@@ -30,9 +30,15 @@ class AbsensiController extends Controller
             ->pluck('kelas_id')
             ->toArray();
 
+        $absensiMap = Absensi::where('tanggal', now()->toDateString())
+            ->where('tahun_ajaran_id', $tahunAktif->id)
+            ->pluck('id', 'kelas_id')
+            ->toArray();
+
         return view('admin.absensi.index', compact(
             'kelasList',
             'absensiHariIni',
+            'absensiMap',
             'tahunAktif'
         ));
     }
