@@ -6,7 +6,6 @@ use App\Models\Jenjang;
 use App\Models\MataPelajaran;
 use App\Models\Kurikulum;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use App\Imports\MataPelajaranImport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\MataPelajaranExport;
@@ -47,7 +46,6 @@ class MataPelajaranController extends Controller
         $request->validate([
             'nama_mapel' => [
                 'required',
-                'trim',
                 function ($attribute, $value, $fail) use ($request) {
                     $exists = MataPelajaran::whereRaw('LOWER(nama_mapel) = LOWER(?)', [$value])
                         ->where('jenjang_id', $request->jenjang_id)
@@ -106,7 +104,6 @@ class MataPelajaranController extends Controller
         $request->validate([
             'nama_mapel' => [
                 'required',
-                'trim',
                 function ($attribute, $value, $fail) use ($request, $id) {
                     $exists = MataPelajaran::whereRaw('LOWER(nama_mapel) = LOWER(?)', [$value])
                         ->where('jenjang_id', $request->jenjang_id)
