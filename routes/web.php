@@ -241,6 +241,50 @@ Route::group(['middleware' => ['auth', '2fa', 'require.2fa']], function () {
         Route::post('/absensi/import/process', [AbsensiImportController::class, 'processImage'])->name('absensi.import.process');
         Route::post('/absensi/import/confirm', [AbsensiImportController::class, 'confirmImport'])->name('absensi.import.confirm');
 
+        // Diagnostic route — visit /absensi/import/diagnostic to check server capabilities
+        Route::get('/absensi/import/diagnostic', function () {
+            $results = [];
+            $results['php_version'] = phpversion();
+            $results['exec_enabled'] = function_exists('exec');
+            $results['python_path'] = config('ocr.python_path');
+            $results['python_exists'] = $results['python_path'] ? file_exists($results['python_path']) : false;
+            $results['tesseract_path'] = config('ocr.tesseract_path');
+            $results['tesseract_exists'] = $results['tesseract_path'] ? file_exists($results['tesseract_path']) : false;
+            $results['script_path'] = config('ocr.script_path');
+            $results['script_exists'] = $results['script_path'] ? file_exists($results['script_path']) : false;
+            $results['upload_max_filesize'] = ini_get('upload_max_filesize');
+            $results['post_max_size'] = ini_get('post_max_size');
+            $results['upload_dir'] = config('ocr.upload_dir');
+            $results['upload_disk'] = config('ocr.upload_disk');
+            $disk = Storage::disk(config('ocr.upload_disk', 'local'));
+            $results['disk_root'] = $disk->path('/');
+            $uploadDir = config('ocr.upload_dir', 'absensi-import');
+            $fullPath = rtrim($disk->path('/'), '/') . '/' . $uploadDir;
+            $results['upload_dir_exists'] = is_dir($fullPath);
+            $results['upload_dir_writable'] = is_writable($fullPath);
+            $results['extensions_loaded'] = get_loaded_extensions();
+            $results['opencv_support'] = in_array('imagick', get_loaded_extensions()) || class_exists('GdImage');
+
+            if ($results['exec_enabled'] && $results['python_exists']) {
+                $output = [];
+                $exitCode = 0;
+                exec('"' . $results['python_path'] . '" --version 2>&1', $output, $exitCode);
+                $results['python_version'] = implode("\n", $output);
+                $results['python_exit_code'] = $exitCode;
+            }
+
+            if ($results['tesseract_exists']) {
+                $output = [];
+                $exitCode = 0;
+                exec('"' . $results['tesseract_path'] . '" --version 2>&1', $output, $exitCode);
+                $results['tesseract_version'] = implode("\n", $output);
+                $results['tesseract_exit_code'] = $exitCode;
+            }
+
+            header('Content-Type: application/json');
+            return response()->json($results, 200, [], JSON_PRETTY_PRINT);
+        });
+
         Route::get('/absensi/{id}/edit', [AbsensiController::class, 'edit'])->name('absensi.edit');
         Route::put('/absensi/{id}', [AbsensiController::class, 'update'])->name('absensi.update');
         Route::get('/absensi/{id}', [AbsensiController::class, 'detail'])->name('absensi.detail');
