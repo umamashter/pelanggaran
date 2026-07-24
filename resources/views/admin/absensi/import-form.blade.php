@@ -43,6 +43,7 @@
 .ocr-progress-bar-wrap { background: #e2e8f0; border-radius: 8px; height: 10px; overflow: hidden; }
 .ocr-progress-bar { background: linear-gradient(135deg, #16a34a, #22c55e); height: 100%; border-radius: 8px; transition: width .3s ease; width: 0; }
 .ocr-progress-pct { font-size: 13px; font-weight: 600; color: var(--ms-primary); margin-top: 10px; }
+.ocr-engine-missing { display: none; background: #fef2f2; border-left: 4px solid #dc2626; border-radius: 12px; padding: 16px 20px; font-size: 13px; color: #991b1b; margin-bottom: 20px; }
 @media (max-width: 768px) { .select-card .card-body { padding: 20px; } .upload-zone { padding: 24px 16px; } }
 </style>
 
@@ -70,6 +71,11 @@
 
     <div class="info-card-modern">
         <div><i class="fas fa-info-circle"></i> Unggah foto buku absensi. Sistem akan membaca simbol otomatis di browser: <strong>"." = Hadir</strong>, I = Izin, S = Sakit, A = Alpha. Sel kosong akan ditandai sebagai <strong>"Perlu Diperiksa" (?)</strong>. Anda bisa mengoreksi semua data sebelum menyimpan.</div>
+    </div>
+
+    <div class="ocr-engine-missing" id="ocrEngineMissing">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong>File OCR engine tidak ditemukan.</strong> Pastikan file <code>public/js/ocr-engine.js</code> telah diupload ke server. Hubungi administrator.
     </div>
 
     <div class="card select-card">
@@ -146,7 +152,18 @@
 </div>
 
 @push('scripts')
-<script src="{{ asset('js/ocr-engine.js') }}"></script>
+<script>
+(function() {
+    var script = document.createElement('script');
+    script.src = '{{ asset("js/ocr-engine.js") }}?v={{ time() }}';
+    script.onerror = function() {
+        document.getElementById('ocrEngineMissing').style.display = 'block';
+        document.getElementById('submitBtn').disabled = true;
+        console.error('Gagal memuat ocr-engine.js dari: ' + script.src);
+    };
+    document.head.appendChild(script);
+})();
+</script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     var fotoInput = document.getElementById('fotoInput');
@@ -228,10 +245,14 @@ document.addEventListener('DOMContentLoaded', function() {
     submitBtn.addEventListener('click', function() {
         hideError();
 
+        if (typeof OCREngine === 'undefined') {
+            showError('OCR engine belum siap. Pastikan koneksi internet aktif untuk memuat Tesseract.js.');
+            return;
+        }
+
         if (!selectedFile) { showError('Pilih foto terlebih dahulu.'); return; }
         if (!kelasSelect.value) { showError('Pilih kelas terlebih dahulu.'); return; }
 
-        // Show progress
         ocrProgress.classList.add('active');
         submitBtn.disabled = true;
 
@@ -264,7 +285,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
             updateProgress(95, 'Mengirim hasil ke server...');
 
-            // Send OCR results to server for matching with DB students
             var formData = new FormData();
             formData.append('_token', '{{ csrf_token() }}');
             formData.append('kelas_id', kelasSelect.value);
