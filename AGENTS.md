@@ -39,7 +39,7 @@ php artisan serve
 - `WhatsAppHelper` loaded via `autoload-dev.files` — **not** in production autoload. If it fails at runtime, check `composer.json`.
 
 ## Routing / Middleware
-- Web group order: `auth` -> `2fa` -> `require.2fa` -> `datasiswa` (per-controller) -> `role`.
+- Middleware order (applied via route group in `web.php:99` and controller constructors, **not** in Kernel's `web` group): `auth` -> `2fa` -> `require.2fa` -> `datasiswa` (per-controller) -> `role`.
 - `2fa/challenge` and `2fa/verify` are **outside** the auth group (unauthenticated access).
 - Login (`POST /login`) and 2FA verify throttled (`throttle:5,1`).
 - `datasiswa` middleware (currently only on `HomeController`): forces role 3 (`info=false`) to data-completion form. Guru redirect logic (non-waliKelas → absensi guru) is in `HomeController::index()`, not the middleware.
@@ -90,7 +90,7 @@ php artisan serve
 - `layouts/app.blade.php` is the public homepage (self-contained). Loads `component.head`, `component.loading`, `component.footer`, `component.script`.
 - `<base href="../../">` makes asset paths relative (authenticated pages only).
 - `@stack('css')` in layout `<head>` (after base CSS, before dark-mode.css).
-- `@stack('scripts')` in `resources/views/component/script.blade.php` — loads **before** jQuery Validation, SweetAlert, DataTables, Select2, Bootstrap JS. Stack scripts must not depend on those globals.
+- `@stack('scripts')` in `resources/views/component/script.blade.php` — loads **after** jQuery, Select2, DataTables, SweetAlert, jQuery Validation but **before** Bootstrap JS. Stack scripts must not depend on Bootstrap JS.
 - `@include('sweetalert::alert')` comes after the shared script include.
 - Dark mode is CSS-only (`public/css/dark-mode.css`) — place near end of `<head>`, just before `loading.css`.
 - Avoid `@php(...)` shorthand in files that already use `@php ... @endphp` blocks.

@@ -305,7 +305,7 @@ class AbsensiController extends Controller
         return view('admin.absensi.detail', compact('absensi'));
     }
 
-    public function edit($id)
+    public function edit(Request $request, $id)
     {
         $absensi = Absensi::with(['details.student', 'kelas', 'tahunAjaran'])
             ->findOrFail($id);
@@ -325,6 +325,11 @@ class AbsensiController extends Controller
               ->where('tahun_ajaran_id', $absensi->tahun_ajaran_id);
         })->orderBy('nama')->get();
 
+        $singleSiswaId = $request->input('siswa');
+        if ($singleSiswaId) {
+            $siswas = $siswas->filter(fn($s) => $s->id == $singleSiswaId)->values();
+        }
+
         $detailMap = $absensi->details->pluck('status', 'student_id');
         $keteranganMap = $absensi->details->pluck('keterangan', 'student_id');
 
@@ -332,7 +337,8 @@ class AbsensiController extends Controller
             'absensi',
             'siswas',
             'detailMap',
-            'keteranganMap'
+            'keteranganMap',
+            'singleSiswaId'
         ));
     }
 

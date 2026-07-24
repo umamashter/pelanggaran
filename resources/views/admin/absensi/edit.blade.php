@@ -72,6 +72,9 @@
             <form id="absensiForm" action="{{ route('absensi.update', $absensi->id) }}" method="POST">
                 @csrf
                 @method('PUT')
+                @if(!empty($singleSiswaId))
+                <input type="hidden" name="siswa" value="{{ $singleSiswaId }}">
+                @endif
 
                 <div class="table-responsive">
                     <table class="table table-form">
@@ -109,7 +112,7 @@
 
                 <div class="d-flex gap-2 mt-4">
                     <button type="button" id="btnSimpan" class="btn-update-ms">
-                        <i class="fas fa-save"></i> Update Absensi
+                        <i class="fas fa-save"></i> {{ $siswas->count() === 1 ? 'Update Status Siswa' : 'Update Absensi' }}
                     </button>
                     <a href="{{ route('absensi.riwayat') }}" class="btn-kembali-ms">
                         <i class="fas fa-arrow-left"></i> Kembali

@@ -439,6 +439,7 @@
                                     data-waktu="{{ $m['created_at'] }}"
                                     data-keterangan="{{ $m['keterangan'] }}"
                                     data-absensi-id="{{ $m['absensi_id'] }}"
+                                    data-student-id="{{ $siswa->id }}"
                                 >{{ $status }}</span>
                             @else
                                 <span class="status-badge s-null">-</span>
@@ -591,7 +592,8 @@ function showDetail(el) {
     modalHeader.addClass(headerClass);
 
     var absensiId = el.getAttribute('data-absensi-id');
-    modal.find('#modalEditBtn').attr('href', '{{ url("absensi") }}/' + absensiId + '/edit');
+    var studentId = el.getAttribute('data-student-id');
+    modal.find('#modalEditBtn').attr('href', '{{ url("absensi") }}/' + absensiId + '/edit?siswa=' + studentId);
 
     var bsModal = new bootstrap.Modal(document.getElementById('detailAbsensiModal'));
     bsModal.show();
