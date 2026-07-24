@@ -83,6 +83,7 @@
     @endphp
 
     <div class="stats-row">
+        <div class="stat-badge" style="background:#f1f5f9;color:#334155;"><span class="stat-num">{{ count($matchedData) }}</span>Total Siswa</div>
         <div class="stat-badge stat-h"><span class="stat-num">{{ $stats['H'] }}</span>Hadir (H)</div>
         <div class="stat-badge stat-i"><span class="stat-num">{{ $stats['I'] }}</span>Izin (I)</div>
         <div class="stat-badge stat-s"><span class="stat-num">{{ $stats['S'] }}</span>Sakit (S)</div>
@@ -107,6 +108,7 @@
                 <thead>
                     <tr>
                         <th class="name-col">No / Nama Siswa</th>
+                        <th style="min-width:90px;">NISN</th>
                         @for($day = 1; $day <= $totalDays; $day++)
                             @php
                                 $info = $daysInfo[$day];
@@ -129,6 +131,7 @@
                                 <span class="badge bg-danger ms-1" style="font-size:9px;">?</span>
                             @endif
                         </td>
+                        <td style="font-size:11px; color:#64748b; white-space:nowrap;">{{ $row['nisn'] ?? '-' }}</td>
                         @for($day = 1; $day <= $totalDays; $day++)
                             @php
                                 $info = $daysInfo[$day];

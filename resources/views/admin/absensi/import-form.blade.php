@@ -32,6 +32,17 @@
 .btn-simpan-ms:disabled { opacity: .6; cursor: not-allowed; transform: none; box-shadow: none; }
 .btn-kembali-ms { padding: 10px 20px; border-radius: 10px; font-size: 14px; font-weight: 500; border: 1.5px solid var(--ms-border); background: #fff; color: #475569; transition: all .25s; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
 .btn-kembali-ms:hover { border-color: var(--ms-primary); color: var(--ms-primary); background: var(--ms-primary-light); }
+/* Progress overlay */
+.ocr-progress-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 9999; justify-content: center; align-items: center; }
+.ocr-progress-overlay.active { display: flex; }
+.ocr-progress-box { background: #fff; border-radius: 18px; padding: 36px 40px; max-width: 440px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,.2); text-align: center; }
+.ocr-progress-icon { width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, #16a34a, #22c55e); display: flex; align-items: center; justify-content: center; margin: 0 auto 18px; color: #fff; font-size: 22px; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+.ocr-progress-title { font-size: 16px; font-weight: 700; color: var(--ms-text); margin-bottom: 8px; }
+.ocr-progress-msg { font-size: 13px; color: var(--ms-text-soft); margin-bottom: 18px; min-height: 36px; }
+.ocr-progress-bar-wrap { background: #e2e8f0; border-radius: 8px; height: 10px; overflow: hidden; }
+.ocr-progress-bar { background: linear-gradient(135deg, #16a34a, #22c55e); height: 100%; border-radius: 8px; transition: width .3s ease; width: 0; }
+.ocr-progress-pct { font-size: 13px; font-weight: 600; color: var(--ms-primary); margin-top: 10px; }
 @media (max-width: 768px) { .select-card .card-body { padding: 20px; } .upload-zone { padding: 24px 16px; } }
 </style>
 
@@ -58,20 +69,18 @@
     @endif
 
     <div class="info-card-modern">
-        <div><i class="fas fa-info-circle"></i> Unggah foto buku absensi. Sistem akan membaca simbol otomatis: <strong>"." = Hadir</strong>, I = Izin, S = Sakit, A = Alpha. Sel kosong akan ditandai sebagai "Perlu Diperiksa".</div>
+        <div><i class="fas fa-info-circle"></i> Unggah foto buku absensi. Sistem akan membaca simbol otomatis di browser: <strong>"." = Hadir</strong>, I = Izin, S = Sakit, A = Alpha. Sel kosong akan ditandai sebagai <strong>"Perlu Diperiksa" (?)</strong>. Anda bisa mengoreksi semua data sebelum menyimpan.</div>
     </div>
 
     <div class="card select-card">
         <div class="card-body">
             <div class="card-title"><i class="fas fa-upload me-2" style="color: var(--ms-primary);"></i>Form Import</div>
 
-            <form action="{{ route('absensi.import.process') }}" method="POST" enctype="multipart/form-data" id="importForm">
-                @csrf
-
+            <div id="formSection">
                 <div class="row g-3 mb-4">
                     <div class="col-md-6">
                         <label class="form-label">Kelas <span class="text-danger">*</span></label>
-                        <select name="kelas_id" class="form-select" required>
+                        <select id="kelasSelect" class="form-select" required>
                             <option value="">-- Pilih Kelas --</option>
                             @foreach($kelasList as $kelas)
                             <option value="{{ $kelas->id }}" {{ old('kelas_id') == $kelas->id ? 'selected' : '' }}>
@@ -79,11 +88,10 @@
                             </option>
                             @endforeach
                         </select>
-                        @error('kelas_id')<small class="text-danger">{{ $message }}</small>@enderror
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">Bulan <span class="text-danger">*</span></label>
-                        <select name="bulan" class="form-select" required>
+                        <select id="bulanSelect" class="form-select" required>
                             @foreach($months as $num => $name)
                             <option value="{{ $num }}" {{ old('bulan', $currentMonth) == $num ? 'selected' : '' }}>
                                 {{ $name }}
@@ -93,94 +101,203 @@
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">Tahun <span class="text-danger">*</span></label>
-                        <input type="number" name="tahun" class="form-control" value="{{ old('tahun', $currentYear) }}" min="2020" max="2050" required>
+                        <input type="number" id="tahunInput" class="form-control" value="{{ old('tahun', $currentYear) }}" min="2020" max="2050" required>
                     </div>
                 </div>
 
                 <label class="form-label">Foto Buku Absensi <span class="text-danger">*</span></label>
                 <div class="upload-zone" id="uploadZone">
-                    <input type="file" name="foto" accept="image/jpeg,image/png,image/webp" id="fotoInput" required>
+                    <input type="file" accept="image/jpeg,image/png,image/webp" id="fotoInput">
                     <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
                     <div class="upload-text">Klik atau seret foto ke sini</div>
-                    <div class="upload-hint">Format: JPG, PNG, WebP. Maks. {{ config('ocr.max_file_size', 10) }} MB.</div>
+                    <div class="upload-hint">Format: JPG, PNG, WebP. Maks. 10 MB.</div>
                 </div>
 
                 <div class="upload-preview" id="uploadPreview">
                     <img id="previewImg" src="" alt="Preview">
                 </div>
 
-                @error('foto')<div class="text-danger mt-2"><small>{{ $message }}</small></div>@enderror
+                <div id="errorMsg" class="text-danger mt-3" style="display:none; font-size:13px;"></div>
 
                 <div class="d-flex gap-2 mt-4">
                     <a href="{{ route('absensi.index') }}" class="btn-kembali-ms">
                         <i class="fas fa-arrow-left"></i> Kembali
                     </a>
-                    <button type="submit" class="btn-simpan-ms" id="submitBtn" disabled>
+                    <button type="button" class="btn-simpan-ms" id="submitBtn" disabled>
                         <i class="fas fa-cogs"></i> Baca Foto
                     </button>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 </div>
 
+<!-- Progress Overlay -->
+<div class="ocr-progress-overlay" id="ocrProgress">
+    <div class="ocr-progress-box">
+        <div class="ocr-progress-icon"><i class="fas fa-eye"></i></div>
+        <div class="ocr-progress-title">Memproses Foto Absensi</div>
+        <div class="ocr-progress-msg" id="progressMsg">Menyiapkan...</div>
+        <div class="ocr-progress-bar-wrap">
+            <div class="ocr-progress-bar" id="progressBar"></div>
+        </div>
+        <div class="ocr-progress-pct" id="progressPct">0%</div>
+    </div>
+</div>
+
 @push('scripts')
+<script src="{{ asset('js/ocr-engine.js') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const fotoInput = document.getElementById('fotoInput');
-    const uploadZone = document.getElementById('uploadZone');
-    const uploadPreview = document.getElementById('uploadPreview');
-    const previewImg = document.getElementById('previewImg');
-    const submitBtn = document.getElementById('submitBtn');
-    const importForm = document.getElementById('importForm');
+    var fotoInput = document.getElementById('fotoInput');
+    var uploadZone = document.getElementById('uploadZone');
+    var uploadPreview = document.getElementById('uploadPreview');
+    var previewImg = document.getElementById('previewImg');
+    var submitBtn = document.getElementById('submitBtn');
+    var kelasSelect = document.getElementById('kelasSelect');
+    var bulanSelect = document.getElementById('bulanSelect');
+    var tahunInput = document.getElementById('tahunInput');
+    var errorMsg = document.getElementById('errorMsg');
+    var ocrProgress = document.getElementById('ocrProgress');
+    var progressMsg = document.getElementById('progressMsg');
+    var progressBar = document.getElementById('progressBar');
+    var progressPct = document.getElementById('progressPct');
+
+    var selectedFile = null;
+
+    function showError(msg) {
+        errorMsg.textContent = msg;
+        errorMsg.style.display = 'block';
+    }
+    function hideError() {
+        errorMsg.style.display = 'none';
+    }
+
+    function validateForm() {
+        if (!selectedFile) { submitBtn.disabled = true; return; }
+        if (!kelasSelect.value) { submitBtn.disabled = true; return; }
+        submitBtn.disabled = false;
+    }
 
     fotoInput.addEventListener('change', function(e) {
-        const file = e.target.files[0];
+        var file = e.target.files[0];
         if (!file) return;
 
-        if (file.size > {{ config('ocr.max_file_size', 10) * 1024 * 1024 }}) {
-            alert('Ukuran file melebihi {{ config('ocr.max_file_size', 10) }} MB.');
+        if (file.size > 10 * 1024 * 1024) {
+            showError('Ukuran file melebihi 10 MB.');
             fotoInput.value = '';
             return;
         }
 
-        const reader = new FileReader();
+        selectedFile = file;
+        hideError();
+
+        var reader = new FileReader();
         reader.onload = function(ev) {
             previewImg.src = ev.target.result;
             uploadPreview.style.display = 'block';
-            submitBtn.disabled = false;
+            validateForm();
         };
         reader.readAsDataURL(file);
     });
 
-    // Drag and drop
+    kelasSelect.addEventListener('change', validateForm);
+    bulanSelect.addEventListener('change', validateForm);
+    tahunInput.addEventListener('input', validateForm);
+
     ['dragenter', 'dragover'].forEach(function(evt) {
         uploadZone.addEventListener(evt, function(e) {
             e.preventDefault();
             uploadZone.classList.add('dragover');
         });
     });
-
     ['dragleave', 'drop'].forEach(function(evt) {
         uploadZone.addEventListener(evt, function(e) {
             e.preventDefault();
             uploadZone.classList.remove('dragover');
         });
     });
-
     uploadZone.addEventListener('drop', function(e) {
-        const files = e.dataTransfer.files;
+        var files = e.dataTransfer.files;
         if (files.length > 0) {
             fotoInput.files = files;
             fotoInput.dispatchEvent(new Event('change'));
         }
     });
 
-    // Submit loading state
-    importForm.addEventListener('submit', function() {
+    submitBtn.addEventListener('click', function() {
+        hideError();
+
+        if (!selectedFile) { showError('Pilih foto terlebih dahulu.'); return; }
+        if (!kelasSelect.value) { showError('Pilih kelas terlebih dahulu.'); return; }
+
+        // Show progress
+        ocrProgress.classList.add('active');
         submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+
+        var reader = new FileReader();
+        reader.onload = function(ev) {
+            var imageSrc = ev.target.result;
+            runOCRPipeline(imageSrc);
+        };
+        reader.readAsDataURL(selectedFile);
     });
+
+    function updateProgress(pct, msg) {
+        progressBar.style.width = pct + '%';
+        progressPct.textContent = pct + '%';
+        if (msg) progressMsg.textContent = msg;
+    }
+
+    async function runOCRPipeline(imageSrc) {
+        try {
+            updateProgress(1, 'Menyiapkan OCR engine...');
+
+            var ocrResult = await OCREngine.processImage(imageSrc, updateProgress);
+
+            if (!ocrResult.success) {
+                ocrProgress.classList.remove('active');
+                submitBtn.disabled = false;
+                showError(ocrResult.error || 'Gagal membaca foto.');
+                return;
+            }
+
+            updateProgress(95, 'Mengirim hasil ke server...');
+
+            // Send OCR results to server for matching with DB students
+            var formData = new FormData();
+            formData.append('_token', '{{ csrf_token() }}');
+            formData.append('kelas_id', kelasSelect.value);
+            formData.append('bulan', bulanSelect.value);
+            formData.append('tahun', tahunInput.value);
+            formData.append('ocr_data', JSON.stringify(ocrResult));
+
+            var response = await fetch('{{ route("absensi.import.browser") }}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            var result = await response.json();
+
+            if (result.redirect) {
+                updateProgress(100, 'Selesai!');
+                window.location.href = result.redirect;
+                return;
+            }
+
+            ocrProgress.classList.remove('active');
+            submitBtn.disabled = false;
+            showError(result.error || 'Terjadi kesalahan.');
+
+        } catch (err) {
+            ocrProgress.classList.remove('active');
+            submitBtn.disabled = false;
+            showError('Error: ' + (err.message || err));
+        }
+    }
 });
 </script>
 @endpush

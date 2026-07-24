@@ -238,6 +238,8 @@ Route::group(['middleware' => ['auth', '2fa', 'require.2fa']], function () {
 
         // Absensi Import dari Foto (before {id} to avoid route conflict)
         Route::get('/absensi/import', [AbsensiImportController::class, 'showForm'])->name('absensi.import');
+        Route::post('/absensi/import/browser', [AbsensiImportController::class, 'processBrowserOcr'])->name('absensi.import.browser');
+        Route::get('/absensi/import/verify', [AbsensiImportController::class, 'showVerify'])->name('absensi.import.verify');
         Route::post('/absensi/import/process', [AbsensiImportController::class, 'processImage'])->name('absensi.import.process');
         Route::post('/absensi/import/confirm', [AbsensiImportController::class, 'confirmImport'])->name('absensi.import.confirm');
 
