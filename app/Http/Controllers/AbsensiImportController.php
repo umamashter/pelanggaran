@@ -9,6 +9,7 @@ use App\Services\AbsensiImportService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class AbsensiImportController extends Controller
@@ -54,125 +55,140 @@ class AbsensiImportController extends Controller
      */
     public function processImage(Request $request)
     {
-        $request->validate([
-            'foto' => 'required|file|mimes:jpg,jpeg,png,webp|max:' . (config('ocr.max_file_size', 10) * 1024),
-            'kelas_id' => 'required|exists:kelas,id',
-            'bulan' => 'required|integer|min:1|max:12',
-            'tahun' => 'required|integer|min:2020|max:2050',
-        ]);
+        try {
+            $request->validate([
+                'foto' => 'required|file|mimes:jpg,jpeg,png,webp|max:' . (config('ocr.max_file_size', 10) * 1024),
+                'kelas_id' => 'required|exists:kelas,id',
+                'bulan' => 'required|integer|min:1|max:12',
+                'tahun' => 'required|integer|min:2020|max:2050',
+            ]);
 
-        $tahunAktif = TahunAjaran::where('status', 'Aktif')->firstOrFail();
+            $tahunAktif = TahunAjaran::where('status', 'Aktif')->firstOrFail();
 
-        // Validate date within tahun ajaran period
-        $monthStart = Carbon::createFromDate($request->tahun, $request->bulan, 1);
-        $totalDays = $monthStart->daysInMonth;
+            // Validate date within tahun ajaran period
+            $monthStart = Carbon::createFromDate($request->tahun, $request->bulan, 1);
+            $totalDays = $monthStart->daysInMonth;
 
-        if ($tahunAktif->tanggal_mulai && $monthStart->lt(Carbon::parse($tahunAktif->tanggal_mulai)->startOfMonth())) {
-            return back()->withInput()->with('error', 'Bulan yang dipilih sebelum periode tahun ajaran aktif.');
-        }
-
-        $monthEnd = $monthStart->copy()->endOfMonth();
-        if ($tahunAktif->tanggal_selesai && $monthEnd->gt(Carbon::parse($tahunAktif->tanggal_selesai)->endOfMonth())) {
-            return back()->withInput()->with('error', 'Bulan yang dipilih setelah periode tahun ajaran aktif.');
-        }
-
-        // Get students in this class for active tahun ajaran
-        $siswas = Student::whereHas('kelasAktif', function ($q) use ($request, $tahunAktif) {
-            $q->where('kelas_id', $request->kelas_id)
-              ->where('tahun_ajaran_id', $tahunAktif->id);
-        })->orderBy('nama')->get();
-
-        if ($siswas->isEmpty()) {
-            return back()->withInput()->with('error', 'Tidak ada siswa aktif di kelas ini untuk tahun ajaran aktif.');
-        }
-
-        // Save uploaded file temporarily
-        $file = $request->file('foto');
-        $filename = 'absensi_' . $request->kelas_id . '_' . $request->bulan . '_' . $request->tahun . '_' . time() . '.' . $file->getClientOriginalExtension();
-        $uploadDir = config('ocr.upload_dir', 'absensi-import');
-        $filePath = $file->storeAs($uploadDir, $filename, config('ocr.upload_disk', 'local'));
-        $fullPath = Storage::disk(config('ocr.upload_disk', 'local'))->path($uploadDir . '/' . $filename);
-
-        // Run OCR
-        $ocrResult = $this->importService->runOcr($fullPath);
-
-        if (!$ocrResult['success']) {
-            $this->importService->cleanupFile($fullPath);
-            $errorMsg = $ocrResult['error'] ?? 'Gagal membaca foto.';
-            if (isset($ocrResult['fallback']) && $ocrResult['fallback']) {
-                $errorMsg .= ' Struktur tabel tidak dapat dikenali dengan baik. Silakan periksa foto atau gunakan input manual.';
+            if ($tahunAktif->tanggal_mulai && $monthStart->lt(Carbon::parse($tahunAktif->tanggal_mulai)->startOfMonth())) {
+                return back()->withInput()->with('error', 'Bulan yang dipilih sebelum periode tahun ajaran aktif.');
             }
-            return back()->withInput()->with('error', $errorMsg);
+
+            $monthEnd = $monthStart->copy()->endOfMonth();
+            if ($tahunAktif->tanggal_selesai && $monthEnd->gt(Carbon::parse($tahunAktif->tanggal_selesai)->endOfMonth())) {
+                return back()->withInput()->with('error', 'Bulan yang dipilih setelah periode tahun ajaran aktif.');
+            }
+
+            // Get students in this class for active tahun ajaran
+            $siswas = Student::whereHas('kelasAktif', function ($q) use ($request, $tahunAktif) {
+                $q->where('kelas_id', $request->kelas_id)
+                  ->where('tahun_ajaran_id', $tahunAktif->id);
+            })->orderBy('nama')->get();
+
+            if ($siswas->isEmpty()) {
+                return back()->withInput()->with('error', 'Tidak ada siswa aktif di kelas ini untuk tahun ajaran aktif.');
+            }
+
+            // Ensure upload directory exists
+            $uploadDir = config('ocr.upload_dir', 'absensi-import');
+            $disk = config('ocr.upload_disk', 'local');
+            $diskPath = Storage::disk($disk)->path('/');
+            $fullUploadDir = rtrim($diskPath, '/') . '/' . $uploadDir;
+            if (!is_dir($fullUploadDir)) {
+                mkdir($fullUploadDir, 0755, true);
+            }
+
+            // Save uploaded file temporarily
+            $file = $request->file('foto');
+            $filename = 'absensi_' . $request->kelas_id . '_' . $request->bulan . '_' . $request->tahun . '_' . time() . '.' . $file->getClientOriginalExtension();
+            $filePath = $file->storeAs($uploadDir, $filename, $disk);
+            $fullPath = Storage::disk($disk)->path($uploadDir . '/' . $filename);
+
+            // Run OCR
+            $ocrResult = $this->importService->runOcr($fullPath);
+
+            if (!$ocrResult['success']) {
+                $this->importService->cleanupFile($fullPath);
+                $errorMsg = $ocrResult['error'] ?? 'Gagal membaca foto.';
+                if (isset($ocrResult['fallback']) && $ocrResult['fallback']) {
+                    $errorMsg .= ' Struktur tabel tidak dapat dikenali dengan baik. Silakan periksa foto atau gunakan input manual.';
+                }
+                return back()->withInput()->with('error', $errorMsg);
+            }
+
+            // Match OCR results with DB students
+            $matchedData = $this->importService->matchStudentsWithOcr(
+                $ocrResult['students'],
+                $siswas,
+                $totalDays
+            );
+
+            // Validate
+            $validation = $this->importService->validateImportData($matchedData, $totalDays, $monthStart);
+
+            // Check existing attendance dates
+            $existingDates = $this->importService->getExistingDates(
+                $request->kelas_id,
+                $tahunAktif->id,
+                $monthStart,
+                $totalDays
+            );
+
+            // Build day info for view
+            $daysInfo = [];
+            for ($day = 1; $day <= $totalDays; $day++) {
+                $date = $monthStart->copy()->day($day);
+                $isFriday = $date->isFriday();
+                $isFuture = $date->gt(Carbon::today());
+                $isExisting = in_array($date->toDateString(), $existingDates);
+
+                $daysInfo[$day] = [
+                    'date' => $date->format('Y-m-d'),
+                    'day_name' => $this->importService->getDayName($date),
+                    'is_friday' => $isFriday,
+                    'is_future' => $isFuture,
+                    'is_existing' => $isExisting,
+                    'label' => $isFriday ? 'LIBUR' : ($isFuture ? 'Belum Terjadi' : $date->format('d')),
+                ];
+            }
+
+            // Store in session for confirm step
+            session([
+                'import_data' => [
+                    'matched_data' => $matchedData,
+                    'kelas_id' => $request->kelas_id,
+                    'kelas_nama' => Kelas::find($request->kelas_id)->nama_kelas,
+                    'tahun_ajaran_id' => $tahunAktif->id,
+                    'bulan' => $request->bulan,
+                    'tahun' => $request->tahun,
+                    'total_days' => $totalDays,
+                    'days_info' => $daysInfo,
+                    'existing_dates' => $existingDates,
+                    'foto_path' => $filePath,
+                    'stats' => $validation['stats'],
+                    'ocr_total_rows' => $ocrResult['total_rows'],
+                    'ocr_total_cols' => $ocrResult['total_cols'],
+                ],
+            ]);
+
+            $kelas = Kelas::find($request->kelas_id);
+
+            return view('admin.absensi.import-verify', compact(
+                'tahunAktif',
+                'kelas',
+                'siswas',
+                'matchedData',
+                'totalDays',
+                'daysInfo',
+                'monthStart',
+                'validation',
+                'existingDates'
+            ));
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        } catch (\Exception $e) {
+            Log::error('Import process error', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            return back()->withInput()->with('error', 'Terjadi kesalahan saat memproses import: ' . $e->getMessage());
         }
-
-        // Match OCR results with DB students
-        $matchedData = $this->importService->matchStudentsWithOcr(
-            $ocrResult['students'],
-            $siswas,
-            $totalDays
-        );
-
-        // Validate
-        $validation = $this->importService->validateImportData($matchedData, $totalDays, $monthStart);
-
-        // Check existing attendance dates
-        $existingDates = $this->importService->getExistingDates(
-            $request->kelas_id,
-            $tahunAktif->id,
-            $monthStart,
-            $totalDays
-        );
-
-        // Build day info for view
-        $daysInfo = [];
-        for ($day = 1; $day <= $totalDays; $day++) {
-            $date = $monthStart->copy()->day($day);
-            $isFriday = $date->isFriday();
-            $isFuture = $date->gt(Carbon::today());
-            $isExisting = in_array($date->toDateString(), $existingDates);
-
-            $daysInfo[$day] = [
-                'date' => $date->format('Y-m-d'),
-                'day_name' => $this->importService->getDayName($date),
-                'is_friday' => $isFriday,
-                'is_future' => $isFuture,
-                'is_existing' => $isExisting,
-                'label' => $isFriday ? 'LIBUR' : ($isFuture ? 'Belum Terjadi' : $date->format('d')),
-            ];
-        }
-
-        // Store in session for confirm step
-        session([
-            'import_data' => [
-                'matched_data' => $matchedData,
-                'kelas_id' => $request->kelas_id,
-                'kelas_nama' => Kelas::find($request->kelas_id)->nama_kelas,
-                'tahun_ajaran_id' => $tahunAktif->id,
-                'bulan' => $request->bulan,
-                'tahun' => $request->tahun,
-                'total_days' => $totalDays,
-                'days_info' => $daysInfo,
-                'existing_dates' => $existingDates,
-                'foto_path' => $filePath,
-                'stats' => $validation['stats'],
-                'ocr_total_rows' => $ocrResult['total_rows'],
-                'ocr_total_cols' => $ocrResult['total_cols'],
-            ],
-        ]);
-
-        $kelas = Kelas::find($request->kelas_id);
-
-        return view('admin.absensi.import-verify', compact(
-            'tahunAktif',
-            'kelas',
-            'siswas',
-            'matchedData',
-            'totalDays',
-            'daysInfo',
-            'monthStart',
-            'validation',
-            'existingDates'
-        ));
     }
 
     /**

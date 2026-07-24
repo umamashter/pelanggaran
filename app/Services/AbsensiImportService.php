@@ -21,12 +21,21 @@ class AbsensiImportService
      */
     public function runOcr(string $imagePath): array
     {
+        if (!function_exists('exec')) {
+            Log::error('exec() is disabled on this server');
+            return ['success' => false, 'error' => 'Fungsi eksekusi shell (exec) tidak tersedia di server ini. Import foto membutuhkan Python dan Tesseract OCR yang terinstall di server.'];
+        }
+
         $pythonPath = config('ocr.python_path', 'python');
         $scriptPath = base_path(config('ocr.script_path', 'scripts/ocr_attendance.py'));
         $tesseractPath = config('ocr.tesseract_path', '');
 
         if (!file_exists($scriptPath)) {
             return ['success' => false, 'error' => 'Script OCR tidak ditemukan: ' . $scriptPath];
+        }
+
+        if (!file_exists($imagePath)) {
+            return ['success' => false, 'error' => 'File gambar tidak ditemukan: ' . $imagePath];
         }
 
         $escapedImage = escapeshellarg($imagePath);
