@@ -11,19 +11,17 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 class AbsensiImportController extends Controller
 {
-    protected AbsensiImportService $importService;
+    protected $importService;
 
     public function __construct(AbsensiImportService $importService)
     {
         $this->importService = $importService;
     }
 
-    /**
-     * Show the upload form.
-     */
     public function showForm()
     {
         $tahunAktif = TahunAjaran::where('status', 'Aktif')->firstOrFail();
@@ -50,9 +48,6 @@ class AbsensiImportController extends Controller
         ));
     }
 
-    /**
-     * Process the uploaded image via OCR.
-     */
     public function processImage(Request $request)
     {
         try {
@@ -65,7 +60,6 @@ class AbsensiImportController extends Controller
 
             $tahunAktif = TahunAjaran::where('status', 'Aktif')->firstOrFail();
 
-            // Validate date within tahun ajaran period
             $monthStart = Carbon::createFromDate($request->tahun, $request->bulan, 1);
             $totalDays = $monthStart->daysInMonth;
 
@@ -78,7 +72,6 @@ class AbsensiImportController extends Controller
                 return back()->withInput()->with('error', 'Bulan yang dipilih setelah periode tahun ajaran aktif.');
             }
 
-            // Get students in this class for active tahun ajaran
             $siswas = Student::whereHas('kelasAktif', function ($q) use ($request, $tahunAktif) {
                 $q->where('kelas_id', $request->kelas_id)
                   ->where('tahun_ajaran_id', $tahunAktif->id);
@@ -88,26 +81,29 @@ class AbsensiImportController extends Controller
                 return back()->withInput()->with('error', 'Tidak ada siswa aktif di kelas ini untuk tahun ajaran aktif.');
             }
 
-            // Ensure upload directory exists
+            $file = $request->file('foto');
+            if (!$file || !$file->isValid()) {
+                return back()->withInput()->with('error', 'File foto gagal diunggah. Pastikan ukuran file tidak melebihi ' . ini_get('upload_max_filesize') . ' dan coba lagi.');
+            }
+
             $uploadDir = config('ocr.upload_dir', 'absensi-import');
             $disk = config('ocr.upload_disk', 'local');
+
             $diskPath = Storage::disk($disk)->path('/');
             $fullUploadDir = rtrim($diskPath, '/') . '/' . $uploadDir;
             if (!is_dir($fullUploadDir)) {
-                mkdir($fullUploadDir, 0755, true);
+                @mkdir($fullUploadDir, 0755, true);
             }
 
-            // Save uploaded file temporarily
-            $file = $request->file('foto');
-            $filename = 'absensi_' . $request->kelas_id . '_' . $request->bulan . '_' . $request->tahun . '_' . time() . '.' . $file->getClientOriginalExtension();
+            $ext = $file->getClientOriginalExtension();
+            $filename = 'absensi_' . $request->kelas_id . '_' . $request->bulan . '_' . $request->tahun . '_' . time() . '.' . $ext;
             $filePath = $file->storeAs($uploadDir, $filename, $disk);
             $fullPath = Storage::disk($disk)->path($uploadDir . '/' . $filename);
 
-            // Run OCR
             $ocrResult = $this->importService->runOcr($fullPath);
 
             if (!$ocrResult['success']) {
-                $this->importService->cleanupFile($fullPath);
+                @unlink($fullPath);
                 $errorMsg = $ocrResult['error'] ?? 'Gagal membaca foto.';
                 if (isset($ocrResult['fallback']) && $ocrResult['fallback']) {
                     $errorMsg .= ' Struktur tabel tidak dapat dikenali dengan baik. Silakan periksa foto atau gunakan input manual.';
@@ -115,17 +111,14 @@ class AbsensiImportController extends Controller
                 return back()->withInput()->with('error', $errorMsg);
             }
 
-            // Match OCR results with DB students
             $matchedData = $this->importService->matchStudentsWithOcr(
                 $ocrResult['students'],
                 $siswas,
                 $totalDays
             );
 
-            // Validate
             $validation = $this->importService->validateImportData($matchedData, $totalDays, $monthStart);
 
-            // Check existing attendance dates
             $existingDates = $this->importService->getExistingDates(
                 $request->kelas_id,
                 $tahunAktif->id,
@@ -133,7 +126,6 @@ class AbsensiImportController extends Controller
                 $totalDays
             );
 
-            // Build day info for view
             $daysInfo = [];
             for ($day = 1; $day <= $totalDays; $day++) {
                 $date = $monthStart->copy()->day($day);
@@ -151,12 +143,17 @@ class AbsensiImportController extends Controller
                 ];
             }
 
-            // Store in session for confirm step
+            $kelasNama = '';
+            $kelasModel = Kelas::find($request->kelas_id);
+            if ($kelasModel) {
+                $kelasNama = $kelasModel->nama_kelas;
+            }
+
             session([
                 'import_data' => [
                     'matched_data' => $matchedData,
                     'kelas_id' => $request->kelas_id,
-                    'kelas_nama' => Kelas::find($request->kelas_id)->nama_kelas,
+                    'kelas_nama' => $kelasNama,
                     'tahun_ajaran_id' => $tahunAktif->id,
                     'bulan' => $request->bulan,
                     'tahun' => $request->tahun,
@@ -170,30 +167,27 @@ class AbsensiImportController extends Controller
                 ],
             ]);
 
-            $kelas = Kelas::find($request->kelas_id);
-
-            return view('admin.absensi.import-verify', compact(
-                'tahunAktif',
-                'kelas',
-                'siswas',
-                'matchedData',
-                'totalDays',
-                'daysInfo',
-                'monthStart',
-                'validation',
-                'existingDates'
-            ));
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return back()->withInput()->with('error', $e->getMessage());
-        } catch (\Exception $e) {
-            Log::error('Import process error', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
-            return back()->withInput()->with('error', 'Terjadi kesalahan saat memproses import: ' . $e->getMessage());
+            return view('admin.absensi.import-verify', [
+                'tahunAktif' => $tahunAktif,
+                'kelas' => $kelasModel,
+                'siswas' => $siswas,
+                'matchedData' => $matchedData,
+                'totalDays' => $totalDays,
+                'daysInfo' => $daysInfo,
+                'monthStart' => $monthStart,
+                'validation' => $validation,
+                'existingDates' => $existingDates,
+            ]);
+        } catch (Throwable $e) {
+            Log::error('Import process error', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+            return back()->withInput()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Confirm and save the import data.
-     */
     public function confirmImport(Request $request)
     {
         $importData = session('import_data');
@@ -208,7 +202,6 @@ class AbsensiImportController extends Controller
             'duplicate_mode' => 'required|in:skip,update',
         ]);
 
-        // Update matched data with operator's edits
         $editedData = $importData['matched_data'];
 
         foreach ($request->statuses as $studentIdx => $dayStatuses) {
@@ -222,7 +215,6 @@ class AbsensiImportController extends Controller
             }
         }
 
-        // Final validation: no '?' allowed in data to be saved
         $monthStart = Carbon::createFromDate($importData['tahun'], $importData['bulan'], 1);
         $today = Carbon::today();
         $remainingUnknown = 0;
@@ -245,26 +237,33 @@ class AbsensiImportController extends Controller
             return back()->with('error', 'Masih ada ' . $remainingUnknown . ' data yang belum ditentukan statusnya (?). Semua data harus berstatus H, I, S, atau A sebelum disimpan.');
         }
 
-        // Perform import
-        $result = $this->importService->importAttendance(
-            $editedData,
-            $importData['kelas_id'],
-            $importData['tahun_ajaran_id'],
-            Auth::id(),
-            $monthStart,
-            $importData['total_days'],
-            $importData['existing_dates'],
-            $request->duplicate_mode
-        );
-
-        // Cleanup uploaded file
-        if (isset($importData['foto_path'])) {
-            $this->importService->cleanupFile(
-                Storage::disk(config('ocr.upload_disk', 'local'))->path($importData['foto_path'])
+        try {
+            $result = $this->importService->importAttendance(
+                $editedData,
+                $importData['kelas_id'],
+                $importData['tahun_ajaran_id'],
+                Auth::id(),
+                $monthStart,
+                $importData['total_days'],
+                $importData['existing_dates'],
+                $request->duplicate_mode
             );
+        } catch (Throwable $e) {
+            Log::error('Import confirm error', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+            return back()->with('error', 'Gagal menyimpan data: ' . $e->getMessage());
         }
 
-        // Clear session
+        if (isset($importData['foto_path'])) {
+            $fotoFullPath = Storage::disk(config('ocr.upload_disk', 'local'))->path($importData['foto_path']);
+            if (file_exists($fotoFullPath)) {
+                @unlink($fotoFullPath);
+            }
+        }
+
         session()->forget('import_data');
 
         if ($result['success']) {
