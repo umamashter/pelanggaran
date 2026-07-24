@@ -300,21 +300,18 @@
                     </div>
                 </div>
                 <div class="hero-right">
-                    @if(!$isJumat)
                     <a href="{{ route('absensi.rekap') }}" class="btn-hero btn-hero-glass">
                         <i class="fas fa-file-alt"></i> Rekap
                     </a>
                     <a href="{{ route('absensi.riwayat') }}" class="btn-hero btn-hero-glass">
                         <i class="fas fa-calendar-check"></i> Riwayat Bulanan
                     </a>
+                    <a href="{{ route('absensi.import') }}" class="btn-hero btn-hero-glass">
+                        <i class="fas fa-camera"></i> Import dari Foto
+                    </a>
                     <a href="{{ route('absensi.create') }}" class="btn-hero btn-hero-white">
                         <i class="fas fa-plus"></i> Input Absensi
                     </a>
-                    @else
-                    <a href="{{ route('absensi.riwayat') }}" class="btn-hero btn-hero-glass">
-                        <i class="fas fa-calendar-check"></i> Riwayat Bulanan
-                    </a>
-                    @endif
                 </div>
             </div>
         </div>
@@ -366,11 +363,7 @@
                 <span class="badge-count">{{ $totalKelas }}</span>
             </div>
             <div class="d-flex gap-3 align-items-center">
-                @if($isJumat)
-                <div class="table-status-header off">
-                    <i class="fas fa-mug-hot"></i> Hari Libur
-                </div>
-                @elseif($belumAbsen > 0)
+                @if($belumAbsen > 0)
                 <div class="table-status-header warn">
                     <i class="fas fa-exclamation-triangle"></i> {{ $belumAbsen }} kelas belum diabsen
                 </div>
@@ -425,14 +418,15 @@
                             @endif
                         </td>
                         <td class="text-center">
-                            @if($isJumat)
-                                <span style="font-size:12px;color:#94a3b8;font-style:italic;">Tidak tersedia</span>
-                            @else
                             <div class="action-group-absensi">
                                 @if($sudahAbsen)
                                     <a href="{{ route('absensi.edit', $absensiId) }}" class="btn-absen-ms btn-edit-ms" title="Edit Absensi">
                                         <i class="fas fa-edit"></i> <span>Edit</span>
                                     </a>
+                                @elseif($isJumat)
+                                    <span class="btn-absen-ms" style="opacity:.5;cursor:not-allowed;background:#f1f5f9;color:#94a3b8;border:1px solid #e2e8f0;" title="Hari Jumat — Libur Madrasah">
+                                        <i class="fas fa-moon"></i> <span>Libur</span>
+                                    </span>
                                 @else
                                     <a href="{{ route('absensi.create', ['kelas_id' => $kelas->id, 'tanggal' => now()->toDateString()]) }}" class="btn-absen-ms btn-success-ms" title="Input Absensi">
                                         <i class="fas fa-clipboard-list"></i> <span>Absen</span>
@@ -442,7 +436,6 @@
                                     <i class="fas fa-history"></i> <span>Riwayat</span>
                                 </a>
                             </div>
-                            @endif
                         </td>
                     </tr>
                     @endforeach

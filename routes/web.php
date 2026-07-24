@@ -57,6 +57,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\GuruAbsensiGuruController;
 use App\Http\Controllers\AdminAbsensiGuruController;
 use App\Http\Controllers\LokasiMadrasahController;
+use App\Http\Controllers\AbsensiImportController;
 
 /*
 |--------------------------------------------------------------------------
@@ -234,6 +235,12 @@ Route::group(['middleware' => ['auth', '2fa', 'require.2fa']], function () {
         Route::get('/absensi', [AbsensiController::class, 'index'])->name('absensi.index');
         Route::get('/absensi/create', [AbsensiController::class, 'create'])->name('absensi.create');
         Route::post('/absensi', [AbsensiController::class, 'store'])->name('absensi.store');
+
+        // Absensi Import dari Foto (before {id} to avoid route conflict)
+        Route::get('/absensi/import', [AbsensiImportController::class, 'showForm'])->name('absensi.import');
+        Route::post('/absensi/import/process', [AbsensiImportController::class, 'processImage'])->name('absensi.import.process');
+        Route::post('/absensi/import/confirm', [AbsensiImportController::class, 'confirmImport'])->name('absensi.import.confirm');
+
         Route::get('/absensi/{id}/edit', [AbsensiController::class, 'edit'])->name('absensi.edit');
         Route::put('/absensi/{id}', [AbsensiController::class, 'update'])->name('absensi.update');
         Route::get('/absensi/{id}', [AbsensiController::class, 'detail'])->name('absensi.detail');

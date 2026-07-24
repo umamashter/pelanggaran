@@ -35,6 +35,7 @@ php artisan serve
 - Defaults in `.env.example`: `DB_DATABASE=buku_penghubung`, `SESSION_DRIVER=database`, `QUEUE_CONNECTION=sync`.
 - `FONNTE_API_KEY` required for WhatsApp (`WhatsAppHelper::kirim()`) — **not** in `.env.example`; must be added manually.
 - `RECAPTCHA_SITE_KEY` and `RECAPTCHA_SECRET_KEY` required (login/register forms); `.env.example` has test values.
+- `TESSERACT_PATH` and `PYTHON_PATH` required for OCR import; `.env.example` has defaults (`PYTHON_PATH=python`, `TESSERACT_PATH` empty = system PATH).
 - `phpunit.xml` forces `APP_ENV=testing`, `BCRYPT_ROUNDS=4`, `CACHE_DRIVER=array`, `SESSION_DRIVER=array`, `QUEUE_CONNECTION=sync`, `MAIL_MAILER=array`, `TELESCOPE_ENABLED=false`. SQLite lines commented out — tests use MySQL from `.env`.
 - `WhatsAppHelper` loaded via `autoload-dev.files` — **not** in production autoload. If it fails at runtime, check `composer.json`.
 
@@ -126,6 +127,24 @@ php artisan serve
 - Save/update forms use Bootstrap 5 modal confirmation — counts H/I/S/A from current dropdown values before submitting. Create view adapts modal text for existing absensi (update flow).
 - Rekap controller: `kelas_id` validation is conditional (form shown without it, query only when filled). `rekapPdf` requires `kelas_id`.
 - Students fetched via `Student::whereHas('kelasAktif')` scoped by `kelas_id` + `tahun_ajaran_id`.
+
+## Absensi Import dari Foto (OCR)
+- **Architecture**: Upload foto buku absensi → Python OCR → Verifikasi operator → Simpan ke DB (absensis + absensi_details).
+- **NO database migration needed** — uses existing `absensis` and `absensi_details` tables.
+- **Mapping simbol**: `.` → H (Hadir), `I/i/l/1` → I (Izin), `S/s` → S (Sakit), `A/a` → A (Alpha), kosong → ? (Perlu Diperiksa).
+- **Jumat = Libur** — tidak dibuat absensi, ditandai "LIBUR" di tabel verifikasi.
+- **Tanggal masa depan** — disabled di tabel verifikasi, tidak disimpan.
+- **Duplicate handling**: Jika absensi sudah ada → tawarkan "Lewati" atau "Perbarui" (update via `updateOrCreate`).
+- **Tahun Ajaran Aktif** sebagai konteks — tidak ada `semester_id`.
+- **Students** diambil via `StudentKelas` where `kelas_id` + `tahun_ajaran_id` + `aktif=true`.
+- **Verification** wajib: semua `?` harus diubah ke H/I/S/A sebelum tombol "Konfirmasi & Simpan" aktif.
+- Routes: `absensi.import`, `absensi.import.process`, `absensi.import.confirm` — admin only (`role:1`).
+- **Service**: `app/Services/AbsensiImportService.php` handles OCR execution, student matching, validation, DB import.
+- **Python script**: `scripts/ocr_attendance.py` — uses OpenCV + Tesseract OCR. Requires Python 3.x + Tesseract 5.x installed on server.
+- **Config**: `config/ocr.php` reads `TESSERACT_PATH`, `PYTHON_PATH`, `OCR_SCRIPT_PATH` from `.env`.
+- **Session-based**: Step 2 (process) stores results in `session('import_data')`, Step 3 (confirm) reads it.
+- **DB::transaction** wraps entire import — rollback on any failure.
+- **Cleanup**: Temporary photo deleted from `storage/absensi-import/` after successful import.
 
 ## Absensi Guru (GPS + Selfie)
 - Separate tables from Absensi Siswa — no relationship with `absensis` / `absensi_details`.

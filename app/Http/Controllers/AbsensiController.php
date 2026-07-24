@@ -82,20 +82,15 @@ class AbsensiController extends Controller
             $q->where('tahun_ajaran_id', $tahunAktif->id);
         })->orderBy('nama_kelas')->get();
 
-        if (!$isJumat) {
-            $absensiHariIni = Absensi::where('tanggal', now()->toDateString())
-                ->where('tahun_ajaran_id', $tahunAktif->id)
-                ->pluck('kelas_id')
-                ->toArray();
+        $absensiHariIni = Absensi::where('tanggal', now()->toDateString())
+            ->where('tahun_ajaran_id', $tahunAktif->id)
+            ->pluck('kelas_id')
+            ->toArray();
 
-            $absensiMap = Absensi::where('tanggal', now()->toDateString())
-                ->where('tahun_ajaran_id', $tahunAktif->id)
-                ->pluck('id', 'kelas_id')
-                ->toArray();
-        } else {
-            $absensiHariIni = [];
-            $absensiMap = [];
-        }
+        $absensiMap = Absensi::where('tanggal', now()->toDateString())
+            ->where('tahun_ajaran_id', $tahunAktif->id)
+            ->pluck('id', 'kelas_id')
+            ->toArray();
 
         return view('admin.absensi.index', compact(
             'kelasList',
