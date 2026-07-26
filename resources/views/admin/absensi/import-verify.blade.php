@@ -10,16 +10,24 @@
 .badge-ta { background: #f0fdf4; color: #16a34a; }
 .badge-warning-custom { background: #fffbeb; color: #92400e; }
 .info-card-modern { background: #f0fdf4; border-left: 4px solid #16a34a; border-radius: 12px; padding: 16px 20px; font-size: 13px; color: #166534; box-shadow: 0 1px 3px rgba(0,0,0,.06); margin-bottom: 20px; }
-.stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 20px; }
+.stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; margin-bottom: 20px; }
 .stat-badge { padding: 10px 14px; border-radius: 12px; font-size: 12px; font-weight: 600; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,.05); }
 .stat-badge .stat-num { font-size: 20px; font-weight: 800; display: block; line-height: 1.2; }
 .stat-h { background: #f0fdf4; color: #166534; }
 .stat-i { background: #eff6ff; color: #1e40af; }
 .stat-s { background: #fef3c7; color: #92400e; }
 .stat-a { background: #fef2f2; color: #991b1b; }
-.stat-q { background: #f5f3ff; color: #5b21b6; }
+.stat-ai { background: #f5f3ff; color: #5b21b6; }
+.stat-default { background: #f1f5f9; color: #475569; }
+.stat-manual { background: #fef2f2; color: #991b1b; }
 .stat-libur { background: #f1f5f9; color: #475569; }
 .stat-future { background: #f8fafc; color: #94a3b8; }
+.source-badge { display: inline-block; font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 4px; margin-left: 3px; vertical-align: middle; line-height: 1.2; }
+.source-ai { background: #f5f3ff; color: #5b21b6; }
+.source-default { background: #f1f5f9; color: #64748b; }
+.source-system { background: #e0f2fe; color: #0369a1; }
+.source-manual { background: #fef2f2; color: #991b1b; }
+.warning-badge { display: inline-block; font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 4px; margin-left: 2px; background: #fef3c7; color: #92400e; }
 .table-wrapper { overflow-x: auto; border-radius: 14px; box-shadow: 0 4px 16px rgba(0,0,0,.06); border: 1px solid var(--ms-border); }
 .table-verify { border-collapse: collapse; width: 100%; min-width: 800px; }
 .table-verify thead th { background: linear-gradient(180deg, #f8fafc, #f1f5f9); color: #475569; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .4px; padding: 10px 8px; border-bottom: 2px solid var(--ms-border); text-align: center; white-space: nowrap; position: sticky; top: 0; z-index: 2; }
@@ -35,7 +43,6 @@
 .cell-select.status-i { background: #eff6ff; color: #1e40af; border-color: #bfdbfe; }
 .cell-select.status-s { background: #fef3c7; color: #92400e; border-color: #fde68a; }
 .cell-select.status-a { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
-.cell-select.status-q { background: #f5f3ff; color: #5b21b6; border-color: #c4b5fd; }
 .cell-select:disabled { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; opacity: .7; }
 .cell-libur { font-size: 10px; color: #94a3b8; font-weight: 600; background: #f8fafc; }
 .cell-existing { position: relative; }
@@ -46,6 +53,11 @@
 .btn-kembali-ms { padding: 10px 20px; border-radius: 10px; font-size: 14px; font-weight: 500; border: 1.5px solid var(--ms-border); background: #fff; color: #475569; transition: all .25s; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
 .btn-kembali-ms:hover { border-color: var(--ms-primary); color: var(--ms-primary); background: var(--ms-primary-light); }
 .duplicate-alert { background: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 12px; padding: 14px 20px; font-size: 13px; color: #92400e; margin-bottom: 20px; }
+.ai-alert { background: #f5f3ff; border-left: 4px solid #7c3aed; border-radius: 12px; padding: 14px 20px; font-size: 13px; color: #5b21b6; margin-bottom: 20px; }
+.unmatched-alert { background: #fef2f2; border-left: 4px solid #dc2626; border-radius: 12px; padding: 14px 20px; font-size: 13px; color: #991b1b; margin-bottom: 20px; }
+.review-count { background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 12px; padding: 14px 20px; font-size: 13px; color: #92400e; margin-bottom: 20px; }
+.ocr-raw-collapse { background: #f8fafc; border: 1px solid var(--ms-border); border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; font-size: 12px; }
+.ocr-raw-collapse pre { background: #0f172a; color: #e2e8f0; padding: 14px; border-radius: 8px; font-size: 11px; max-height: 250px; overflow-y: auto; margin: 10px 0 0 0; white-space: pre-wrap; word-break: break-all; }
 @media (max-width: 768px) { .stats-row { grid-template-columns: repeat(3, 1fr); } }
 </style>
 
@@ -56,12 +68,8 @@
                 <div class="header-icon"><i class="fas fa-check-double"></i></div>
                 <div>
                     <h4 class="mb-1 fw-bold" style="color: var(--ms-text); font-size: 20px;">Verifikasi Import Absensi</h4>
-                    <span class="badge-modern badge-ta">
-                        <i class="fas fa-graduation-cap me-1"></i>{{ $tahunAktif->tahun_ajaran }}
-                    </span>
-                    <span class="badge-modern badge-warning-custom ms-2">
-                        <i class="fas fa-camera me-1"></i>{{ $kelas->nama_kelas }} &middot; {{ $monthStart->translatedFormat('F Y') }}
-                    </span>
+                    <span class="badge-modern badge-ta"><i class="fas fa-graduation-cap me-1"></i>{{ $tahunAktif->tahun_ajaran }}</span>
+                    <span class="badge-modern badge-warning-custom ms-2"><i class="fas fa-camera me-1"></i>{{ $kelas->nama_kelas }} &middot; {{ $monthStart->translatedFormat('F Y') }}</span>
                 </div>
             </div>
         </div>
@@ -74,23 +82,124 @@
     </div>
     @endif
 
+    @if($parseSource === 'fallback')
+    <div class="ai-alert">
+        <i class="fas fa-info-circle me-2"></i>
+        <strong>AI Parser tidak tersedia.</strong> Data diproses menggunakan parser sederhana dan <strong>wajib diverifikasi</strong> oleh operator.
+    </div>
+    @endif
+
+    @if($aiWarning)
+    <div class="ai-alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>{{ $aiWarning }}
+    </div>
+    @endif
+
+    @if($ocrRawText || $aiJson || !empty($reviewItems) || !empty($unmatchedList))
+    <div class="ocr-raw-collapse mb-3">
+        <h6 class="mb-3 fw-bold" style="font-size:14px; color:var(--ms-text);"><i class="fas fa-search-plus me-1"></i>Detail Hasil OCR</h6>
+
+        @if($ocrRawText)
+        <div class="mb-2">
+            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOcrRaw" style="font-size:12px; border-radius:8px;">
+                <i class="fas fa-file-alt me-1"></i>Lihat OCR Mentah
+            </button>
+            <div class="collapse mt-2" id="collapseOcrRaw">
+                <pre style="background:#0f172a; color:#e2e8f0; padding:14px; border-radius:8px; font-size:11px; max-height:250px; overflow-y:auto; white-space:pre-wrap; word-break:break-all; margin:0;">{{ $ocrRawText }}</pre>
+            </div>
+        </div>
+        @endif
+
+        @if($aiJson)
+        <div class="mb-2">
+            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAiJson" style="font-size:12px; border-radius:8px;">
+                <i class="fas fa-code me-1"></i>Lihat JSON AI
+            </button>
+            <div class="collapse mt-2" id="collapseAiJson">
+                <pre style="background:#1e1b4b; color:#c4b5fd; padding:14px; border-radius:8px; font-size:11px; max-height:300px; overflow-y:auto; white-space:pre-wrap; word-break:break-all; margin:0;">{{ json_encode($aiJson, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
+            </div>
+        </div>
+        @endif
+
+        @if(!empty($reviewItems))
+        <div class="mb-2">
+            <button class="btn btn-sm btn-outline-warning" type="button" data-bs-toggle="collapse" data-bs-target="#collapseReview" style="font-size:12px; border-radius:8px;">
+                <i class="fas fa-exclamation-triangle me-1"></i>Lihat Data REVIEW ({{ count($reviewItems) }})
+            </button>
+            <div class="collapse mt-2" id="collapseReview">
+                <div style="background:#fffbeb; padding:12px; border-radius:8px; font-size:12px;">
+                    @foreach($reviewItems as $ri)
+                    <div class="mb-1">
+                        <strong>{{ $ri['nama'] }}</strong> ({{ $ri['nisn'] }})
+                        @foreach($ri['warnings'] as $w)
+                            <br><span class="text-warning" style="font-size:11px;"><i class="fas fa-info-circle me-1"></i>{{ $w }}</span>
+                        @endforeach
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+        @endif
+
+        @if(!empty($unmatchedList))
+        <div class="mb-2">
+            <button class="btn btn-sm btn-outline-danger" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUnmatched" style="font-size:12px; border-radius:8px;">
+                <i class="fas fa-user-slash me-1"></i>Siswa Tidak Cocok ({{ count($unmatchedList) }})
+            </button>
+            <div class="collapse mt-2" id="collapseUnmatched">
+                <div style="background:#fef2f2; padding:12px; border-radius:8px; font-size:12px;">
+                    @foreach($unmatchedList as $um)
+                    <div class="mb-1">
+                        <strong>{{ $um['nama'] }}</strong> (NISN: {{ $um['nisn'] }})
+                        <span class="text-danger" style="font-size:11px;">— {{ $um['warnings'][0] ?? 'Tidak ditemukan' }}</span>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+        @endif
+    </div>
+    @endif
+
     <div class="info-card-modern">
-        <div><i class="fas fa-info-circle"></i> Periksa hasil OCR di bawah. Ubah status yang salah sebelum menyimpan. <strong>Sel kosong = "?"</strong> dan harus ditentukan. <strong>"." = Hadir (H)</strong>.</div>
+        <div><i class="fas fa-info-circle"></i> Periksa hasil di bawah. Ubah status yang salah sebelum menyimpan. <strong>Sumber:</strong> <span class="source-badge source-ai">AI</span> dari AI, <span class="source-badge source-default">DEFAULT</span> otomatis H, <span class="source-badge source-system">SYSTEM</span> Jumat/Belum Terjadi, <span class="source-badge source-manual">MANUAL</span> koreksi operator. Klik warna status untuk ubah.</div>
     </div>
 
     @php
         $stats = $validation['stats'];
+        $mappedCount = 0;
+        $unmappedCount = 0;
+        $reviewCount = 0;
+        foreach ($matchedData as $row) {
+            if ($row['student_id'] !== null) $mappedCount++;
+            else $unmappedCount++;
+            if (!empty($row['warnings'])) $reviewCount++;
+        }
     @endphp
 
+    @if($unmappedCount > 0)
+    <div class="unmatched-alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong>{{ $unmappedCount }} siswa</strong> tidak ditemukan di database. Baris ini tetap ditampilkan namun tidak akan disimpan ke database.
+    </div>
+    @endif
+
+    @if($reviewCount > 0 && $mappedCount > 0)
+    <div class="review-count">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        <strong>{{ $reviewCount }} siswa</strong> memiliki catatan perlu diperiksa (pencocokan parsial/fuzzy).
+    </div>
+    @endif
+
     <div class="stats-row">
-        <div class="stat-badge" style="background:#f1f5f9;color:#334155;"><span class="stat-num">{{ count($matchedData) }}</span>Total Siswa</div>
+        <div class="stat-badge" style="background:#f1f5f9;color:#334155;"><span class="stat-num">{{ $mappedCount }}</span>Siswa</div>
         <div class="stat-badge stat-h"><span class="stat-num">{{ $stats['H'] }}</span>Hadir (H)</div>
         <div class="stat-badge stat-i"><span class="stat-num">{{ $stats['I'] }}</span>Izin (I)</div>
         <div class="stat-badge stat-s"><span class="stat-num">{{ $stats['S'] }}</span>Sakit (S)</div>
         <div class="stat-badge stat-a"><span class="stat-num">{{ $stats['A'] }}</span>Alpha (A)</div>
-        <div class="stat-badge stat-q"><span class="stat-num" id="unknownCount">{{ $stats['?'] }}</span>Perlu Diperiksa</div>
+        <div class="stat-badge stat-ai"><span class="stat-num">{{ $stats['source_ai'] ?? 0 }}</span>Dari AI</div>
+        <div class="stat-badge stat-default"><span class="stat-num">{{ $stats['source_default'] ?? 0 }}</span>Default H</div>
         <div class="stat-badge stat-libur"><span class="stat-num">{{ $stats['libur_jumat'] }}</span>Libur Jumat</div>
-        <div class="stat-badge stat-future"><span class="stat-num">{{ $stats['belum_terjadi'] }}</span>Belum Terjadi</div>
     </div>
 
     @if(count($existingDates) > 0)
@@ -109,16 +218,15 @@
                     <tr>
                         <th class="name-col">No / Nama Siswa</th>
                         <th style="min-width:90px;">NISN</th>
-                        @for($day = 1; $day <= $totalDays; $day++)
+                        @foreach($actualDates as $day)
                             @php
-                                $info = $daysInfo[$day];
-                                $isDisabled = $info['is_friday'] || $info['is_future'];
+                                $info = $daysInfo[$day] ?? null;
                             @endphp
                             <th>
                                 {{ $day }}
-                                <span class="day-hdr">{{ $info['is_friday'] ? 'JUM' : substr($info['day_name'], 0, 3) }}</span>
+                                <span class="day-hdr">{{ ($info['is_friday'] ?? false) ? 'JUM' : substr($info['day_name'] ?? '', 0, 3) }}</span>
                             </th>
-                        @endfor
+                        @endforeach
                     </tr>
                 </thead>
                 <tbody>
@@ -130,36 +238,47 @@
                             @if(!$row['student_id'])
                                 <span class="badge bg-danger ms-1" style="font-size:9px;">?</span>
                             @endif
+                            @if(!empty($row['warnings']))
+                                @foreach($row['warnings'] as $w)
+                                    <span class="warning-badge" title="{{ $w }}">!</span>
+                                @endforeach
+                            @endif
+                            <span class="source-badge source-{{ strtolower($row['match_type'] === 'UNMATCHED_DB' ? 'DEFAULT' : ($row['match_type'] === 'none' ? 'MANUAL' : 'AI')) }}">{{ $row['match_type'] }}</span>
                         </td>
                         <td style="font-size:11px; color:#64748b; white-space:nowrap;">{{ $row['nisn'] ?? '-' }}</td>
-                        @for($day = 1; $day <= $totalDays; $day++)
+                        @foreach($actualDates as $day)
                             @php
-                                $info = $daysInfo[$day];
-                                $status = $row['statuses'][$day] ?? '?';
-                                $isDisabled = $info['is_friday'] || $info['is_future'];
+                                $info = $daysInfo[$day] ?? null;
+                                $status = $row['statuses'][$day] ?? 'H';
+                                $source = $row['sources'][$day] ?? 'DEFAULT';
+                                $isDisabled = ($info['is_friday'] ?? false) || ($info['is_future'] ?? false);
                             @endphp
-                            <td class="{{ $info['is_existing'] ? 'cell-existing' : '' }}">
-                                @if($info['is_friday'])
-                                    <span class="cell-libur">JUM</span>
-                                @elseif($info['is_future'])
+                            <td class="{{ ($info['is_existing'] ?? false) ? 'cell-existing' : '' }}">
+                                @if($info['is_friday'] ?? false)
+                                    <span class="cell-libur">LIBUR</span>
+                                    <span class="source-badge source-system">SYSTEM</span>
+                                @elseif($info['is_future'] ?? false)
                                     <span class="cell-libur">-</span>
                                 @else
-                                    <select
-                                        name="statuses[{{ $idx }}][{{ $day }}]"
-                                        class="cell-select {{ $status === 'H' ? 'status-h' : ($status === 'I' ? 'status-i' : ($status === 'S' ? 'status-s' : ($status === 'A' ? 'status-a' : 'status-q'))) }}"
-                                        data-day="{{ $day }}"
-                                        data-student="{{ $idx }}"
-                                        {{ $isDisabled ? 'disabled' : '' }}
-                                    >
-                                        <option value="?" {{ $status === '?' ? 'selected' : '' }}>?</option>
-                                        <option value="H" {{ $status === 'H' ? 'selected' : '' }}>H</option>
-                                        <option value="I" {{ $status === 'I' ? 'selected' : '' }}>I</option>
-                                        <option value="S" {{ $status === 'S' ? 'selected' : '' }}>S</option>
-                                        <option value="A" {{ $status === 'A' ? 'selected' : '' }}>A</option>
-                                    </select>
+                                    <div class="d-inline-flex align-items-center">
+                                        <select
+                                            name="statuses[{{ $idx }}][{{ $day }}]"
+                                            class="cell-select {{ $status === 'H' ? 'status-h' : ($status === 'I' ? 'status-i' : ($status === 'S' ? 'status-s' : ($status === 'A' ? 'status-a' : ''))) }}"
+                                            data-day="{{ $day }}"
+                                            data-student="{{ $idx }}"
+                                            data-source="{{ $source }}"
+                                            {{ $isDisabled ? 'disabled' : '' }}
+                                        >
+                                            <option value="H" {{ $status === 'H' ? 'selected' : '' }}>H</option>
+                                            <option value="I" {{ $status === 'I' ? 'selected' : '' }}>I</option>
+                                            <option value="S" {{ $status === 'S' ? 'selected' : '' }}>S</option>
+                                            <option value="A" {{ $status === 'A' ? 'selected' : '' }}>A</option>
+                                        </select>
+                                        <span class="source-badge source-{{ strtolower($source) }}">{{ $source }}</span>
+                                    </div>
                                 @endif
                             </td>
-                        @endfor
+                        @endforeach
                     </tr>
                     @endforeach
                 </tbody>
@@ -172,15 +291,11 @@
             <div class="d-flex gap-3">
                 <div class="form-check">
                     <input class="form-check-input" type="radio" name="duplicate_mode" id="modeSkip" value="skip" checked>
-                    <label class="form-check-label" for="modeSkip" style="font-size:13px;">
-                        <strong>Lewati</strong> tanggal yang sudah ada
-                    </label>
+                    <label class="form-check-label" for="modeSkip" style="font-size:13px;"><strong>Lewati</strong> tanggal yang sudah ada</label>
                 </div>
                 <div class="form-check">
                     <input class="form-check-input" type="radio" name="duplicate_mode" id="modeUpdate" value="update">
-                    <label class="form-check-label" for="modeUpdate" style="font-size:13px;">
-                        <strong>Perbarui</strong> data tanggal yang sudah ada
-                    </label>
+                    <label class="form-check-label" for="modeUpdate" style="font-size:13px;"><strong>Perbarui</strong> data tanggal yang sudah ada</label>
                 </div>
             </div>
         </div>
@@ -202,53 +317,41 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const selects = document.querySelectorAll('.cell-select');
-    const unknownCountEl = document.getElementById('unknownCount');
-    const confirmBtn = document.getElementById('confirmBtn');
+    var selects = document.querySelectorAll('.cell-select');
 
     function updateStats() {
-        let counts = { H: 0, I: 0, S: 0, A: 0, '?': 0 };
-        selects.forEach(function(sel) {
-            if (sel.disabled) return;
-            const val = sel.value;
-            if (counts[val] !== undefined) counts[val]++;
-        });
-        unknownCountEl.textContent = counts['?'];
-
-        // Update select class based on value
         selects.forEach(function(sel) {
             if (sel.disabled) return;
             sel.className = 'cell-select';
-            const val = sel.value;
+            var val = sel.value;
             if (val === 'H') sel.classList.add('status-h');
             else if (val === 'I') sel.classList.add('status-i');
             else if (val === 'S') sel.classList.add('status-s');
             else if (val === 'A') sel.classList.add('status-a');
-            else sel.classList.add('status-q');
         });
     }
 
     selects.forEach(function(sel) {
-        sel.addEventListener('change', updateStats);
-    });
-
-    // Confirm before submit
-    document.getElementById('confirmForm').addEventListener('submit', function(e) {
-        // Count remaining '?'
-        let unknownCount = 0;
-        selects.forEach(function(sel) {
-            if (!sel.disabled && sel.value === '?') unknownCount++;
+        sel.addEventListener('change', function() {
+            var prevSource = this.getAttribute('data-source');
+            if (this.value === 'LIBUR') return;
+            this.setAttribute('data-source', 'MANUAL');
+            var srcBadge = this.parentElement.querySelector('.source-badge');
+            if (srcBadge) {
+                srcBadge.textContent = 'MANUAL';
+                srcBadge.className = 'source-badge source-manual';
+            }
+            updateStats();
         });
-
-        if (unknownCount > 0) {
-            e.preventDefault();
-            alert('Masih ada ' + unknownCount + ' data yang berstatus "?". Semua data harus ditentukan (H/I/S/A) sebelum disimpan.');
-            return;
-        }
-
-        confirmBtn.disabled = true;
-        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
     });
+
+    document.getElementById('confirmForm').addEventListener('submit', function(e) {
+        var btn = document.getElementById('confirmBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+    });
+
+    updateStats();
 });
 </script>
 @endpush

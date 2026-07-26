@@ -4,10 +4,7 @@ namespace App\Services;
 
 use App\Models\Absensi;
 use App\Models\AbsensiDetail;
-use App\Models\Kelas;
 use App\Models\Student;
-use App\Models\StudentKelas;
-use App\Models\TahunAjaran;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -15,230 +12,333 @@ use Illuminate\Support\Facades\Log;
 class AbsensiImportService
 {
     /**
-     * Run the Python OCR script and return parsed JSON result.
+     * Match AI-parsed siswa data with actual DB students.
      *
-     * @return array{success: bool, error?: string, students?: array, dates?: array, total_rows?: int, total_cols?: int, fallback?: bool}
+     * New AI format: ketidakhadiran is array of {tanggal, status, confidence}.
+     * warnings per siswa indicate uncertain dates needing operator review.
+     *
+     * Matching priority:
+     *  1. NISN exact match
+     *  2. Name exact match (normalized)
+     *  3. Name contains match (normalized)
+     *  4. Fuzzy matching (Levenshtein ≤5)
+     *  5. No match → REVIEW
+     *
+     * Returns matched data with source tracking per cell.
      */
-    public function runOcr(string $imagePath): array
-    {
-        if (!function_exists('exec')) {
-            Log::error('exec() is disabled on this server');
-            return ['success' => false, 'error' => 'Fungsi eksekusi shell (exec) tidak tersedia di server ini. Import foto membutuhkan Python dan Tesseract OCR yang terinstall di server.'];
+    public function matchStudentsWithAi(
+        array $aiSiswaList,
+        $dbStudents,
+        int $totalDays,
+        int $bulan,
+        int $tahun,
+        array $actualDates = []
+    ): array {
+        if (empty($actualDates)) {
+            $actualDates = range(1, $totalDays);
         }
 
-        $pythonPath = config('ocr.python_path', 'python');
-        $scriptPath = base_path(config('ocr.script_path', 'scripts/ocr_attendance.py'));
-        $tesseractPath = config('ocr.tesseract_path', '');
-
-        if (!file_exists($scriptPath)) {
-            return ['success' => false, 'error' => 'Script OCR tidak ditemukan: ' . $scriptPath];
-        }
-
-        if (!file_exists($imagePath)) {
-            return ['success' => false, 'error' => 'File gambar tidak ditemukan: ' . $imagePath];
-        }
-
-        $escapedImage = escapeshellarg($imagePath);
-        $escapedTesseract = $tesseractPath ? ' ' . escapeshellarg($tesseractPath) : '';
-
-        $command = sprintf(
-            '%s %s %s%s 2>&1',
-            escapeshellarg($pythonPath),
-            escapeshellarg($scriptPath),
-            $escapedImage,
-            $escapedTesseract
-        );
-
-        Log::info('OCR command: ' . $command);
-
-        $output = [];
-        $exitCode = 0;
-        exec($command, $output, $exitCode);
-
-        $outputStr = implode("\n", $output);
-
-        if ($exitCode !== 0) {
-            Log::error('OCR script failed', ['exit_code' => $exitCode, 'output' => $outputStr]);
-            return ['success' => false, 'error' => 'OCR script gagal dijalankan (exit code: ' . $exitCode . '). Pastikan Python dan Tesseract terinstall.'];
-        }
-
-        $decoded = json_decode($outputStr, true);
-
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            Log::error('OCR output not valid JSON', ['output' => $outputStr]);
-            return ['success' => false, 'error' => 'Output OCR tidak valid.'];
-        }
-
-        return $decoded;
-    }
-
-    /**
-     * Match OCR results with actual students in the class.
-     *
-     * OCR only returns row_index + statuses. We need to map rows to actual students.
-     * For now, rows are returned in order — the caller must provide the student list
-     * ordered the same way as the attendance book.
-     *
-     * @param  array  $ocrStudents  From Python: [{row_index, statuses: {"1":"H",...}}, ...]
-     * @param  \Illuminate\Database\Eloquent\Collection  $dbStudents  Students in the class
-     * @param  int    $totalDays  Days in the month (28-31)
-     * @return array  Merged data: [{student_id, nama, nisn, statuses: {"1":"H",...}}, ...]
-     */
-    public function matchStudentsWithOcr(array $ocrStudents, $dbStudents, int $totalDays): array
-    {
-        $result = [];
         $dbList = $dbStudents->values();
+        $fridays = $this->calculateFridays($bulan, $tahun);
 
-        foreach ($ocrStudents as $idx => $ocrRow) {
-            $rowIndex = $ocrRow['row_index'] ?? $idx;
+        $dbByNisn = [];
+        $dbByNameNorm = [];
+        foreach ($dbList as $s) {
+            if ($s->nisn) {
+                $dbByNisn[trim($s->nisn)] = $s;
+            }
+            $dbByNameNorm[$this->normalizeName($s->nama)] = $s;
+        }
 
-            $student = $dbList->get($rowIndex);
+        $result = [];
+        $matchedIds = [];
 
+        foreach ($aiSiswaList as $aiRow) {
+            $no      = $aiRow['no'] ?? 0;
+            $nisn    = trim($aiRow['nisn'] ?? '');
+            $namaOcr = trim($aiRow['nama_ocr'] ?? '');
+
+            // New format: ketidakhadiran is array of {tanggal, status, confidence}
+            $ketidakhadiran = $aiRow['ketidakhadiran'] ?? [];
+            $aiWarnings     = $aiRow['warnings'] ?? [];
+
+            // Build lookup: day -> status from AI ketidakhadiran array
+            $aiByDay = [];
+            foreach ($ketidakhadiran as $entry) {
+                if (is_array($entry)) {
+                    $t = (int) ($entry['tanggal'] ?? 0);
+                    $s = strtoupper((string) ($entry['status'] ?? ''));
+                    if ($t >= 1 && $t <= 31 && in_array($s, ['H', 'I', 'S', 'A', 'LIBUR', 'UNKNOWN'], true)) {
+                        $aiByDay[$t] = $s;
+                    }
+                }
+            }
+
+            // Student matching
+            $student = null;
+            $matchType = 'none';
+
+            if ($nisn !== '' && isset($dbByNisn[$nisn])) {
+                $student = $dbByNisn[$nisn];
+                $matchType = 'NISN';
+            }
+
+            if (!$student && $namaOcr !== '') {
+                $normOcr = $this->normalizeName($namaOcr);
+                if (isset($dbByNameNorm[$normOcr])) {
+                    $student = $dbByNameNorm[$normOcr];
+                    $matchType = 'NAMA_EXACT';
+                }
+            }
+
+            if (!$student && $namaOcr !== '') {
+                $normOcr = $this->normalizeName($namaOcr);
+                foreach ($dbByNameNorm as $dbNorm => $dbS) {
+                    if (str_contains($dbNorm, $normOcr) || str_contains($normOcr, $dbNorm)) {
+                        $student = $dbS;
+                        $matchType = 'NAMA_CONTAINS';
+                        break;
+                    }
+                }
+            }
+
+            if (!$student && $namaOcr !== '') {
+                $normOcr = $this->normalizeName($namaOcr);
+                $bestDist = PHP_INT_MAX;
+                $bestMatch = null;
+                foreach ($dbByNameNorm as $dbNorm => $dbS) {
+                    $dist = levenshtein($normOcr, $dbNorm);
+                    if ($dist < $bestDist && $dist <= 5) {
+                        $bestDist = $dist;
+                        $bestMatch = $dbS;
+                    }
+                }
+                if ($bestMatch) {
+                    $student = $bestMatch;
+                    $matchType = 'FUZZY';
+                }
+            }
+
+            $studentId = $student ? $student->id : null;
+            $namaDb    = $student ? $student->nama : '';
+            $nisnDb    = $student ? $nisn : '';
+
+            if ($studentId) {
+                $matchedIds[] = $studentId;
+            }
+
+            // Build statuses per day
             $statuses = [];
-            for ($day = 1; $day <= $totalDays; $day++) {
+            $sources  = [];
+            $warnings = [];
+
+            // Collect AI warnings about uncertain dates into per-day warnings
+            $uncertainStatuses = [];
+            foreach ($aiWarnings as $w) {
+                if (isset($w['status']) && isset($w['reason'])) {
+                    $uncertainStatuses[] = $w;
+                }
+            }
+
+            foreach ($actualDates as $day) {
                 $dayStr = (string) $day;
-                $statuses[$dayStr] = $ocrRow['statuses'][$dayStr] ?? '?';
+                $date = Carbon::createFromDate($tahun, $bulan, $day);
+                $isFriday = in_array($day, $fridays, true);
+
+                if ($isFriday) {
+                    $statuses[$dayStr] = 'LIBUR';
+                    $sources[$dayStr]  = 'SYSTEM';
+                    continue;
+                }
+
+                if ($date->gt(Carbon::today())) {
+                    $statuses[$dayStr] = 'LIBUR';
+                    $sources[$dayStr]  = 'SYSTEM';
+                    continue;
+                }
+
+                // AI found a status for this day
+                $aiStatus = $aiByDay[$day] ?? null;
+                if ($aiStatus) {
+                    $statuses[$dayStr] = $aiStatus;
+                    $sources[$dayStr]  = 'AI';
+                } else {
+                    $statuses[$dayStr] = 'H';
+                    $sources[$dayStr]  = 'DEFAULT';
+                }
+            }
+
+            // Warnings
+            if (!$student) {
+                $warnings[] = 'Siswa tidak ditemukan di database.';
+            }
+            if ($matchType === 'FUZZY') {
+                $warnings[] = 'Pencocokan nama menggunakan fuzzy matching. Pastikan benar.';
+            }
+            if ($matchType === 'NAMA_CONTAINS') {
+                $warnings[] = 'Pencocokan nama parsial. Pastikan benar.';
+            }
+            if (!empty($uncertainStatuses)) {
+                foreach ($uncertainStatuses as $us) {
+                    $warnings[] = 'Status ' . $us['status'] . ' ditemukan tetapi tanggal tidak pasti: ' . $us['reason'];
+                }
             }
 
             $result[] = [
-                'student_id' => $student ? $student->id : null,
-                'nama' => $student ? $student->nama : 'TIDAK DIKENAL (baris ' . ($rowIndex + 1) . ')',
-                'nisn' => $student ? $student->nisn : '-',
-                'row_index' => $rowIndex,
-                'statuses' => $statuses,
+                'student_id'   => $studentId,
+                'nama'         => $student ? $student->nama : ($namaOcr ?: 'Baris ' . $no . ' tidak dikenal'),
+                'nisn'         => $nisnDb ?: ($nisn ?: '-'),
+                'nama_ocr'     => $namaOcr,
+                'no'           => $no,
+                'match_type'   => $matchType,
+                'statuses'     => $statuses,
+                'sources'      => $sources,
+                'warnings'     => $warnings,
             ];
         }
 
-        // If OCR found fewer rows than students in DB, add missing students with all '?'
-        if (count($ocrStudents) < $dbList->count()) {
-            for ($i = count($ocrStudents); $i < $dbList->count(); $i++) {
-                $student = $dbList->get($i);
+        // Add DB students not found in OCR results
+        foreach ($dbList as $s) {
+            if (!in_array($s->id, $matchedIds, true)) {
                 $statuses = [];
-                for ($day = 1; $day <= $totalDays; $day++) {
-                    $statuses[(string) $day] = '?';
+                $sources  = [];
+                foreach ($actualDates as $day) {
+                    $dayStr = (string) $day;
+                    $date = Carbon::createFromDate($tahun, $bulan, $day);
+                    $isFriday = in_array($day, $fridays, true);
+
+                    if ($isFriday) {
+                        $statuses[$dayStr] = 'LIBUR';
+                        $sources[$dayStr]  = 'SYSTEM';
+                    } elseif ($date->gt(Carbon::today())) {
+                        $statuses[$dayStr] = 'LIBUR';
+                        $sources[$dayStr]  = 'SYSTEM';
+                    } else {
+                        $statuses[$dayStr] = 'H';
+                        $sources[$dayStr]  = 'DEFAULT';
+                    }
                 }
+
                 $result[] = [
-                    'student_id' => $student->id,
-                    'nama' => $student->nama,
-                    'nisn' => $student->nisn,
-                    'row_index' => $i,
-                    'statuses' => $statuses,
+                    'student_id'   => $s->id,
+                    'nama'         => $s->nama,
+                    'nisn'         => $s->nisn ?? '-',
+                    'nama_ocr'     => '',
+                    'no'           => 0,
+                    'match_type'   => 'UNMATCHED_DB',
+                    'statuses'     => $statuses,
+                    'sources'      => $sources,
+                    'warnings'     => ['Siswa di database tidak ada di hasil OCR.'],
                 ];
             }
         }
 
+        usort($result, function ($a, $b) {
+            return strcmp($a['nama'], $b['nama']);
+        });
+
         return $result;
     }
 
-    /**
-     * Validate OCR results before import.
-     *
-     * @param  array  $matchedData  From matchStudentsWithOcr()
-     * @param  int    $totalDays
-     * @param  Carbon $monthStart
-     * @return array{valid: bool, errors: string[], stats: array}
-     */
-    public function validateImportData(array $matchedData, int $totalDays, Carbon $monthStart): array
+    public function normalizeName(string $name): string
     {
-        $errors = [];
+        $name = mb_strtolower(trim($name), 'UTF-8');
+        $name = preg_replace('/[^\p{L}\p{N}\s]/u', '', $name);
+        $name = preg_replace('/\s+/', ' ', $name);
+        return trim($name);
+    }
+
+    protected function calculateFridays(int $bulan, int $tahun): array
+    {
+        $fridays = [];
+        $daysInMonth = (int) date('t', mktime(0, 0, 0, $bulan, 1, $tahun));
+        for ($d = 1; $d <= $daysInMonth; $d++) {
+            $date = Carbon::createFromDate($tahun, $bulan, $d);
+            if ($date->isFriday()) {
+                $fridays[] = $d;
+            }
+        }
+        return $fridays;
+    }
+
+    /**
+     * Validate matched import data and compute stats.
+     */
+    public function validateImportData(array $matchedData, int $totalDays, Carbon $monthStart, array $actualDates = []): array
+    {
+        if (empty($actualDates)) {
+            $actualDates = range(1, $totalDays);
+        }
+
         $stats = [
-            'H' => 0,
-            'I' => 0,
-            'S' => 0,
-            'A' => 0,
-            '?' => 0,
-            'libur_jumat' => 0,
+            'H'             => 0,
+            'I'             => 0,
+            'S'             => 0,
+            'A'             => 0,
+            'libur_jumat'   => 0,
             'belum_terjadi' => 0,
+            'review'        => 0,
+            'warning'       => 0,
+            'source_ai'     => 0,
+            'source_default'=> 0,
+            'source_system' => 0,
+            'source_manual' => 0,
         ];
 
         $today = Carbon::today();
 
-        for ($day = 1; $day <= $totalDays; $day++) {
+        foreach ($actualDates as $day) {
             $date = $monthStart->copy()->day($day);
-            if ($date->month !== $monthStart->month) {
-                break;
-            }
-
-            if ($date->isFriday()) {
-                $stats['libur_jumat']++;
-            }
-
-            if ($date->gt($today)) {
-                $stats['belum_terjadi']++;
-            }
+            if ($date->month !== $monthStart->month) break;
+            if ($date->isFriday()) $stats['libur_jumat']++;
+            if ($date->gt($today)) $stats['belum_terjadi']++;
         }
 
         foreach ($matchedData as $row) {
             if (!$row['student_id']) {
-                $errors[] = "Siswa tidak ditemukan untuk baris " . ($row['row_index'] + 1) . ": " . $row['nama'];
+                $stats['review']++;
+            }
+            if (!empty($row['warnings'])) {
+                $stats['warning'] += count($row['warnings']);
             }
 
-            for ($day = 1; $day <= $totalDays; $day++) {
+            foreach ($actualDates as $day) {
                 $dayStr = (string) $day;
-                $status = $row['statuses'][$dayStr] ?? '?';
+                $status = $row['statuses'][$dayStr] ?? 'H';
+                $source = $row['sources'][$dayStr] ?? 'DEFAULT';
                 $date = $monthStart->copy()->day($day);
+                if ($date->month !== $monthStart->month) continue;
+                if ($date->isFriday() || $date->gt($today)) continue;
 
-                if ($date->month !== $monthStart->month) {
-                    continue;
-                }
+                if (isset($stats[$status])) $stats[$status]++;
 
-                // Skip Jumat and future dates in stats (but don't count their status)
-                if ($date->isFriday() || $date->gt($today)) {
-                    continue;
-                }
-
-                if (isset($stats[$status])) {
-                    $stats[$status]++;
-                } else {
-                    $stats['?']++;
-                }
+                $sourceKey = 'source_' . strtolower($source);
+                if (isset($stats[$sourceKey])) $stats[$sourceKey]++;
             }
         }
 
         return [
-            'valid' => empty($errors),
-            'errors' => $errors,
-            'stats' => $stats,
+            'valid'  => empty($errors),
+            'errors' => $errors ?? [],
+            'stats'  => $stats,
         ];
     }
 
-    /**
-     * Check for existing attendance records for the given period.
-     *
-     * @param  int     $kelasId
-     * @param  int     $tahunAjaranId
-     * @param  Carbon  $monthStart
-     * @param  int     $totalDays
-     * @return array   List of dates that already have attendance: ['2026-07-01', '2026-07-02', ...]
-     */
     public function getExistingDates(int $kelasId, int $tahunAjaranId, Carbon $monthStart, int $totalDays): array
     {
         $endDate = $monthStart->copy()->endOfMonth();
 
-        $existingAbsensi = Absensi::where('kelas_id', $kelasId)
+        return Absensi::where('kelas_id', $kelasId)
             ->where('tahun_ajaran_id', $tahunAjaranId)
             ->whereBetween('tanggal', [$monthStart->toDateString(), $endDate->toDateString()])
             ->pluck('tanggal')
-            ->map(function ($t) {
-                return Carbon::parse($t)->format('Y-m-d');
-            })
+            ->map(fn ($t) => Carbon::parse($t)->format('Y-m-d'))
             ->toArray();
-
-        return $existingAbsensi;
     }
 
     /**
-     * Import attendance data to database.
-     *
-     * @param  array   $matchedData   From matchStudentsWithOcr()
-     * @param  int     $kelasId
-     * @param  int     $tahunAjaranId
-     * @param  int     $userId        Admin who performs the import
-     * @param  Carbon  $monthStart
-     * @param  int     $totalDays
-     * @param  array   $existingDates Dates that already have attendance (for skip/update logic)
-     * @param  string  $duplicateMode 'skip' or 'update'
-     * @return array{success: bool, imported: int, skipped: int, updated: int, errors: string[]}
+     * Import attendance to database. Skips LIBUR and future dates.
+     * Uses source to set keterangan.
      */
     public function importAttendance(
         array $matchedData,
@@ -248,36 +348,30 @@ class AbsensiImportService
         Carbon $monthStart,
         int $totalDays,
         array $existingDates,
-        string $duplicateMode = 'skip'
+        string $duplicateMode = 'skip',
+        array $actualDates = []
     ): array {
+        if (empty($actualDates)) {
+            $actualDates = range(1, $totalDays);
+        }
+
         $imported = 0;
-        $skipped = 0;
-        $updated = 0;
-        $errors = [];
-        $today = Carbon::today();
+        $skipped  = 0;
+        $updated  = 0;
+        $errors   = [];
+        $today    = Carbon::today();
 
         DB::beginTransaction();
 
         try {
-            for ($day = 1; $day <= $totalDays; $day++) {
+            foreach ($actualDates as $day) {
                 $date = $monthStart->copy()->day($day);
 
-                // Skip if not same month (overflow from day > daysInMonth)
-                if ($date->month !== $monthStart->month) {
-                    continue;
-                }
+                if ($date->month !== $monthStart->month) continue;
+                if ($date->isFriday()) continue;
+                if ($date->gt($today)) continue;
 
-                // Skip Jumat
-                if ($date->isFriday()) {
-                    continue;
-                }
-
-                // Skip future dates
-                if ($date->gt($today)) {
-                    continue;
-                }
-
-                $dateStr = $date->toDateString();
+                $dateStr    = $date->toDateString();
                 $isExisting = in_array($dateStr, $existingDates);
 
                 if ($isExisting && $duplicateMode === 'skip') {
@@ -287,22 +381,28 @@ class AbsensiImportService
 
                 $absensi = Absensi::updateOrCreate(
                     [
-                        'kelas_id' => $kelasId,
-                        'tanggal' => $dateStr,
-                        'tahun_ajaran_id' => $tahunAjaranId,
+                        'kelas_id'         => $kelasId,
+                        'tanggal'          => $dateStr,
+                        'tahun_ajaran_id'  => $tahunAjaranId,
                     ],
-                    [
-                        'user_id' => $userId,
-                    ]
+                    ['user_id' => $userId]
                 );
 
                 foreach ($matchedData as $row) {
-                    $status = $row['statuses'][(string) $day] ?? '?';
+                    if (!$row['student_id']) continue;
 
-                    // Never save '?' to database
-                    if ($status === '?') {
-                        continue;
-                    }
+                    $status = $row['statuses'][(string) $day] ?? 'H';
+                    $source = $row['sources'][(string) $day] ?? 'DEFAULT';
+
+                    if ($status === 'LIBUR') continue;
+
+                    $keteranganMap = [
+                        'AI'      => 'Import foto - AI OCR',
+                        'DEFAULT' => 'Import foto - Default H',
+                        'SYSTEM'  => 'Import foto - Sistem',
+                        'MANUAL'  => 'Import foto - Manual Koreksi',
+                    ];
+                    $keterangan = $keteranganMap[$source] ?? 'Import dari foto';
 
                     AbsensiDetail::updateOrCreate(
                         [
@@ -310,45 +410,38 @@ class AbsensiImportService
                             'student_id' => $row['student_id'],
                         ],
                         [
-                            'status' => $status,
-                            'keterangan' => 'Import dari foto',
+                            'status'      => $status,
+                            'keterangan'  => $keterangan,
                         ]
                     );
                 }
 
-                if ($isExisting) {
-                    $updated++;
-                } else {
-                    $imported++;
-                }
+                $isExisting ? $updated++ : $imported++;
             }
 
             DB::commit();
 
             return [
-                'success' => true,
+                'success'  => true,
                 'imported' => $imported,
-                'skipped' => $skipped,
-                'updated' => $updated,
-                'errors' => $errors,
+                'skipped'  => $skipped,
+                'updated'  => $updated,
+                'errors'   => $errors,
             ];
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Attendance import failed', ['error' => $e->getMessage()]);
 
             return [
-                'success' => false,
+                'success'  => false,
                 'imported' => 0,
-                'skipped' => 0,
-                'updated' => 0,
-                'errors' => ['Gagal menyimpan absensi: ' . $e->getMessage()],
+                'skipped'  => 0,
+                'updated'  => 0,
+                'errors'   => ['Gagal menyimpan absensi: ' . $e->getMessage()],
             ];
         }
     }
 
-    /**
-     * Cleanup temporary uploaded file.
-     */
     public function cleanupFile(string $filePath): void
     {
         if (file_exists($filePath)) {
@@ -356,21 +449,12 @@ class AbsensiImportService
         }
     }
 
-    /**
-     * Get the day-of-week name in Indonesian.
-     */
     public function getDayName(Carbon $date): string
     {
         $days = [
-            1 => 'Senin',
-            2 => 'Selasa',
-            3 => 'Rabu',
-            4 => 'Kamis',
-            5 => 'Jumat',
-            6 => 'Sabtu',
-            7 => 'Minggu',
+            1 => 'Senin', 2 => 'Selasa', 3 => 'Rabu', 4 => 'Kamis',
+            5 => 'Jumat', 6 => 'Sabtu', 7 => 'Minggu',
         ];
-
         return $days[$date->dayOfWeek] ?? '';
     }
 }

@@ -35,19 +35,19 @@ php artisan serve
 - Defaults in `.env.example`: `DB_DATABASE=buku_penghubung`, `SESSION_DRIVER=database`, `QUEUE_CONNECTION=sync`.
 - `FONNTE_API_KEY` required for WhatsApp (`WhatsAppHelper::kirim()`) — **not** in `.env.example`; must be added manually.
 - `RECAPTCHA_SITE_KEY` and `RECAPTCHA_SECRET_KEY` required (login/register forms); `.env.example` has test values.
-- `TESSERACT_PATH` and `PYTHON_PATH` required for OCR import; `.env.example` has defaults (`PYTHON_PATH=python`, `TESSERACT_PATH` empty = system PATH).
+- `AI_PROVIDER` (`openrouter` or `gemini`), `OPENROUTER_API_KEY`, `OPENROUTER_MODEL` for OCR import AI parser (primary: OpenRouter). `AI_API_KEY`, `AI_API_URL`, `AI_MODEL`, `AI_TIMEOUT` for Gemini fallback. `OPENROUTER_API_KEY` must be set manually.
 - `phpunit.xml` forces `APP_ENV=testing`, `BCRYPT_ROUNDS=4`, `CACHE_DRIVER=array`, `SESSION_DRIVER=array`, `QUEUE_CONNECTION=sync`, `MAIL_MAILER=array`, `TELESCOPE_ENABLED=false`. SQLite lines commented out — tests use MySQL from `.env`.
 - `WhatsAppHelper` loaded via `autoload-dev.files` — **not** in production autoload. If it fails at runtime, check `composer.json`.
 
 ## Routing / Middleware
-- Middleware order (applied via route group in `web.php:99` and controller constructors, **not** in Kernel's `web` group): `auth` -> `2fa` -> `require.2fa` -> `datasiswa` (per-controller) -> `role`.
+- Middleware order (applied via route group in `web.php:100` and controller constructors, **not** in Kernel's `web` group): `auth` -> `2fa` -> `require.2fa` -> `datasiswa` (per-controller) -> `role`.
 - `2fa/challenge` and `2fa/verify` are **outside** the auth group (unauthenticated access).
 - Login (`POST /login`) and 2FA verify throttled (`throttle:5,1`).
 - `datasiswa` middleware (currently only on `HomeController`): forces role 3 (`info=false`) to data-completion form. Guru redirect logic (non-waliKelas → absensi guru) is in `HomeController::index()`, not the middleware.
-- Roles are ints: `1=admin`, `2=guru`, `3=siswa`, `4=BK`. **BK (4) routes in `routes/web.php:386-398` are fully commented out** — but `layouts/main.blade.php` still renders sidebar/navbar for role 4.
+- Roles are ints: `1=admin`, `2=guru`, `3=siswa`, `4=BK`. **BK (4) routes in `routes/web.php:393-406` are fully commented out** — but `layouts/main.blade.php` still renders sidebar/navbar for role 4.
 - `admin` middleware alias exists in Kernel but is unused — use `role` middleware instead.
-- `laravel/sanctum` installed, but its middleware is commented out in the `api` group (`Kernel.php:44`).
-- `2fa.disable` not allowlisted by `require.2fa`. Allowlist also includes `login-history.index`, `active-sessions.index` (plus path prefixes `riwayat-login`, `perangkat`) so users with role-required 2FA can access those before setup.
+- `laravel/sanctum` installed, but its middleware is commented out in the `api` group (`Kernel.php:45`).
+- `2fa.disable` not in `require.2fa` allowlist, but reachable for users who already have 2FA enabled (middleware skips if `google2fa_secret` exists). Allowlist also includes `login-history.index`, `active-sessions.index` (plus path prefixes `riwayat-login`, `perangkat`) so users with role-required 2FA can access those before setup.
 - `RouteServiceProvider::$namespace` commented out — all routes use `[Controller::class, 'method']` syntax.
 - `HaflahMiddleware` runs on every authenticated web request: flips Haflah status by date, seeds `session('haflah_id')`, shares `semuaHaflah`/`haflahAktif` (both eager-loaded with `tahunAjaran`) to all views.
 - Route order matters for Jadwal Siswa: `/jadwal-siswa/cetak/{jenjang_id?}` must stay before `/jadwal-siswa/{kelas_id}`.
@@ -55,7 +55,7 @@ php artisan serve
 - `Paginator::useBootstrap()` in `AppServiceProvider::boot()`.
 - `Semester` model observed by `SemesterObserver` (registered in `AppServiceProvider::boot()`).
 - Login auto-detects field: `FILTER_VALIDATE_EMAIL` -> `email` column, otherwise `username` (`LoginController`).
-- Duplicate route definitions: `master-user` (lines 188 & 196), `jadwal-pelajaran/kelas/{id}` (lines 204 & 208), `alumni/pdf` (lines 279 & 280). Check both before touching.
+- Duplicate route definitions: `master-user` (lines 189 & 197), `jadwal-pelajaran/kelas/{id}` (lines 205 & 209), `alumni/pdf` (lines 287 & 288). Check both before touching.
 - Admin-only routes under `role:1` group include: `/admin/keamanan` (SecurityDashboardController), `/admin/kebijakan-2fa` (TwoFactorPolicyController), `/lokasi-madrasah` (LokasiMadrasahController — note: prefix is NOT `/admin/lokasi-madrasah`).
 
 ## User / Guru
@@ -71,7 +71,7 @@ php artisan serve
 ## Models / Data
 - Most models use `$guarded = ['id']`; notable `$fillable` exceptions: `Jenjang`, `MataPelajaran`, `Semester`, `TahunAjaran`, `LoginHistory`, `DeviceFingerprint`, `Notifikasi`, `RoleTwoFaRequirement`, `AccountActivity`.
 - `Semester` uses the `semesters` table. `TahunAjaran::saved` auto-creates Ganjil/Genap semester rows.
-- `TahunAjaran::saved` auto-activates a semester by month (>=7 = Ganjil, else Genap) when status is `Aktif`; deactivates all when not `Aktif`. Fires only on creation or status change (`wasRecentlyCreated` / `wasChanged('status')`).
+- `TahunAjaran::saved` auto-activates a semester by month (>=7 = Ganjil, else Genap) when status is `Aktif` (only if no semester is already active for that tahun ajaran); deactivates all when not `Aktif`. Fires only on creation or status change (`wasRecentlyCreated` / `wasChanged('status')`).
 - `TahunAjaran::deleted` deletes associated semesters. `SemesterObserver` deactivates siblings in same tahun ajaran on `saving`.
 - `Student::getRouteKeyName()` is `nisn`; `Penanganan::getRouteKeyName()` is `berkas`; `Poin::getRouteKeyName()` is `siswa_id`.
 - `User::siswa()` uses `hasOne(Student::class, 'id')` (FK is `users.id`).
@@ -129,22 +129,27 @@ php artisan serve
 - Students fetched via `Student::whereHas('kelasAktif')` scoped by `kelas_id` + `tahun_ajaran_id`.
 
 ## Absensi Import dari Foto (OCR)
-- **Architecture**: Upload foto buku absensi → Python OCR → Verifikasi operator → Simpan ke DB (absensis + absensi_details).
+- **Architecture**: Upload foto buku absensi → Server receives file → AI Vision API (OpenRouter primary, Gemini fallback) → JSON → Student matching → Default H → Friday LIBUR → Operator verification → Save.
 - **NO database migration needed** — uses existing `absensis` and `absensi_details` tables.
-- **Mapping simbol**: `.` → H (Hadir), `I/i/l/1` → I (Izin), `S/s` → S (Sakit), `A/a` → A (Alpha), kosong → ? (Perlu Diperiksa).
+- **AI Vision (OpenRouter primary, Gemini fallback)**: `AIParserService::parseFromImage()` tries OpenRouter first (per `AI_PROVIDER` config), then falls back to Gemini. Vision prompt instructs model to analyze the physical table structure visually.
 - **Jumat = Libur** — tidak dibuat absensi, ditandai "LIBUR" di tabel verifikasi.
 - **Tanggal masa depan** — disabled di tabel verifikasi, tidak disimpan.
 - **Duplicate handling**: Jika absensi sudah ada → tawarkan "Lewati" atau "Perbarui" (update via `updateOrCreate`).
 - **Tahun Ajaran Aktif** sebagai konteks — tidak ada `semester_id`.
 - **Students** diambil via `StudentKelas` where `kelas_id` + `tahun_ajaran_id` + `aktif=true`.
-- **Verification** wajib: semua `?` harus diubah ke H/I/S/A sebelum tombol "Konfirmasi & Simpan" aktif.
-- Routes: `absensi.import`, `absensi.import.process`, `absensi.import.confirm` — admin only (`role:1`).
-- **Service**: `app/Services/AbsensiImportService.php` handles OCR execution, student matching, validation, DB import.
-- **Python script**: `scripts/ocr_attendance.py` — uses OpenCV + Tesseract OCR. Requires Python 3.x + Tesseract 5.x installed on server.
-- **Config**: `config/ocr.php` reads `TESSERACT_PATH`, `PYTHON_PATH`, `OCR_SCRIPT_PATH` from `.env`.
-- **Session-based**: Step 2 (process) stores results in `session('import_data')`, Step 3 (confirm) reads it.
+- **Verification** wajib: semua REVIEW/WARNING harus diselesaikan sebelum "Konfirmasi & Simpan".
+- Routes: `absensi.import`, `absensi.import.parse`, `absensi.import.verify`, `absensi.import.confirm` — admin only (`role:1`).
+- **Services**:
+  - `AIParserService::parseFromImage()` — AI Vision (OpenRouter primary, Gemini fallback).
+  - `AIParserService::parse()` — text-based AI parser (legacy, used by manual mode).
+  - `AIParserService::fallbackParse()` — PHP regex parser (no AI, used when API unavailable).
+  - `AbsensiImportService` — student matching, validation, DB import.
+- **Client-side OCR (DEPRECATED)**: `public/js/ocr-reader.js` (Tesseract.js) is no longer used in the primary flow. The frontend now uploads the photo directly to the server.
+- **Config**: `config/ocr.php` reads `AI_API_KEY`, `AI_API_URL`, `AI_MODEL`, `AI_TIMEOUT` from `.env` for AI parser. Default timeout is 60s for Vision.
+- **Session-based**: `parseOcrText()` stores matched data in `session('import_data')`, `showVerify()` reads it.
 - **DB::transaction** wraps entire import — rollback on any failure.
-- **Cleanup**: Temporary photo deleted from `storage/absensi-import/` after successful import.
+- **Source tracking**: Every cell tracks origin: `AI`, `DEFAULT` (H assumed), `SYSTEM` (Friday/future), `MANUAL` (operator correction).
+- **Student matching priority**: NISN exact → name exact (normalized) → name contains → fuzzy (Levenshtein ≤5) → unmatched.
 
 ## Absensi Guru (GPS + Selfie)
 - Separate tables from Absensi Siswa — no relationship with `absensis` / `absensi_details`.
