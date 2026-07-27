@@ -78,7 +78,7 @@ class AbsensiController extends Controller
 
         $isJumat = now()->isFriday();
 
-        $kelasList = Kelas::whereHas('siswaAktif', function ($q) use ($tahunAktif) {
+        $kelasList = Kelas::with('jenjang')->whereHas('siswaAktif', function ($q) use ($tahunAktif) {
             $q->where('tahun_ajaran_id', $tahunAktif->id);
         })->orderBy('nama_kelas')->get();
 
@@ -635,5 +635,62 @@ class AbsensiController extends Controller
         ));
 
         return $pdf->stream('rekap-absensi-' . $kelas->nama_kelas . '.pdf');
+    }
+
+    public function cetakBukuPdf(Request $request)
+    {
+        $request->validate([
+            'tahun_ajaran_id' => 'required|exists:tahun_ajaran,id',
+            'kelas_id' => 'required|exists:kelas,id',
+            'bulan' => 'required|date_format:Y-m',
+        ]);
+
+        $tahunAjaran = TahunAjaran::findOrFail($request->tahun_ajaran_id);
+        $kelas = Kelas::findOrFail($request->kelas_id);
+        $bulan = $request->input('bulan');
+
+        $tanggalAwal = \Carbon\Carbon::parse($bulan . '-01');
+        $hariDalamBulan = $tanggalAwal->daysInMonth;
+        $bulanLabel = $tanggalAwal->translatedFormat('F Y');
+
+        $siswas = Student::whereHas('kelasAktif', function ($q) use ($kelas, $tahunAjaran) {
+            $q->where('kelas_id', $kelas->id)
+              ->where('tahun_ajaran_id', $tahunAjaran->id);
+        })->orderBy('nama')->get();
+
+        $fridaySet = [];
+        for ($d = 1; $d <= $hariDalamBulan; $d++) {
+            $tgl = $tanggalAwal->copy()->day($d);
+            if ($tgl->isFriday()) {
+                $fridaySet[$tgl->format('Y-m-d')] = true;
+            }
+        }
+
+        $waliKelasName = '—';
+        $waliKelas = $kelas->waliKelas;
+        if ($waliKelas && $waliKelas->guru && $waliKelas->guru->user_id) {
+            $user = \App\Models\User::find($waliKelas->guru->user_id);
+            if ($user) {
+                $waliKelasName = $user->name;
+            }
+        }
+
+        $sharedData = compact(
+            'kelas',
+            'siswas',
+            'tahunAjaran',
+            'bulanLabel',
+            'hariDalamBulan',
+            'tanggalAwal',
+            'fridaySet',
+            'waliKelasName'
+        );
+
+        $pdf = Pdf::loadView('admin.absensi.buku-absensi-combined-pdf', $sharedData)
+            ->setPaper([0, 0, 935, 609])
+            ->setOption('defaultMediaType', 'print')
+            ->setOption('isRemoteEnabled', true);
+
+        return $pdf->stream('buku-absensi-' . $kelas->nama_kelas . '-' . $bulan . '.pdf');
     }
 }

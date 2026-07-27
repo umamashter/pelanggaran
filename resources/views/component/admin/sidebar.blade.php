@@ -30,7 +30,7 @@
                 </li>
 
                 {{-- Data Master --}}
-                <li class="menu-item has-submenu{{ request()->is('master-user*', 'master-guru*', 'master-siswa*', 'mata-pelajaran*', 'kelas*', 'tahun-ajaran*', 'arsip-tahun-ajaran*', 'wali-kelas*', 'semester*', 'profil-madrasah*', 'alumni*') ? ' has-active' : '' }}">
+                <li class="menu-item has-submenu{{ request()->is('master-user*', 'master-guru*', 'master-siswa*', 'mata-pelajaran*', 'kelas*', 'tahun-ajaran*', 'arsip-tahun-ajaran*', 'wali-kelas*', 'semester*', 'alumni*') ? ' has-active' : '' }}">
                     <a href="#" class="menu-link menu-toggle" title="Data Master" data-flyout-toggle aria-haspopup="true" aria-expanded="false">
                         <span class="menu-icon"><i class="fas fa-database"></i></span>
                         <span class="menu-text">Data Master</span>
@@ -56,14 +56,14 @@
                         <li class="menu-submenu-item{{ request()->is('wali-kelas*') ? ' is-active' : '' }}">
                             <a href="{{ route('wali-kelas.index') }}" class="menu-submenu-link">Wali Kelas</a>
                         </li>
+                        <li class="menu-submenu-item{{ request()->is('master-kepala-madrasah*') ? ' is-active' : '' }}">
+                            <a href="{{ route('master-kepala-madrasah.index') }}" class="menu-submenu-link">Kepala Madrasah</a>
+                        </li>
                         <li class="menu-submenu-item{{ request()->is('tahun-ajaran*', 'arsip-tahun-ajaran*') ? ' is-active' : '' }}">
                             <a href="{{ route('tahun-ajaran.index') }}" class="menu-submenu-link">Tahun Ajaran</a>
                         </li>
                         <li class="menu-submenu-item{{ request()->is('semester*') ? ' is-active' : '' }}">
                             <a href="{{ route('semester.index') }}" class="menu-submenu-link">Semester</a>
-                        </li>
-                        <li class="menu-submenu-item{{ request()->is('profil-madrasah*') ? ' is-active' : '' }}">
-                            <a href="{{ route('profil-madrasah.index') }}" class="menu-submenu-link">Profil Madrasah</a>
                         </li>
                         <li class="menu-submenu-item{{ request()->is('alumni*') ? ' is-active' : '' }}">
                             <a href="{{ route('alumni.index') }}" class="menu-submenu-link">Alumni</a>
@@ -205,7 +205,7 @@
                 </li>
 
                 {{-- Pengaturan --}}
-                <li class="menu-item has-submenu{{ request()->is('2fa*', 'admin/keamanan*', 'admin/riwayat-login*', 'riwayat-login*', 'perangkat*', 'admin/kebijakan-2fa*', 'admin/lokasi-madrasah*') ? ' has-active' : '' }}">
+                <li class="menu-item has-submenu{{ request()->is('2fa*', 'admin/keamanan*', 'admin/riwayat-login*', 'riwayat-login*', 'perangkat*', 'admin/kebijakan-2fa*', 'lokasi-madrasah*', 'profil-madrasah*') ? ' has-active' : '' }}">
                     <a href="#" class="menu-link menu-toggle" title="Pengaturan" data-flyout-toggle aria-haspopup="true" aria-expanded="false">
                         <span class="menu-icon"><i class="fas fa-cog"></i></span>
                         <span class="menu-text">Pengaturan</span>
@@ -213,6 +213,9 @@
                     </a>
                     <ul class="menu-submenu">
                         <li class="menu-submenu-title">Pengaturan</li>
+                        <li class="menu-submenu-item{{ request()->is('profil-madrasah*') ? ' is-active' : '' }}">
+                            <a href="{{ route('profil-madrasah.index') }}" class="menu-submenu-link">Profil</a>
+                        </li>
                         <li class="menu-submenu-item{{ request()->is('admin/keamanan*') ? ' is-active' : '' }}">
                             <a href="{{ route('admin.security-dashboard.index') }}" class="menu-submenu-link">Keamanan</a>
                         </li>

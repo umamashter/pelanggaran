@@ -23,21 +23,18 @@
             @endif
         </div>
 
-        {{-- <div class="c-search"></div> --}}
-
         <div class="ms-auto navbar-nav d-flex align-items-center">
-            @include('component.admin.notification-bell')
+            <span style="font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;display:inline-flex;align-items:center;gap:4px;"><i class="fas fa-user-shield" style="font-size:10px;"></i> Kepala {{ Auth::user()->kepalaMadrasah?->jenjang?->kode ?? '' }}</span>
 
             <!-- Theme Toggle -->
             <a class="theme-toggle" href="#" title="Ganti tema">
                 <i class="fas fa-moon"></i>
             </a>
-            <!-- Authentication Links -->
+
             <div class="nav-item dropdown px-3">
                 <a id="navbarDropdown" class="name-tag nav-link dropdown-toggle c-header-icon userDropdown me-2"
                     href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
                     v-pre>
-                    <!-- <i class='bx bxs-user-circle'></i> -->
                     <div class="text-small d-inline-flex ms-1">{{ strtok(auth()->user()->name, ' ') }}</div>
                 </a>
 
@@ -45,91 +42,18 @@
                     <a class="dropdown-item py-2" href="{{ route('profil-saya.index') }}">
                         {{ __('Profil Saya') }}
                     </a>
-
                     <a class="dropdown-item py-2" href="/">
                         {{ __('Kembali') }}
                     </a>
-
                     <a class="dropdown-item py-2" href="{{ route('logout') }}"
                         onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                         {{ __('Logout') }}
                     </a>
-
                     <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
                         @csrf
                     </form>
                 </div>
             </div>
         </div>
-
-        <label for="checki" class="none c-header-icon-hp" style="cursor:pointer;margin:0;display:none">
-            <i class='bx bx-menu-alt-right'></i>
-        </label>
-
     </div>
 </header>
-
-<input type="checkbox" id="checki" class="ch">
-<ul class="hp-ul" for=checki style="z-index: 1;">
-    <a href="/home">
-        <li class="{{ request()->is('home*') ? 'active' : '' }} hp-li" title="Dashboard">
-            <i class='bx bxs-grid-alt'></i>
-            Dashboard
-        </li>
-    </a>
-    <a href="/master-siswa">
-        <li class="{{ request()->is('master-siswa*', 'pelanggaran*') ? 'active' : '' }} hp-li" title="Master Siswa">
-            <i class='fas fa-user-graduate'></i>
-            Master Siswa
-        </li>
-    </a>
-    <a href="/master-guru">
-        <li class="{{ request()->is('master-guru*') ? 'active' : '' }} hp-li" title="Master Guru">
-            <i class="fas fa-user-tie"></i>
-            Master Guru
-        </li>
-    </a>
-    <a href="/master-user">
-        <li class="{{ request()->is('master-user*') ? 'active' : '' }} hp-li" title="Master User">
-            <i class="fas fa-users"></i>
-            Master User
-        </li>
-    </a>
-    <a href="/kelas">
-        <li class="{{ request()->is('kelas*') ? 'active' : '' }} hp-li" title="kelas">
-            <i class="fas fa-chalkboard"></i>
-            Master Kelas
-        </li>
-    </a>
-    <a href="/peraturan">
-        <li class="{{ request()->is('peraturan*') ? 'active' : '' }} hp-li" title="peraturan">
-            <i class="fas fa-balance-scale"></i>
-            Pelanggaran
-        </li>
-    </a>
-    <a href="/tindak-lanjut">
-        <li class="{{ request()->is('tindak-lanjut*') ? 'active' : '' }} hp-li" title="tindak-lanjut">
-            <i class="fas fa-gavel"></i>
-            Sanksi  
-        </li>
-    </a>
-    
-    <a href="/master-histori">
-        <li class="{{ request()->is('master-histori*') ? 'active' : '' }} hp-li" title="Master Histori">
-            <i class="fas fa-calendar-alt"></i>
-            Master Histori
-        </li>
-    </a>
-    <a href="/penanganan">
-        <li class="{{ request()->is('penanganan*') ? 'active' : '' }} hp-li" title="Penanganan">
-            <i class="fas fa-user-cog"></i>
-            Penanganan
-        </li>
-    </a>
-    <a href="/laporan/rekap-periode">
-        <li class="{{ request()->is('laporan/rekap-periode*') ? 'active' : '' }} hp-li" title="Laporan">
-            <i class="fas fa-file-alt"></i>
-            Laporan
-        </li>
-    </a>
-</ul>

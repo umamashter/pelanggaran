@@ -38,6 +38,7 @@
                             <option value="1">Admin</option>
                             <option value="2">Guru</option>
                             <option value="3">Siswa</option>
+                            <option value="5">Kepala Sekolah</option>
                         </select>
                         <label for="role">Role</label>
                     </div>

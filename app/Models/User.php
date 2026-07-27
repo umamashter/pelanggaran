@@ -73,6 +73,11 @@ class User extends Authenticatable
         return $this->hasOne(GuruBk::class);
     }
 
+    public function kepalaMadrasah()
+    {
+        return $this->hasOne(KepalaMadrasah::class);
+    }
+
     public function penanganan()
     {
         return $this->hasMany(Penanganan::class);

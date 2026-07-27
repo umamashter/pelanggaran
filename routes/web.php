@@ -16,6 +16,8 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\FrontController;
 use App\Http\Controllers\GuruBkController;
 use App\Http\Controllers\MasterGuruController;
+use App\Http\Controllers\MasterKepalaMadrasahController;
+use App\Http\Controllers\KepalaSekolahController;
 use App\Http\Controllers\PenilaianController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\PengampuMapelController;
@@ -243,6 +245,9 @@ Route::group(['middleware' => ['auth', '2fa', 'require.2fa']], function () {
         Route::post('/absensi/import/confirm', [AbsensiImportController::class, 'confirmImport'])->name('absensi.import.confirm');
         Route::get('/absensi/import/test-openrouter', [AbsensiImportController::class, 'testOpenRouter'])->name('absensi.import.test-openrouter');
 
+        // Absensi Cetak Buku PDF (before {id} to avoid route conflict)
+        Route::get('/absensi/cetak-buku-pdf', [AbsensiController::class, 'cetakBukuPdf'])->name('absensi.cetak-buku-pdf');
+
         Route::get('/absensi/{id}/edit', [AbsensiController::class, 'edit'])->name('absensi.edit');
         Route::put('/absensi/{id}', [AbsensiController::class, 'update'])->name('absensi.update');
         Route::get('/absensi/{id}', [AbsensiController::class, 'detail'])->name('absensi.detail');
@@ -352,6 +357,11 @@ Route::group(['middleware' => ['auth', '2fa', 'require.2fa']], function () {
         Route::post('/wali-kelas/store', [WaliKelasController::class, 'store'])->name('wali-kelas.store');
         Route::delete('/wali-kelas/{id}', [WaliKelasController::class, 'destroy'])->name('wali-kelas.destroy');
 
+        // Kepala Madrasah (Admin CRUD)
+        Route::get('/master-kepala-madrasah', [MasterKepalaMadrasahController::class, 'index'])->name('master-kepala-madrasah.index');
+        Route::post('/master-kepala-madrasah', [MasterKepalaMadrasahController::class, 'store'])->name('master-kepala-madrasah.store');
+        Route::delete('/master-kepala-madrasah/{kepalaMadrasah}', [MasterKepalaMadrasahController::class, 'destroy'])->name('master-kepala-madrasah.destroy');
+
         // Jenis Peraturan
         Route::get('/peraturan', [PeraturanController::class, 'index'])->name('peraturan.index');
         Route::get('/peraturan/tambah', [PeraturanController::class, 'create']);
@@ -389,6 +399,16 @@ Route::group(['middleware' => ['auth', '2fa', 'require.2fa']], function () {
         Route::post('/galery', [GaleryController::class, 'store'])->name('galery.store');
         Route::put('/galery/{id}', [GaleryController::class, 'update'])->name('galery.update');
         Route::delete('/galery/{id}', [GaleryController::class, 'destroy'])->name('galery.destroy');
+    });
+
+    // Kepala Sekolah (Read Only)
+    Route::group(['middleware' => ['role:5']], function () {
+        Route::get('/kepsek/siswa', [KepalaSekolahController::class, 'siswa'])->name('kepsek.siswa');
+        Route::get('/kepsek/guru', [KepalaSekolahController::class, 'guru'])->name('kepsek.guru');
+        Route::get('/kepsek/absensi-siswa', [KepalaSekolahController::class, 'absensiSiswa'])->name('kepsek.absensi-siswa');
+        Route::get('/kepsek/absensi-guru', [KepalaSekolahController::class, 'absensiGuru'])->name('kepsek.absensi-guru');
+        Route::get('/kepsek/laporan/pelanggaran', [KepalaSekolahController::class, 'laporanPelanggaran'])->name('kepsek.laporan-pelanggaran');
+        Route::get('/kepsek/profil-madrasah', [KepalaSekolahController::class, 'profilMadrasah'])->name('kepsek.profil-madrasah');
     });
 
     // //

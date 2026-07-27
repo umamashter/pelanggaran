@@ -163,6 +163,9 @@
                         @if ($user->role == 4)
                         <td><span class="badge-role bk">BK</span></td>
                         @endif
+                        @if ($user->role == 5)
+                        <td><span class="badge-role" style="background:#f3e8ff;color:#7c3aed;">Kepala Sekolah</span></td>
+                        @endif
                         <td>
                             <div class="action-group-ms">
                                 <button class="btn btn-outline-warning open_modal" title="Edit" value="{{ $user->id }}">

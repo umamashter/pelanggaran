@@ -343,6 +343,20 @@
         </div>
         @endif
 
+        @if (Auth::user()->role == 5)
+        @include('component.kepsek.sidebar')
+        <div class="sidebar-spacer"></div>
+        <div class="app-content">
+            @include('component.kepsek.navbar')
+            <main class="l-main">
+                <div class="content-wrapper content-wrapper--with-bg">
+                    @yield('content')
+                </div>
+                @include('component.footer')
+            </main>
+        </div>
+        @endif
+
     </div>
     @endif
 

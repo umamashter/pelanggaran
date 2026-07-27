@@ -107,6 +107,28 @@ class HomeController extends Controller
 
             return view('home', compact('siswas', 'peraturan', 'points', 'penanganan', 'guru_bk'));
         }
+
+        // Kepala Sekolah (read-only)
+        if (auth()->user()->role == 5) {
+            $tahunAktif = TahunAjaran::where('status', 'Aktif')->first();
+            $siswas = Student::all();
+            $users = User::all();
+            $walikelas = WaliKelas::all();
+            $peraturan = Peraturan::all();
+            $penanganan = Penanganan::latest()->take(10)->get();
+
+            $dataPelanggaran = \App\Models\History::selectRaw('MONTH(tanggal) as month, count(*) as count')
+                ->whereYear('tanggal', date('Y'))
+                ->groupBy('month')
+                ->pluck('count', 'month');
+
+            $chartData = array_fill(1, 12, 0);
+            foreach ($dataPelanggaran as $month => $count) {
+                $chartData[$month] = $count;
+            }
+
+            return view('home', compact('siswas', 'users', 'walikelas', 'peraturan', 'penanganan', 'tahunAktif', 'chartData'));
+        }
     }
 
     // public function penanganan()

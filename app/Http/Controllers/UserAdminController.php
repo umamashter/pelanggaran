@@ -46,7 +46,7 @@ class UserAdminController extends Controller
                 'email',
                 Rule::unique('users', 'email')->ignore($id),
             ],
-            'role'  => 'required|in:1,2,3', // 1 = admin, 2 = guru, 3 = siswa
+            'role'  => 'required|in:1,2,3,5', // 1=admin, 2=guru, 3=siswa, 5=kepala_sekolah
             'info'  => 'required|in:0,1',   // 0 = belum terdaftar, 1 = terdaftar
         ];
 
@@ -156,7 +156,7 @@ class UserAdminController extends Controller
         $rules = [
             'name' => 'required|string|max:255|regex:/^[a-zA-Z\s\.,;\'\-]+$/',
             'email' => 'required|email|unique:users,email',
-            'role' => 'required|in:1,2,3',
+            'role' => 'required|in:1,2,3,5',
             'nisn' => 'nullable|size:10|unique:users,nisn|regex:/^[0-9]+$/',
         ];
 

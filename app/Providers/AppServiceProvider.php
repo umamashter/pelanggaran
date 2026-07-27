@@ -6,6 +6,7 @@ use App\Models\ProfilMadrasah;
 use App\Models\Pengumuman;
 use App\Models\Galery;
 use App\Models\Semester;
+use App\Models\TahunAjaran;
 use App\Observers\SemesterObserver;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Schema;
@@ -38,5 +39,8 @@ class AppServiceProvider extends ServiceProvider
         View::share('profil', $profil);
         View::share('pengumuman', $pengumuman);
         View::share('galery', $galery);
+
+        $tahunAktif = TahunAjaran::with('semesterAktif')->where('status', 'Aktif')->first();
+        View::share('tahunAktifGlobal', $tahunAktif);
     }
 }

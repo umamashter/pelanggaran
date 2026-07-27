@@ -97,11 +97,68 @@
                     <button type="submit" class="btn-tampilkan-ms">
                         <i class="fas fa-search"></i> Tampilkan Siswa
                     </button>
+                    <button type="button" class="btn" style="padding:10px 20px;border-radius:10px;font-size:14px;font-weight:500;border:1.5px solid #e2e8f0;background:#fff;color:#475569;display:inline-flex;align-items:center;gap:6px;" data-bs-toggle="modal" data-bs-target="#modalCetakBuku">
+                        <i class="fas fa-print"></i> Cetak Buku Absensi
+                    </button>
                     <a href="{{ route('absensi.index') }}" class="btn-kembali-ms">
                         <i class="fas fa-arrow-left"></i> Kembali
                     </a>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalCetakBuku" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius:16px;border:none;box-shadow:0 20px 60px rgba(0,0,0,.15);">
+                <div class="modal-header" style="background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;border-radius:16px 16px 0 0;padding:16px 20px;">
+                    <h6 class="modal-title fw-bold" style="font-size:15px;">
+                        <i class="fas fa-print me-2"></i>Cetak Buku Absensi Siswa
+                    </h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="GET" action="{{ route('absensi.cetak-buku-pdf') }}" target="_blank">
+                    <div class="modal-body" style="padding:20px;">
+                        <input type="hidden" name="tahun_ajaran_id" value="{{ $tahunAktif->id }}">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold" style="font-size:13px;color:#374151;">Tahun Pelajaran</label>
+                            <input type="text" class="form-control" value="{{ $tahunAktif->tahun_ajaran }}" disabled style="border-radius:10px;border:1px solid #e5e7eb;padding:10px 12px;font-size:13px;background:#f8fafc;">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold" style="font-size:13px;color:#374151;">Kelas <span class="text-danger">*</span></label>
+                            <select name="kelas_id" class="form-select" style="border-radius:10px;border:1px solid #e5e7eb;padding:10px 12px;font-size:13px;" required>
+                                <option value="">-- Pilih Kelas --</option>
+                                @foreach($kelasList as $k)
+                                <option value="{{ $k->id }}">{{ $k->nama_kelas }}{{ isset($k->jenjang) ? ' (' . $k->jenjang->kode . ')' : '' }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold" style="font-size:13px;color:#374151;">Bulan <span class="text-danger">*</span></label>
+                            <select name="bulan" class="form-select" style="border-radius:10px;border:1px solid #e5e7eb;padding:10px 12px;font-size:13px;" required>
+                                <option value="">-- Pilih Bulan --</option>
+                                @php
+                                    $bulanNames = [
+                                        '01' => 'Januari', '02' => 'Februari', '03' => 'Maret', '04' => 'April',
+                                        '05' => 'Mei', '06' => 'Juni', '07' => 'Juli', '08' => 'Agustus',
+                                        '09' => 'September', '10' => 'Oktober', '11' => 'November', '12' => 'Desember'
+                                    ];
+                                    $currentMonth = now()->format('m');
+                                @endphp
+                                @foreach($bulanNames as $num => $name)
+                                <option value="{{ now()->year }}-{{ $num }}" {{ $num === $currentMonth ? 'selected' : '' }}>{{ $name }} {{ now()->year }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="border-top:1px solid #f3f4f6;padding:12px 20px;">
+                        <button type="button" class="btn" data-bs-dismiss="modal" style="border-radius:10px;font-size:13px;padding:8px 16px;border:1.5px solid #e2e8f0;background:#fff;color:#475569;">Batal</button>
+                        <button type="submit" class="btn" style="background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;border-radius:10px;font-size:13px;padding:8px 16px;box-shadow:0 2px 8px rgba(124,58,237,.3);">
+                            <i class="fas fa-print me-1"></i> Cetak PDF
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 

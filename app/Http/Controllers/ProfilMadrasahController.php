@@ -40,25 +40,68 @@ class ProfilMadrasahController extends Controller
         $profil = ProfilMadrasah::with('misi')->firstOrFail();
 
         $request->validate([
+            // Identitas Sekolah
             'nama_madrasah' => 'required|max:100',
+            'npsn' => 'nullable|max:20',
+            'nsm' => 'nullable|max:20',
+            'nis_nss' => 'nullable|max:20',
+            'jenjang' => 'nullable|max:50',
+            'status_sekolah' => 'nullable|max:20',
+            'status_akreditasi' => 'nullable|max:10',
+            'tahun_berdiri' => 'nullable|digits:4|integer|min:1900|max:' . (date('Y') + 1),
+            'kurikulum' => 'nullable|max:50',
             'visi' => 'required',
+
+            // Data Yayasan
+            'nama_yayasan' => 'nullable|max:150',
+            'nomor_akta_yayasan' => 'nullable|max:50',
+            'nomor_sk_kemenkumham' => 'nullable|max:50',
+            'tahun_berdiri_yayasan' => 'nullable|digits:4|integer|min:1900|max:' . (date('Y') + 1),
+            'alamat_yayasan' => 'nullable',
+            'nama_ketua_yayasan' => 'nullable|max:100',
+
+            // Alamat & Kontak
             'alamat' => 'required',
+            'desa_kelurahan' => 'nullable|max:100',
+            'kecamatan' => 'nullable|max:100',
+            'kabupaten_kota' => 'nullable|max:100',
+            'provinsi' => 'nullable|max:100',
+            'kode_pos' => 'nullable|max:10',
             'telepon' => 'required|max:30',
             'email' => 'required|email|max:100',
+            'website' => 'nullable|max:150',
+            'whatsapp' => 'nullable|max:30',
             'map_embed' => 'nullable',
+
+            // Data Kepala Sekolah
+            'nama_kepala_sekolah' => 'nullable|max:100',
+            'nip_niy' => 'nullable|max:30',
+            'npk' => 'nullable|max:30',
+            'nuptk' => 'nullable|max:30',
+            'nomor_sk_pengangkatan' => 'nullable|max:50',
+            'tanggal_sk' => 'nullable|date',
+            'pendidikan_terakhir' => 'nullable|max:50',
+
+            // Foto & Misi
             'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'misi_items' => 'required|array|min:1',
             'misi_items.*' => 'required|string|max:500',
         ]);
 
-        $profil->update([
-            'nama_madrasah' => $request->nama_madrasah,
-            'visi' => $request->visi,
-            'alamat' => $request->alamat,
-            'telepon' => $request->telepon,
-            'email' => $request->email,
-            'map_embed' => $request->map_embed,
-        ]);
+        $profil->update($request->only([
+            // Identitas Sekolah
+            'nama_madrasah', 'npsn', 'nsm', 'nis_nss', 'jenjang',
+            'status_sekolah', 'status_akreditasi', 'tahun_berdiri', 'kurikulum', 'visi',
+            // Data Yayasan
+            'nama_yayasan', 'nomor_akta_yayasan', 'nomor_sk_kemenkumham',
+            'tahun_berdiri_yayasan', 'alamat_yayasan', 'nama_ketua_yayasan',
+            // Alamat & Kontak
+            'alamat', 'desa_kelurahan', 'kecamatan', 'kabupaten_kota',
+            'provinsi', 'kode_pos', 'telepon', 'email', 'website', 'whatsapp', 'map_embed',
+            // Data Kepala Sekolah
+            'nama_kepala_sekolah', 'nip_niy', 'npk', 'nuptk',
+            'nomor_sk_pengangkatan', 'tanggal_sk', 'pendidikan_terakhir',
+        ]));
 
         if ($request->hasFile('foto')) {
             $path = $request->file('foto')->store('public/profil');
