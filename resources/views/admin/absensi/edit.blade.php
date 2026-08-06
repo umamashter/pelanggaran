@@ -1,57 +1,49 @@
 @extends('layouts.main')
 @section('title','Edit Absensi')
 @section('content')
+@include('component.admin.absensi-module')
 <style>
-.page-title-content { display: none !important; }
-:root { --ms-primary: #f59e0b; --ms-primary-dark: #d97706; --ms-primary-light: #fffbeb; --ms-border: #e2e8f0; --ms-text: #1e293b; }
-.master-absensi-page { font-family: 'Inter', 'Poppins', system-ui, sans-serif; margin-top: 22px; }
-.header-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 24px; box-shadow: 0 4px 14px rgba(0,0,0,.15); flex-shrink: 0; }
-.header-icon.warning { background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 4px 14px rgba(245,158,11,.3); }
-.badge-modern { display: inline-flex; align-items: center; padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 500; white-space: nowrap; }
-.info-card-modern { background: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 12px; padding: 16px 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px; font-size: 14px; color: #92400e; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
-.info-card-modern .info-item { display: flex; align-items: center; gap: 8px; }
-.info-card-modern .info-item i { color: #f59e0b; font-size: 16px; width: 18px; text-align: center; }
-.form-card { border: none; border-radius: 18px; box-shadow: 0 4px 16px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.04); }
-.form-card .card-body { padding: 16px 20px 20px; }
-.table-form { border-collapse: collapse; width: 100% !important; border: 1px solid var(--ms-border); border-radius: 12px; margin: 0 !important; }
-.table-form thead th { background: #f8fafc; color: #475569; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .4px; padding: 11px 14px; border-bottom: 2px solid var(--ms-border); white-space: nowrap; text-align: center; }
-.table-form tbody td { padding: 10px 14px; font-size: 13px; color: #334155; border-bottom: 1px solid #f1f5f9; vertical-align: middle; line-height: 1.5; }
-.table-form tbody tr:last-child td { border-bottom: none; }
-.table-form tbody tr:hover td { background: #f8fafc; }
-.table-form .form-select, .table-form .form-control { border-radius: 8px; border: 1.5px solid var(--ms-border); font-size: 13px; height: 38px; padding: 0 28px 0 12px; background-color: #fff; transition: all .2s; color: var(--ms-text); cursor: pointer; width: 100%; }
-.table-form .form-select:focus, .table-form .form-control:focus { border-color: var(--ms-primary); box-shadow: 0 0 0 3px rgba(245,158,11,.1); }
-.btn-update-ms { padding: 10px 28px; border-radius: 10px; font-size: 14px; font-weight: 600; border: none; background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; transition: all .25s; box-shadow: 0 4px 14px rgba(245,158,11,.3); display: inline-flex; align-items: center; gap: 8px; }
-.btn-update-ms:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(245,158,11,.4); color: #fff; }
-.btn-kembali-ms { padding: 10px 20px; border-radius: 10px; font-size: 14px; font-weight: 500; border: 1.5px solid var(--ms-border); background: #fff; color: #475569; transition: all .25s; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
-.btn-kembali-ms:hover { border-color: #f59e0b; color: #f59e0b; background: #fffbeb; }
-@media (max-width: 768px) { .info-card-modern { flex-direction: column; gap: 8px; align-items: flex-start; } .table-form thead th { font-size: 11px; padding: 9px 8px; } .table-form tbody td { padding: 8px; font-size: 12px; } }
+    .page-title-content { display: none !important; }
+    .abm-edit-hero { padding: 20px 26px; margin-bottom: 20px; border-radius: 20px; }
+    .abm-changed-badge {
+        display: inline-flex; align-items: center; gap: 5px;
+        background: var(--ab-amber-soft); color: var(--ab-amber); border: 1px solid var(--ab-amber-border);
+        border-radius: 20px; padding: 3px 10px; font-size: 10.5px; font-weight: 800; letter-spacing: .3px;
+    }
+    .abm-student.has-changed { border-color: var(--ab-amber); box-shadow: 0 0 0 3px var(--ab-amber-soft); }
+    html.dark-mode .abm-student.has-changed { box-shadow: 0 0 0 3px rgba(251,191,36,.14); }
 </style>
 
-<div class="master-absensi-page">
-    <div class="card border-0 shadow-sm mb-4" style="border-radius: 16px;">
-        <div class="card-body p-4">
-            <div class="d-flex align-items-center gap-3">
-                <div class="header-icon warning"><i class="fas fa-edit"></i></div>
-                <div>
-                    <h4 class="mb-1 fw-bold" style="color: var(--ms-text); font-size: 20px;">Edit Absensi</h4>
-                    <span class="badge-modern" style="background:#fffbeb;color:#d97706;">
-                        <i class="fas fa-calendar-day me-1"></i>
-                        {{ $absensi->tanggal->translatedFormat('d F Y') }}
-                    </span>
+<div class="abs-mod master-absensi-page">
+    {{-- ===== HERO ===== --}}
+    <div class="abm-hero abm-edit-hero">
+        <div class="abm-hero-grid"></div>
+        <div class="abm-hero-row">
+            <div class="abm-hero-left">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="abm-hero-icon"><i class="fas fa-edit"></i></div>
+                    <div>
+                        <h3>Edit Absensi</h3>
+                        <p class="abm-hero-sub">Perbaiki kehadiran siswa yang sudah tercatat.</p>
+                    </div>
                 </div>
+            </div>
+            <div class="abm-hero-badges" style="margin-top:0;">
+                <span class="abm-hero-badge"><i class="fas fa-calendar-day"></i> {{ $absensi->tanggal->translatedFormat('d F Y') }}</span>
+                <span class="abm-hero-badge"><i class="fas fa-chalkboard"></i> {{ $absensi->kelas?->nama_kelas ?? '-' }}</span>
             </div>
         </div>
     </div>
 
     @if(session('error'))
-    <div class="alert alert-danger d-flex align-items-center gap-2" style="border-radius:12px;font-size:13px;border:none;background:linear-gradient(135deg,#fef2f2,#fee2e2);color:#991b1b;">
+    <div class="abm-alert abm-alert--danger">
         <i class="fas fa-exclamation-circle"></i>
         <div>{{ session('error') }}</div>
     </div>
     @endif
 
     @if($errors->any())
-    <div class="alert alert-danger d-flex align-items-center gap-2" style="border-radius:12px;font-size:13px;border:none;background:linear-gradient(135deg,#fef2f2,#fee2e2);color:#991b1b;">
+    <div class="abm-alert abm-alert--danger">
         <i class="fas fa-exclamation-circle"></i>
         <div>
             @foreach($errors->all() as $error)
@@ -61,117 +53,123 @@
     </div>
     @endif
 
-    <div class="info-card-modern mb-4">
-        <div class="info-item"><i class="fas fa-chalkboard"></i><span><strong>Kelas :</strong> {{ $absensi->kelas?->nama_kelas ?? '-' }}</span></div>
-        <div class="info-item"><i class="fas fa-graduation-cap"></i><span><strong>Tahun Ajaran :</strong> {{ $absensi->tahunAjaran?->tahun_ajaran ?? '-' }}</span></div>
-        <div class="info-item"><i class="fas fa-users"></i><span><strong>Jumlah Siswa :</strong> {{ $siswas->count() }}</span></div>
-    </div>
-
-    <div class="card form-card">
-        <div class="card-body">
-            <form id="absensiForm" action="{{ route('absensi.update', $absensi->id) }}" method="POST">
-                @csrf
-                @method('PUT')
-                @if(!empty($singleSiswaId))
-                <input type="hidden" name="siswa" value="{{ $singleSiswaId }}">
-                @endif
-
-                <div class="table-responsive">
-                    <table class="table table-form">
-                        <thead>
-                            <tr>
-                                <th width="60">No</th>
-                                <th>NISN</th>
-                                <th>Nama Siswa</th>
-                                <th width="180">Status</th>
-                                <th width="200">Keterangan</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($siswas as $siswa)
-                            <tr>
-                                <td class="text-center">{{ $loop->iteration }}</td>
-                                <td>{{ $siswa->nisn }}</td>
-                                <td>{{ $siswa->nama }}</td>
-                                <td>
-                                    <select name="status[{{ $siswa->id }}]" class="form-select">
-                                        <option value="H" {{ ($detailMap[$siswa->id] ?? 'H') == 'H' ? 'selected' : '' }}>Hadir</option>
-                                        <option value="I" {{ ($detailMap[$siswa->id] ?? 'H') == 'I' ? 'selected' : '' }}>Izin</option>
-                                        <option value="S" {{ ($detailMap[$siswa->id] ?? 'H') == 'S' ? 'selected' : '' }}>Sakit</option>
-                                        <option value="A" {{ ($detailMap[$siswa->id] ?? 'H') == 'A' ? 'selected' : '' }}>Alpha</option>
-                                    </select>
-                                </td>
-                                <td>
-                                    <input type="text" name="keterangan[{{ $siswa->id }}]" class="form-control" placeholder="Keterangan (opsional)" value="{{ $keteranganMap[$siswa->id] ?? '' }}">
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="d-flex gap-2 mt-4">
-                    <button type="button" id="btnSimpan" class="btn-update-ms">
-                        <i class="fas fa-save"></i> {{ $siswas->count() === 1 ? 'Update Status Siswa' : 'Update Absensi' }}
-                    </button>
-                    <a href="{{ route('absensi.riwayat') }}" class="btn-kembali-ms">
-                        <i class="fas fa-arrow-left"></i> Kembali
-                    </a>
-                </div>
-            </form>
+    <div class="abm-card" style="padding:14px 18px;margin-bottom:16px;">
+        <div class="d-flex flex-wrap align-items-center gap-3">
+            <div class="abm-kelas-avatar c1" style="width:44px;height:44px;">{{ substr($absensi->kelas?->nama_kelas ?? 'AB', 0, 2) }}</div>
+            <div style="flex:1;min-width:160px;">
+                <div class="abm-kelas-name">{{ $absensi->kelas?->nama_kelas ?? '-' }}</div>
+                <div class="abm-kelas-meta">{{ $absensi->tahunAjaran?->tahun_ajaran ?? '-' }}</div>
+            </div>
+            <span class="abm-chip abm-chip--blue"><i class="fas fa-users"></i> {{ $siswas->count() }} Siswa</span>
+            @if($absensi->user)
+            <span class="abm-chip abm-chip--muted"><i class="fas fa-user-tie"></i> {{ $absensi->user->name }}</span>
+            @endif
+            @if(isset($singleSiswaId) && $singleSiswaId)
+            <span class="abm-chip abm-chip--warn"><i class="fas fa-user-edit"></i> Edit Satu Siswa</span>
+            @endif
         </div>
     </div>
+
+    <form id="absensiForm" action="{{ route('absensi.update', $absensi->id) }}" method="POST">
+        @csrf
+        @method('PUT')
+        @if(!empty($singleSiswaId))
+        <input type="hidden" name="siswa" value="{{ $singleSiswaId }}">
+        @endif
+
+        <div class="abm-card" style="padding:18px 20px 0;">
+            <div class="abm-toolbar" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
+                <div class="abm-search" style="flex:1 1 220px;max-width:340px;">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="siswaSearch" placeholder="Cari nama atau NISN siswa..." autocomplete="off">
+                </div>
+                <div class="abm-counter">
+                    <span class="abm-counter-item h"><i class="fas fa-circle" style="font-size:7px;"></i> Hadir <b id="cH">0</b></span>
+                    <span class="abm-counter-item i"><i class="fas fa-circle" style="font-size:7px;"></i> Izin <b id="cI">0</b></span>
+                    <span class="abm-counter-item s"><i class="fas fa-circle" style="font-size:7px;"></i> Sakit <b id="cS">0</b></span>
+                    <span class="abm-counter-item a"><i class="fas fa-circle" style="font-size:7px;"></i> Alpha <b id="cA">0</b></span>
+                </div>
+                <span class="abm-chip abm-chip--warn ms-auto"><i class="fas fa-sync-alt"></i> <span id="changedCount">0</span> perubahan</span>
+            </div>
+
+            <div class="abm-student-list">
+                @foreach($siswas as $siswa)
+                @php
+                    $currentStatus = $detailMap[$siswa->id] ?? 'H';
+                    $statusKey = strtolower($currentStatus);
+                    $avatarClass = 'c' . ($loop->index % 6);
+                @endphp
+                <div class="abm-student is-on-{{ $statusKey }}" data-id="{{ $siswa->id }}" data-original="{{ $currentStatus }}" data-name="{{ strtolower($siswa->nama) }}" data-nisn="{{ $siswa->nisn }}" tabindex="0">
+                    <span class="abm-student-no">{{ $loop->iteration }}</span>
+                    <div class="abm-student-avatar {{ $avatarClass }}">{{ substr($siswa->nama, 0, 1) }}</div>
+                    <div class="abm-student-main">
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <span class="abm-student-name">{{ $siswa->nama }}</span>
+                            <span class="abm-changed-badge" style="display:none;"><i class="fas fa-edit"></i> BERUBAH</span>
+                        </div>
+                        <div class="abm-student-nisn">NISN: {{ $siswa->nisn }}</div>
+                    </div>
+                    <div class="abm-stepper" role="radiogroup" aria-label="Status {{ $siswa->nama }}">
+                        <button type="button" class="abm-step {{ $currentStatus == 'H' ? 'is-on-h' : '' }}" data-status="H" title="Hadir"><span class="k">H</span>Hadir</button>
+                        <button type="button" class="abm-step {{ $currentStatus == 'I' ? 'is-on-i' : '' }}" data-status="I" title="Izin"><span class="k">I</span>Izin</button>
+                        <button type="button" class="abm-step {{ $currentStatus == 'S' ? 'is-on-s' : '' }}" data-status="S" title="Sakit"><span class="k">S</span>Sakit</button>
+                        <button type="button" class="abm-step {{ $currentStatus == 'A' ? 'is-on-a' : '' }}" data-status="A" title="Alpha"><span class="k">A</span>Alpha</button>
+                    </div>
+                    <div class="abm-keterangan-wrap {{ $currentStatus == 'H' ? 'is-hidden' : '' }}">
+                        <input type="text" class="abm-keterangan" name="keterangan[{{ $siswa->id }}]" placeholder="Catatan (opsional)" value="{{ $keteranganMap[$siswa->id] ?? '' }}" {{ $currentStatus == 'H' ? 'disabled' : '' }}>
+                    </div>
+                    <button type="button" class="abm-undo" title="Kembalikan ke status awal" style="display:none;"><i class="fas fa-undo"></i></button>
+                    <input type="hidden" name="status[{{ $siswa->id }}]" value="{{ $currentStatus }}">
+                </div>
+                @endforeach
+            </div>
+        </div>
+
+        <div class="abm-actionbar">
+            <div class="abm-actionbar-count">Total <b id="actTotal">0</b> siswa</div>
+            <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;">
+                <button type="button" id="btnReset" class="abm-btn abm-btn--soft"><i class="fas fa-undo-alt"></i> Reset Semua</button>
+                <a href="{{ route('absensi.riwayat') }}" class="abm-btn abm-btn--outline"><i class="fas fa-arrow-left"></i> Kembali</a>
+                <button type="button" id="btnSimpan" class="abm-btn abm-btn--solid">
+                    <i class="fas fa-save"></i> {{ $siswas->count() === 1 ? 'Update Status Siswa' : 'Update Absensi' }}
+                </button>
+            </div>
+        </div>
+    </form>
 </div>
 
+{{-- Modal Konfirmasi --}}
 <div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="border-radius:16px;border:none;box-shadow:0 8px 32px rgba(0,0,0,.12);">
-            <div class="modal-body p-4">
-                <div class="text-center mb-3">
-                    <div class="d-inline-flex align-items-center justify-content-center" style="width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#f59e0b,#d97706);box-shadow:0 4px 14px rgba(245,158,11,.3);">
-                        <i class="fas fa-clipboard-check text-white" style="font-size:24px;"></i>
-                    </div>
-                    <h5 class="mt-3 fw-bold" style="color:#1e293b;">Konfirmasi Update Absensi</h5>
-                </div>
-                <div style="background:#f8fafc;border-radius:12px;padding:16px 20px;margin-bottom:16px;">
+        <div class="modal-content" style="border-radius:18px;border:none;box-shadow:0 8px 32px rgba(0,0,0,.14);">
+            <div class="modal-body abm-modal-body text-center">
+                <div class="abm-modal-icon"><i class="fas fa-clipboard-check"></i></div>
+                <h5 class="mt-3 fw-bold" style="color:var(--ab-text);">Konfirmasi Update Absensi</h5>
+                <div style="background:var(--ab-border-soft);border-radius:12px;padding:14px 18px;margin:16px 0;">
                     <div class="d-flex justify-content-between mb-2">
-                        <span style="color:#64748b;font-size:13px;"><i class="fas fa-chalkboard me-1"></i>Kelas</span>
-                        <strong style="color:#1e293b;font-size:13px;">{{ $absensi->kelas?->nama_kelas ?? '-' }}</strong>
+                        <span style="color:var(--ab-text-3);font-size:13px;"><i class="fas fa-chalkboard me-1"></i>Kelas</span>
+                        <strong style="color:var(--ab-text);font-size:13px;">{{ $absensi->kelas?->nama_kelas ?? '-' }}</strong>
                     </div>
                     <div class="d-flex justify-content-between mb-2">
-                        <span style="color:#64748b;font-size:13px;"><i class="fas fa-calendar me-1"></i>Tanggal</span>
-                        <strong style="color:#1e293b;font-size:13px;">{{ $absensi->tanggal->translatedFormat('d F Y') }}</strong>
+                        <span style="color:var(--ab-text-3);font-size:13px;"><i class="fas fa-calendar me-1"></i>Tanggal</span>
+                        <strong style="color:var(--ab-text);font-size:13px;">{{ $absensi->tanggal->translatedFormat('d F Y') }}</strong>
                     </div>
                     <div class="d-flex justify-content-between">
-                        <span style="color:#64748b;font-size:13px;"><i class="fas fa-users me-1"></i>Total Siswa</span>
-                        <strong style="color:#1e293b;font-size:13px;">{{ $siswas->count() }} Siswa</strong>
+                        <span style="color:var(--ab-text-3);font-size:13px;"><i class="fas fa-users me-1"></i>Total Siswa</span>
+                        <strong style="color:var(--ab-text);font-size:13px;">{{ $siswas->count() }} Siswa</strong>
                     </div>
                 </div>
-                <div class="d-flex justify-content-center gap-3 mb-3">
-                    <div class="text-center">
-                        <div style="font-size:22px;font-weight:700;color:#16a34a;" id="confirmH">0</div>
-                        <div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;">Hadir</div>
-                    </div>
-                    <div class="text-center">
-                        <div style="font-size:22px;font-weight:700;color:#d97706;" id="confirmI">0</div>
-                        <div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;">Izin</div>
-                    </div>
-                    <div class="text-center">
-                        <div style="font-size:22px;font-weight:700;color:#dc2626;" id="confirmS">0</div>
-                        <div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;">Sakit</div>
-                    </div>
-                    <div class="text-center">
-                        <div style="font-size:22px;font-weight:700;color:#64748b;" id="confirmA">0</div>
-                        <div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;">Alpha</div>
-                    </div>
+                <div class="abm-counter" style="justify-content:center;margin-bottom:14px;">
+                    <span class="abm-counter-item h">Hadir <b id="confirmH">0</b></span>
+                    <span class="abm-counter-item i">Izin <b id="confirmI">0</b></span>
+                    <span class="abm-counter-item s">Sakit <b id="confirmS">0</b></span>
+                    <span class="abm-counter-item a">Alpha <b id="confirmA">0</b></span>
                 </div>
-                <p class="text-center" style="color:#64748b;font-size:13px;">Apakah Anda yakin ingin memperbarui absensi ini?</p>
+                <p style="color:var(--ab-text-2);font-size:13px;margin-bottom:0;">Apakah Anda yakin ingin memperbarui absensi ini?</p>
             </div>
             <div class="modal-footer border-0 pt-0 pb-4 px-4" style="justify-content:center;gap:8px;">
-                <button type="button" class="btn" data-bs-dismiss="modal" style="padding:8px 20px;border-radius:10px;font-size:13px;font-weight:500;border:1.5px solid #e2e8f0;background:#fff;color:#475569;">Batal</button>
-                <button type="button" class="btn" id="confirmBtn" style="padding:8px 20px;border-radius:10px;font-size:13px;font-weight:600;border:none;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;box-shadow:0 2px 8px rgba(245,158,11,.25);">
-                    <i class="fas fa-save me-1"></i>Ya, Update Absensi
-                </button>
+                <button type="button" class="abm-btn abm-btn--soft" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="abm-btn abm-btn--solid" id="confirmBtn"><i class="fas fa-save me-1"></i>Ya, Update Absensi</button>
             </div>
         </div>
     </div>
@@ -181,25 +179,114 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     var form = document.getElementById('absensiForm');
+    if (!form) return;
+
+    var rows = Array.prototype.slice.call(document.querySelectorAll('.abm-student'));
+    var total = rows.length;
+
+    function countStatus() {
+        var h = 0, i = 0, s = 0, a = 0, changed = 0;
+        rows.forEach(function(row) {
+            var input = row.querySelector('input[type="hidden"][name^="status"]');
+            switch (input.value) {
+                case 'H': h++; break;
+                case 'I': i++; break;
+                case 'S': s++; break;
+                case 'A': a++; break;
+            }
+            if (input.value !== row.getAttribute('data-original')) changed++;
+        });
+        document.getElementById('cH').textContent = h;
+        document.getElementById('cI').textContent = i;
+        document.getElementById('cS').textContent = s;
+        document.getElementById('cA').textContent = a;
+        document.getElementById('actTotal').textContent = total;
+        document.getElementById('changedCount').textContent = changed;
+    }
+
+    function syncChanged(row) {
+        var input = row.querySelector('input[type="hidden"][name^="status"]');
+        var isChanged = input.value !== row.getAttribute('data-original');
+        row.classList.toggle('has-changed', isChanged);
+        row.querySelector('.abm-changed-badge').style.display = isChanged ? 'inline-flex' : 'none';
+        row.querySelector('.abm-undo').style.display = isChanged ? 'inline-flex' : 'none';
+    }
+
+    function setStatus(row, status) {
+        row.classList.remove('is-on-h', 'is-on-i', 'is-on-s', 'is-on-a');
+        row.classList.add('is-on-' + status.toLowerCase());
+        row.querySelectorAll('.abm-step').forEach(function(btn) {
+            btn.classList.remove('is-on-h', 'is-on-i', 'is-on-s', 'is-on-a');
+            if (btn.getAttribute('data-status') === status) btn.classList.add('is-on-' + status.toLowerCase());
+        });
+        row.querySelector('input[type="hidden"][name^="status"]').value = status;
+        var ket = row.querySelector('.abm-keterangan-wrap');
+        var ketInput = row.querySelector('.abm-keterangan');
+        if (status === 'H') {
+            ket.classList.add('is-hidden');
+            ketInput.disabled = true;
+        } else {
+            ket.classList.remove('is-hidden');
+            ketInput.disabled = false;
+        }
+        syncChanged(row);
+        countStatus();
+    }
+
+    function restore(row) {
+        setStatus(row, row.getAttribute('data-original'));
+    }
+
+    rows.forEach(function(row) {
+        row.querySelectorAll('.abm-step').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                setStatus(row, this.getAttribute('data-status'));
+            });
+        });
+        row.querySelector('.abm-undo').addEventListener('click', function(e) {
+            e.stopPropagation();
+            restore(row);
+        });
+        row.addEventListener('click', function() {
+            rows.forEach(function(r) { r.classList.remove('is-selected'); });
+            row.classList.add('is-selected');
+        });
+    });
+
+    var search = document.getElementById('siswaSearch');
+    if (search) {
+        search.addEventListener('input', function() {
+            var q = this.value.trim().toLowerCase();
+            rows.forEach(function(row) {
+                var hay = row.getAttribute('data-name') + ' ' + row.getAttribute('data-nisn');
+                row.style.display = hay.indexOf(q) !== -1 ? '' : 'none';
+            });
+        });
+    }
+
+    document.getElementById('btnReset').addEventListener('click', function() {
+        if (!confirm('Kembalikan semua status ke data awal?')) return;
+        rows.forEach(restore);
+    });
+
     var btnSimpan = document.getElementById('btnSimpan');
     var confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
 
     btnSimpan.addEventListener('click', function() {
         var h = 0, i = 0, s = 0, a = 0;
-        document.querySelectorAll('select[name^="status"]').forEach(function(sel) {
-            switch(sel.value) {
+        rows.forEach(function(row) {
+            switch (row.querySelector('input[type="hidden"][name^="status"]').value) {
                 case 'H': h++; break;
                 case 'I': i++; break;
                 case 'S': s++; break;
                 case 'A': a++; break;
             }
         });
-
         document.getElementById('confirmH').textContent = h;
         document.getElementById('confirmI').textContent = i;
         document.getElementById('confirmS').textContent = s;
         document.getElementById('confirmA').textContent = a;
-
         confirmModal.show();
     });
 
@@ -207,6 +294,8 @@ document.addEventListener('DOMContentLoaded', function() {
         confirmModal.hide();
         form.submit();
     });
+
+    countStatus();
 });
 </script>
 @endpush

@@ -27,8 +27,10 @@
     const hasSidebar = !!sidebar;
 
     let isFlyout = false;
+    let isHybrid = false;
     if (sidebar) {
         isFlyout = sidebar.classList.contains('sidebar--flyout');
+        isHybrid = sidebar.classList.contains('sidebar--hybrid');
     }
 
 
@@ -331,6 +333,72 @@
 
 
     /* ============================================================
+       HYBRID SUBMENU — admin sidebar V2
+       Expanded  : accordion inline (height animation, satu terbuka)
+       Collapsed : flyout panel di samping icon rail
+       ============================================================ */
+
+    function initHybrid() {
+        if (!hasSidebar) return;
+
+        // Click toggle -> accordion (expanded) / flyout (collapsed)
+        sidebar.addEventListener('click', function (e) {
+            const toggle = e.target.closest('.menu-toggle, [data-flyout-toggle]');
+            if (!toggle) return;
+            e.preventDefault();
+            const parentItem = toggle.closest('.menu-item.has-submenu');
+            if (!parentItem) return;
+            if (sidebar.classList.contains(TOGGLE_CLASS)) {
+                toggleFlyout(parentItem);
+            } else {
+                toggleSubmenu(toggle);
+                const isOpen = parentItem.classList.contains('open');
+                toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            }
+        });
+
+        // Click outside closes flyouts (but not inside context panel)
+        document.addEventListener('click', function (e) {
+            if (!openFlyoutItem) return;
+            const withinSidebar = e.target.closest('#sidebar');
+            const withinFlyout = e.target.closest('.menu-submenu');
+            const withinContext = e.target.closest('.context-panel');
+            if (!withinSidebar && !withinFlyout && !withinContext) closeAllFlyouts();
+        });
+
+        // ESC closes all
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && openFlyoutItem) closeAllFlyouts();
+        });
+
+        // Scroll / resize closes all
+        let scrollTimer = null;
+        function onScrollOrResize() {
+            if (!openFlyoutItem) return;
+            closeAllFlyouts();
+        }
+        window.addEventListener('scroll', onScrollOrResize, true);
+        window.addEventListener('resize', onScrollOrResize);
+
+        // Sync aria-expanded on collapse toggles
+        function syncAccordionAria() {
+            sidebar.querySelectorAll('.menu-item.has-submenu > .menu-link').forEach(function (link) {
+                const parentItem = link.closest('.menu-item.has-submenu');
+                link.setAttribute('aria-expanded', parentItem.classList.contains('open') ? 'true' : 'false');
+            });
+        }
+        syncAccordionAria();
+
+        const toggler = document.querySelector(TOGGLER_SEL);
+        if (toggler) toggler.addEventListener('click', syncAccordionAria);
+
+        // Auto-open active accordion parent on page load
+        autoOpenActive();
+        syncAccordionAria();
+    }
+
+
+    /* ============================================================
        CONTEXT PANEL — Enterprise context selector
        Opens when clicking [data-context-panel] triggers
        ============================================================ */
@@ -535,6 +603,8 @@
             // Navigation mode
             if (isFlyout) {
                 initFlyout();
+            } else if (isHybrid) {
+                initHybrid();
             } else {
                 initSubmenus();
                 autoOpenActive();

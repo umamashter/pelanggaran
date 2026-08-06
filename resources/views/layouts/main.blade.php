@@ -241,6 +241,94 @@
             color: #fff !important;
         }
 
+        /* ============================================================
+           Interaction & motion (60fps — hanya transform/opacity)
+           ============================================================ */
+
+        /* Page enter transition (fade + slide halus di tiap navigasi) */
+        .content-wrapper--with-bg {
+            animation: msPageEnter .25s cubic-bezier(.16, 1, .3, 1) both;
+        }
+
+        @keyframes msPageEnter {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        /* Modal zoom-in */
+        .modal.fade .modal-dialog {
+            transform: scale(.92);
+            transition: transform .28s cubic-bezier(.16, 1, .3, 1);
+        }
+
+        .modal.show .modal-dialog {
+            transform: scale(1);
+        }
+
+        /* Dropdown slide-down */
+        .dropdown-menu.show {
+            transform-origin: top center;
+            animation: msDropDown .18s ease-out both;
+        }
+
+        @keyframes msDropDown {
+            from {
+                opacity: 0;
+                transform: translateY(-8px) scale(.98);
+            }
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        /* Tooltip fade-in 150ms */
+        .tooltip.fade {
+            transition: opacity .15s linear;
+        }
+
+        /* Tabel: fade-up tiap baris saat data dimuat */
+        .table-card table tbody tr {
+            animation: msRowIn .45s cubic-bezier(.16, 1, .3, 1) both;
+        }
+
+        .table-card table tbody tr:nth-child(1) { animation-delay: .04s; }
+        .table-card table tbody tr:nth-child(2) { animation-delay: .08s; }
+        .table-card table tbody tr:nth-child(3) { animation-delay: .12s; }
+        .table-card table tbody tr:nth-child(4) { animation-delay: .16s; }
+        .table-card table tbody tr:nth-child(5) { animation-delay: .20s; }
+        .table-card table tbody tr:nth-child(6) { animation-delay: .24s; }
+        .table-card table tbody tr:nth-child(7) { animation-delay: .28s; }
+        .table-card table tbody tr:nth-child(8) { animation-delay: .32s; }
+
+        @keyframes msRowIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .content-wrapper--with-bg,
+            .modal.fade .modal-dialog,
+            .dropdown-menu.show,
+            .tooltip.fade,
+            .table-card table tbody tr {
+                animation: none;
+                transition: none;
+            }
+        }
+
         @media print {
 
             form,

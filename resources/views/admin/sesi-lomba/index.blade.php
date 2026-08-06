@@ -1,638 +1,331 @@
 @extends('layouts.main')
 @section('title', 'Sesi Lomba')
-
 @section('content')
-@include('component.admin.ms-style')
+@include('component.admin.lomba-workspace')
 <style>
-    /* ---- Filter pill — model sama dengan login-history / anggota-kelompok ---- */
-    .filter-lomba-wrap {
-        position: relative;
-    }
-
-    .filter-lomba-wrap .form-select {
-        height: 34px;
-        border-radius: 18px;
-        border: 1.5px solid #e2e8f0;
-        font-size: 12px;
-        padding: 0 30px 0 34px;
-        background-color: #f8fafc;
-        color: #475569;
-        min-width: 150px;
-        cursor: pointer;
-        transition: all .25s;
-        appearance: none;
-        -webkit-appearance: none;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 14px center;
-        background-size: 12px;
-    }
-
-    .filter-lomba-wrap .form-select:focus {
-        border-color: #16a34a;
-        box-shadow: 0 0 0 3px rgba(22, 163, 74, .1);
-        background-color: #fff;
-    }
-
-    .filter-lomba-wrap .filter-icon-prepend {
-        position: absolute;
-        left: 12px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #94a3b8;
-        font-size: 12px;
-        pointer-events: none;
-        z-index: 1;
-    }
-
-    .filter-lomba-wrap .form-select:hover {
-        border-color: #cbd5e1;
-        background-color: #fff;
-    }
-
-    .search-pill {
-        height: 34px;
-        border: 1.5px solid #e2e8f0;
-        border-radius: 18px;
-        font-size: 12px;
-        padding: 0 16px 0 34px;
-        background-color: #f8fafc;
-        color: #475569;
-        min-width: 240px;
-        transition: all .25s;
-        outline: none;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: 12px center;
-        background-size: 14px;
-    }
-
-    .search-pill:focus {
-        border-color: #16a34a;
-        box-shadow: 0 0 0 3px rgba(22, 163, 74, .1);
-        background-color: #fff;
-    }
-
-    .search-pill::placeholder {
-        color: #94a3b8;
-    }
-
-    .dt-toolbar {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        align-items: center;
-        gap: 12px;
-        margin: 0 0 14px;
-    }
-
-    .dt-left,
-    .dt-right {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        flex-wrap: wrap;
-    }
-
-    .dt-length-group {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 12px;
-        color: #64748b;
-    }
-
-    .pagination-ms {
-        display: flex;
-        justify-content: flex-end;
-    }
-
-    .pagination-ms .pagination {
-        margin: 0;
-        gap: 4px;
-    }
-
-    .pagination-ms .page-link {
-        min-width: 34px;
-        height: 34px;
-        padding: 0 10px;
-        border-radius: 8px;
-        font-size: 13px;
-        font-weight: 500;
-        line-height: 32px;
-        color: #475569;
-        background: #fff;
-        border: 1px solid var(--ms-border);
-        box-shadow: none;
-    }
-
-    .pagination-ms .page-link:hover {
-        border-color: var(--ms-primary);
-        color: var(--ms-primary);
-        background: var(--ms-primary-light);
-    }
-
-    .pagination-ms .page-item.active .page-link {
-        background: var(--ms-primary);
-        border-color: var(--ms-primary);
-        color: #fff;
-        box-shadow: 0 2px 6px rgba(22, 163, 74, .25);
-    }
-
-    .pagination-ms .page-item.disabled .page-link {
-        opacity: .4;
-        background: #f8fafc;
-    }
-
-    .btn-header-ms.btn-simpan-ms.btn-compact {
-        height: 34px;
-        padding: 0 14px;
-        font-size: 12px;
-        border-radius: 8px;
-    }
-
-    @media (max-width: 768px) {
-        .card-body.p-4.d-flex.flex-column.flex-xl-row.justify-content-between.align-items-xl-center.gap-3 > a.btn-header-ms {
-            align-self: flex-start;
-            width: fit-content;
-        }
-
-        #sesiLombaFilter.dt-toolbar {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 6px;
-            align-items: center;
-        }
-
-        #sesiLombaFilter .dt-left {
-            display: contents;
-        }
-
-        #sesiLombaFilter .dt-left .dt-length-group {
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-            gap: 2px;
-        }
-
-        #sesiLombaFilter .dt-left .dt-length-group span {
-            font-size: 10px;
-        }
-
-        #sesiLombaFilter .dt-left .dt-length-group .filter-lomba-wrap {
-            min-width: 0 !important;
-        }
-
-        #sesiLombaFilter .dt-left .dt-length-group .filter-lomba-wrap .filter-icon-prepend {
-            display: none;
-        }
-
-        #sesiLombaFilter .dt-left .dt-length-group .filter-lomba-wrap .form-select {
-            width: 44px !important;
-            min-width: 0 !important;
-            padding: 0 16px 0 8px;
-            font-size: 10px;
-            height: 28px;
-        }
-
-        #sesiLombaFilter .dt-left > .filter-lomba-wrap {
-            min-width: 0 !important;
-        }
-
-        #sesiLombaFilter .dt-left > .filter-lomba-wrap .filter-icon-prepend {
-            display: none;
-        }
-
-        #sesiLombaFilter .dt-left > .filter-lomba-wrap .form-select {
-            width: 100% !important;
-            min-width: 0 !important;
-            font-size: 10px;
-            padding: 0 16px 0 8px;
-            height: 28px !important;
-        }
-
-        #sesiLombaFilter .dt-right {
-            grid-column: 1 / -1;
-        }
-
-        #sesiLombaFilter .dt-right .search-pill {
-            width: 100%;
-            min-width: 0 !important;
-            box-sizing: border-box;
-            height: 28px !important;
-            font-size: 10px !important;
-            padding: 0 16px 0 8px !important;
-        }
-    }
-
-    /* ============================================================
-       MODAL HAPUS — premium styling (light mode only)
-       ============================================================ */
-    .modal-header-custom {
-        padding: 18px 24px;
-        border-bottom: none;
-    }
-
-    .modal-body-custom {
-        padding: 16px 24px 20px;
-    }
-
-    html:not(.dark-mode) .modal-content {
-        border: none;
-        border-radius: 20px;
-        box-shadow: 0 24px 80px rgba(0,0,0,.15);
-        overflow: hidden;
-    }
-
-    html.dark-mode .table-card {
-        border: 2px solid #175265 !important;
-    }
-
-    html.dark-mode .modal-content {
-        background: #0d2f38 !important;
-        border: 2px solid #175265 !important;
-        border-radius: 24px !important;
-        box-shadow: 0 30px 70px -16px rgba(0,0,0,.7) !important;
-        backdrop-filter: none !important;
-        -webkit-backdrop-filter: none !important;
-    }
-
-    html:not(.dark-mode) .modal.fade .modal-dialog {
-        transform: scale(0.92) translateY(16px);
-        transition: transform .3s cubic-bezier(.2, .8, .2, 1);
-    }
-
-    html:not(.dark-mode) .modal.show .modal-dialog {
-        transform: scale(1) translateY(0);
-    }
-
-    .delete-icon-wrap {
-        width: 80px;
-        height: 80px;
-        border-radius: 50%;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 4px;
-    }
-
-    html:not(.dark-mode) .delete-icon-wrap {
-        background: linear-gradient(135deg, #fef2f2, #fee2e2);
-        animation: deletePulse 2s ease-in-out infinite;
-    }
-
-    html.dark-mode .delete-icon-wrap {
-        background: rgba(220,38,38,.15);
-        box-shadow: 0 0 20px rgba(220,38,38,.1);
-    }
-
-    .delete-icon-wrap i {
-        font-size: 32px;
-        color: #dc2626;
-    }
-
-    html:not(.dark-mode) .delete-icon-wrap i {
-        animation: deleteShake 3s ease-in-out infinite;
-    }
-
-    @keyframes deletePulse {
-        0%, 100% { box-shadow: 0 0 0 0 rgba(220,38,38,.15); }
-        50% { box-shadow: 0 0 0 12px rgba(220,38,38,0); }
-    }
-
-    @keyframes deleteShake {
-        0%, 100% { transform: rotate(0deg); }
-        2% { transform: rotate(8deg); }
-        4% { transform: rotate(-6deg); }
-        6% { transform: rotate(4deg); }
-        8% { transform: rotate(0deg); }
-    }
-
-    .delete-info-box {
-        border-left: 4px solid #dc2626;
-        border-radius: 12px;
-        padding: 14px 18px;
-    }
-
-    html:not(.dark-mode) .delete-info-box {
-        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
-        border: 1px solid #e2e8f0;
-    }
-
-    html.dark-mode .delete-info-box {
-        background: rgba(255,255,255,.04);
-        border: 1px solid rgba(255,255,255,.1);
-    }
-
-    .delete-info-box .delete-label {
-        font-size: 11px;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: .5px;
-        color: #94a3b8;
-        margin-bottom: 2px;
-    }
-
-    .delete-info-box .delete-value {
-        font-weight: 700;
-        font-size: 16px;
-    }
-
-    html:not(.dark-mode) .delete-info-box .delete-value {
-        color: var(--ms-text);
-    }
-
-    html.dark-mode .delete-info-box .delete-value {
-        color: var(--text-primary);
-    }
-
-    .btn-delete-final {
-        border: none !important;
-        border-radius: 10px !important;
-        padding: 9px 22px !important;
-        font-weight: 600 !important;
-        font-size: 13px !important;
-        transition: all .25s !important;
-    }
-
-    html:not(.dark-mode) .btn-delete-final {
-        background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
-        color: #fff !important;
-        box-shadow: 0 4px 14px rgba(220,38,38,.3) !important;
-    }
-
-    html.dark-mode .btn-delete-final {
-        background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
-        color: #fff !important;
-        box-shadow: 0 4px 14px rgba(220,38,38,.4) !important;
-    }
-
-    .btn-delete-final:hover {
-        transform: translateY(-2px) !important;
-    }
-
-    html:not(.dark-mode) .btn-delete-final:hover {
-        box-shadow: 0 8px 24px rgba(220,38,38,.4) !important;
-    }
-
-    html.dark-mode .btn-delete-final:hover {
-        box-shadow: 0 8px 24px rgba(220,38,38,.5) !important;
-    }
-
-    .btn-delete-final:active {
-        transform: translateY(0) !important;
-    }
-
-    .btn-cancel-modal {
-        border: none !important;
-        border-radius: 10px !important;
-        padding: 9px 22px !important;
-        font-weight: 600 !important;
-        font-size: 13px !important;
-        transition: all .25s !important;
-    }
-
-    html:not(.dark-mode) .btn-cancel-modal {
-        background: #f1f5f9 !important;
-        color: #475569 !important;
-    }
-
-    html:not(.dark-mode) .btn-cancel-modal:hover {
-        background: #e2e8f0 !important;
-        color: #1e293b !important;
-    }
-
-    html.dark-mode .btn-cancel-modal {
-        background: rgba(255,255,255,.08) !important;
-        color: var(--text-secondary) !important;
-    }
-
-    html.dark-mode .btn-cancel-modal:hover {
-        background: rgba(255,255,255,.14) !important;
-        color: var(--text-primary) !important;
-    }
-
-    .btn-cancel-modal:hover {
-        transform: translateY(-1px);
-    }
+    .page-title-content { display: none !important; }
+
+    .lw-sesi-name { font-size: 13.5px; font-weight: 700; color: var(--lw-text); }
+    .lw-sesi-name a { color: inherit; text-decoration: none; }
+    .lw-sesi-name a:hover { color: var(--lw-primary); }
+    .lw-sesi-ket { font-size: 11px; color: var(--lw-text-3); }
+
+    .lw-count-chip { display: inline-flex; align-items: center; gap: 5px; min-height: 27px; padding: 0 10px; border-radius: 999px; font-size: 11.5px; font-weight: 600; }
+    .lw-count-chip.has { background: var(--lw-navy-soft); color: var(--lw-primary); border: 1px solid var(--lw-navy-border); }
+    .lw-count-chip.none { background: var(--lw-bg); color: var(--lw-text-3); border: 1px solid var(--lw-border); }
+
+    .lw-table-desktop tbody tr.is-locked { opacity: .6; }
+    .lw-table-desktop tbody tr.is-locked:hover { opacity: .75; }
+    .lw-mobile-card.locked { opacity: .7; }
 </style>
 
-<div class="master-siswa-page">
+<div class="lw-mod jd-page-sesilomba">
 
-    @if(session('success'))
-    <div class="alert alert-modern-ms alert-success alert-dismissible fade show">
-        <i class="fas fa-check-circle me-1"></i> {{ session('success') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    @endif
+@php
+    $pageItems = $sesiLombas->getCollection();
+    $activeHaflah = $haflatuls->firstWhere('id', session('haflah_id'));
+    $selectedHaflah = request('haflah_id') ? $haflatuls->firstWhere('id', (int) request('haflah_id')) : $activeHaflah;
+    $total = $sesiLombas->total();
+    $pageTotal = $pageItems->count();
+    $currentCount = max(1, $pageTotal);
 
-    {{-- Header --}}
-    <div class="card border-0 shadow-sm mb-4" style="border-radius:16px;">
-        <div class="card-body p-4 d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3">
-            <div class="d-flex align-items-center gap-3">
-                <div class="header-icon"><i class="fas fa-clock"></i></div>
-                <div>
-                    <h4 class="mb-1 fw-bold" style="color: var(--ms-text); font-size: 20px;">Sesi Lomba</h4>
-                    <span style="font-size: 13px; color: #64748b;">Kelola sesi pada setiap haflah</span>
+    $activeUsed = $pageItems->filter(fn($s) => $s->lombas_count > 0 && !$s->is_haflah_selesai)->count();
+    $freeCount = $pageItems->filter(fn($s) => $s->lombas_count == 0 && !$s->is_haflah_selesai)->count();
+    $lockedCount = $pageItems->filter(fn($s) => $s->is_haflah_selesai)->count();
+    $totalHaflah = $haflatuls->count();
+    $activeHaflahStatus = optional($activeHaflah)->status ?? '-';
+    $today = \Carbon\Carbon::now()->translatedFormat('l, d F Y');
+@endphp
+
+
+<div class="lw-hero">
+    <div class="lw-hero-grid">
+        <div class="lw-hero-left">
+            <span class="lw-hero-icon"><i class="bi bi-clock"></i></span>
+            <div>
+                <h1 class="lw-hero-title">Sesi Lomba</h1>
+                <p class="lw-hero-sub">Kelola jadwal sesi untuk setiap Haflatul Imtihan — status pemakaian langsung terlihat tanpa membuka detail.</p>
+                <div class="lw-hero-badges">
+                    <span class="lw-hero-badge"><i class="bi bi-calendar-week"></i>{{ optional($selectedHaflah)->nama_acara ?? optional($activeHaflah)->nama_acara ?? 'Haflah belum dipilih' }}</span>
+                    <span class="lw-hero-badge {{ $activeHaflahStatus === 'Selesai' ? 'lw-hero-badge--warn' : 'lw-hero-badge--ok' }}"><i class="bi bi-flag-fill"></i>{{ $activeHaflahStatus }}</span>
+                    <span class="lw-hero-badge"><i class="bi bi-calendar-event"></i>{{ $today }}</span>
                 </div>
             </div>
-            <a href="{{ route('sesi-lomba.create') }}" class="btn btn-header-ms btn-simpan-ms btn-compact">
-                <i class="fas fa-plus"></i> Tambah
-            </a>
+        </div>
+        <div class="lw-hero-right">
+            <a href="{{ route('sesi-lomba.create') }}" class="lw-btn lw-btn--light"><i class="bi bi-plus-lg"></i> Tambah</a>
+            <a href="{{ route('sesi-lomba.index') }}" class="lw-btn lw-btn--light" style="border-color:rgba(255,255,255,.15);"><i class="bi bi-arrow-clockwise"></i></a>
         </div>
     </div>
+</div>
 
-    {{-- Table card --}}
-    <div class="card table-card">
-        <div class="card-body">
+@if(session('success'))
+    <div class="lw-alert lw-alert--ok"><i class="bi bi-check-circle-fill"></i> <div><b>Berhasil</b> &middot; <span>{{ session('success') }}</span></div></div>
+@endif
+@if(session('error'))
+    <div class="lw-alert lw-alert--err"><i class="bi bi-exclamation-triangle-fill"></i> <div><b>Gagal</b> &middot; <span>{{ session('error') }}</span></div></div>
+@endif
 
-            {{-- Filter otomatis gaya DataTables, kontrol pill --}}
-            <form id="sesiLombaFilter" method="GET" class="dt-toolbar" autocomplete="off">
-                <div class="dt-left">
-                    <div class="dt-length-group">
-                        <span>Show</span>
-                        <div class="filter-lomba-wrap" style="min-width:80px;">
-                            <i class="fas fa-list-ol filter-icon-prepend"></i>
-                            <select name="per_page" class="form-select">
-                                @foreach ([10, 15, 25, 50, 100] as $opt)
-                                <option value="{{ $opt }}" {{ $perPage === $opt ? 'selected' : '' }}>{{ $opt }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <span>Entri</span>
-                    </div>
-                    <div class="filter-lomba-wrap" style="min-width:180px;">
-                        <i class="fas fa-calendar-alt filter-icon-prepend"></i>
-                        <select name="haflah_id" class="form-select">
-                            <option value="">Haflah Aktif</option>
-                            @foreach($haflatuls as $h)
-                            <option value="{{ $h->id }}" {{ request('haflah_id')==$h->id ? 'selected' : '' }}>{{ $h->nama_acara }} ({{ $h->tahunAjaran->tahun_ajaran ?? '-' }})</option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-                <div class="dt-right">
-                    <input type="search" name="search" value="{{ request('search') }}" class="search-pill" placeholder="Cari nama / tanggal...">
-                </div>
-            </form>
 
-            @if($sesiLombas->isEmpty())
-            <div class="text-center text-muted py-5">
-                <i class="fas fa-inbox fa-2x mb-3 d-block" style="opacity:.4;"></i>
-                Belum ada data sesi lomba.
-            </div>
-            @else
+<div class="lw-kpi-grid">
+    <div class="lw-kpi">
+        <span class="lw-kpi-icon navy"><i class="bi bi-layers-fill"></i></span>
+        <div class="lw-kpi-main">
+            <div class="lw-kpi-num" data-count="{{ $total }}">0</div>
+            <div class="lw-kpi-label">Total Sesi Lomba</div>
+            <div class="lw-kpi-sub">Seluruh sesi terdaftar</div>
+        </div>
+        <span class="lw-kpi-watermark"><i class="bi bi-layers"></i></span>
+    </div>
+    <div class="lw-kpi">
+        <span class="lw-kpi-icon green"><i class="bi bi-check-circle-fill"></i></span>
+        <div class="lw-kpi-main">
+            <div class="lw-kpi-num" data-count="{{ $freeCount }}">0</div>
+            <div class="lw-kpi-label">Belum Dipakai</div>
+            <div class="lw-kpi-sub">Siap dijadwalkan lomba</div>
+        </div>
+        <span class="lw-kpi-watermark"><i class="bi bi-check-circle"></i></span>
+    </div>
+    <div class="lw-kpi">
+        <span class="lw-kpi-icon amber"><i class="bi bi-diagram-3-fill"></i></span>
+        <div class="lw-kpi-main">
+            <div class="lw-kpi-num" data-count="{{ $activeUsed }}">0</div>
+            <div class="lw-kpi-label">Dipakai Lomba</div>
+            <div class="lw-kpi-sub">Sudah terpakai lomba</div>
+        </div>
+        <span class="lw-kpi-watermark"><i class="bi bi-diagram-3"></i></span>
+    </div>
+    <div class="lw-kpi">
+        <span class="lw-kpi-icon violet"><i class="bi bi-building-fill"></i></span>
+        <div class="lw-kpi-main">
+            <div class="lw-kpi-num" data-count="{{ $totalHaflah }}">0</div>
+            <div class="lw-kpi-label">Total Haflah</div>
+            <div class="lw-kpi-sub">Haflah tersedia</div>
+        </div>
+        <span class="lw-kpi-watermark"><i class="bi bi-building"></i></span>
+    </div>
+</div>
+
+
+<div class="lw-toolbar" id="slToolbar">
+    <form id="slFilter" method="GET" style="display:contents;" autocomplete="off">
+        <div class="lw-search" style="min-width:200px;">
+            <i class="bi bi-search"></i>
+            <input type="search" name="search" value="{{ request('search') }}" class="lw-control" id="slQuickSearch" placeholder="Cari nama, tanggal, haflah...">
+        </div>
+        <div class="lw-filter">
+            <label>Haflah</label>
+            <select name="haflah_id" class="lw-select">
+                <option value="">Haflah Aktif</option>
+                @foreach($haflatuls as $h)
+                    <option value="{{ $h->id }}" {{ request('haflah_id') == $h->id ? 'selected' : '' }}>{{ $h->nama_acara }} ({{ $h->tahunAjaran->tahun_ajaran ?? '-' }})</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="lw-filter" style="min-width:90px;">
+            <label>Entri</label>
+            <select name="per_page" class="lw-select">
+                @foreach([10, 15, 25, 50, 100] as $opt)
+                    <option value="{{ $opt }}" {{ (int) $perPage === $opt ? 'selected' : '' }}>{{ $opt }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="lw-toolbar-actions">
+            <a href="{{ route('sesi-lomba.index') }}" class="lw-btn lw-btn--ghost"><i class="bi bi-arrow-counterclockwise"></i> Reset</a>
+        </div>
+    </form>
+</div>
+
+
+<div class="lw-card lw-table-card">
+    <div class="lw-card-header">
+        <div>
+            <div class="lw-section-title"><i class="bi bi-table"></i> Data Sesi Lomba</div>
+            <div class="lw-section-sub" style="margin-bottom:0;">Status dan pemakaian langsung terlihat.</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <span class="lw-chip lw-chip--green"><i class="bi bi-check-circle-fill"></i> Belum Dipakai</span>
+            <span class="lw-chip lw-chip--navy"><i class="bi bi-diagram-3-fill"></i> Dipakai Lomba</span>
+            <span class="lw-chip lw-chip--red"><i class="bi bi-archive-fill"></i> Haflah Selesai</span>
+        </div>
+        <span class="lw-chip lw-chip--navy"><i class="bi bi-funnel-fill"></i> {{ $pageTotal }} dari {{ $total }}</span>
+    </div>
+
+    @if($sesiLombas->isEmpty())
+        <div class="lw-empty">
+            <div class="lw-empty-illus"><div class="ring"></div><div class="ring-2"></div><div class="core"><i class="bi bi-calendar-week"></i></div></div>
+            <div class="lw-empty-title">Belum Ada Sesi Lomba</div>
+            <div class="lw-empty-sub">Mulai dengan menambahkan sesi lomba pertama untuk Haflatul Imtihan yang sedang aktif.</div>
+            <a href="{{ route('sesi-lomba.create') }}" class="lw-btn lw-btn--solid"><i class="bi bi-plus-lg"></i> Tambah Sesi Pertama</a>
+        </div>
+    @else
+        <div class="lw-empty d-none" id="slClientEmpty" style="display:none;padding:32px 16px;"><i class="bi bi-search mb-3" style="font-size:22px;color:var(--lw-text-3);"></i><div class="lw-empty-title">Tidak ada sesi yang cocok</div><div class="lw-empty-sub">Coba ubah kata kunci pencarian atau filter haflah.</div></div>
+
+        <div class="lw-table-desktop">
             <div class="table-responsive">
-                <table class="table table-ms">
+                <table class="table table-lw align-middle">
                     <thead>
                         <tr>
-                            <th>#</th>
-                            <th>Kegiatan</th>
-                            <th>Sesi</th>
+                            <th>Haflah</th>
+                            <th>Nama Sesi</th>
                             <th>Tanggal</th>
-                            <th>Jam Mulai</th>
-                            <th>Jam Selesai</th>
-                            <th>Aksi</th>
+                            <th>Jam</th>
+                            <th>Lomba</th>
+                            <th>Status</th>
+                            <th class="text-end">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="slTableBody">
                         @foreach($sesiLombas as $sl)
-                        <tr>
-                            <td>{{ $loop->iteration }}</td>
-                            <td class="fw-semibold">{{ $sl->haflatulImtihan->nama_acara ?? '-' }}</td>
-                            <td>{{ $sl->nama }}</td>
-                            <td>{{ $sl->tanggal }}</td>
-                            <td>{{ $sl->jam_mulai }}</td>
-                            <td>{{ $sl->jam_selesai }}</td>
-                            <td>
-                                <div class="action-group-ms">
-                                    <a href="{{ route('sesi-lomba.show', $sl->id) }}" class="btn btn-outline-info" title="Detail"><i class="fas fa-eye"></i></a>
-                                    @if($sl->is_haflah_selesai)
-                                    <span class="btn btn-outline-secondary" title="Haflah selesai - terkunci" style="cursor:not-allowed;opacity:.5;">
-                                        <i class="fas fa-lock"></i>
-                                    </span>
-                                    @elseif($sl->lombas_count > 0)
-                                    <a href="{{ route('sesi-lomba.edit', $sl->id) }}" class="btn btn-outline-warning" title="Edit"><i class="fas fa-edit"></i></a>
-                                    <span class="btn btn-outline-secondary" title="Tidak dapat dihapus, sudah digunakan di lomba" style="cursor:not-allowed;opacity:.5;">
-                                        <i class="fas fa-trash text-muted"></i>
-                                    </span>
+                            @php
+                                $hasLomba = $sl->lombas_count > 0;
+                                $isLocked = $sl->is_haflah_selesai;
+                                $isEditable = !$isLocked;
+                                $isDeletable = !$isLocked && !$hasLomba;
+
+                                if ($isLocked) {
+                                    $statusLabel = 'Haflah Selesai'; $statusClass = 'lw-chip--red'; $statusIcon = 'bi-archive-fill';
+                                } elseif ($hasLomba) {
+                                    $statusLabel = 'Dipakai Lomba'; $statusClass = 'lw-chip--navy'; $statusIcon = 'bi-diagram-3-fill';
+                                } else {
+                                    $statusLabel = 'Belum Dipakai'; $statusClass = 'lw-chip--green'; $statusIcon = 'bi-check-circle-fill';
+                                }
+
+                                $haflahNama = $sl->haflatulImtihan->nama_acara ?? '-';
+                                $tanggalLabel = \Carbon\Carbon::parse($sl->tanggal)->isoFormat('D MMM YYYY');
+                                $jamLabel = \Carbon\Carbon::parse($sl->jam_mulai)->format('H:i').' - '.\Carbon\Carbon::parse($sl->jam_selesai)->format('H:i');
+                                $filterText = strtolower(trim($haflahNama.' '.$sl->nama.' '.$tanggalLabel.' '.$jamLabel.' '.$statusLabel));
+                            @endphp
+                            <tr class="{{ $isLocked ? 'is-locked' : '' }}" data-sl-item data-filter="{{ $filterText }}">
+                                <td><div class="lw-cell-icon"><i class="bi bi-mortarboard-fill"></i> {{ $haflahNama }}</div></td>
+                                <td>
+                                    <div class="lw-sesi-name">
+                                        <a href="{{ route('sesi-lomba.show', $sl->id) }}">{{ $sl->nama }}</a>
+                                    </div>
+                                    @if($sl->keterangan)<div class="lw-sesi-ket">{{ Str::limit($sl->keterangan, 40) }}</div>@endif
+                                </td>
+                                <td><span class="lw-chip"><i class="bi bi-calendar-event"></i>{{ $tanggalLabel }}</span></td>
+                                <td><span class="lw-chip lw-chip--navy"><i class="bi bi-clock"></i>{{ $jamLabel }}</span></td>
+                                <td>
+                                    @if($hasLomba)
+                                        <span class="lw-count-chip has"><i class="bi bi-diagram-3-fill"></i>{{ $sl->lombas_count }} lomba</span>
                                     @else
-                                    <a href="{{ route('sesi-lomba.edit', $sl->id) }}" class="btn btn-outline-warning" title="Edit"><i class="fas fa-edit"></i></a>
-                                    <button type="button" class="btn btn-outline-danger" title="Hapus"
-                                        data-bs-toggle="modal" data-bs-target="#hapusModal"
-                                        data-nama="{{ $sl->nama }}"
-                                        data-url="{{ route('sesi-lomba.destroy', $sl->id) }}">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
+                                        <span class="lw-count-chip none"><i class="bi bi-dash-circle"></i>Belum</span>
                                     @endif
-                                </div>
-                            </td>
-                        </tr>
+                                </td>
+                                <td><span class="lw-chip {{ $statusClass }}"><i class="bi {{ $statusIcon }}"></i> {{ $statusLabel }}</span></td>
+                                <td class="text-end">
+                                    <div class="lw-actions">
+                                        <a href="{{ route('sesi-lomba.show', $sl->id) }}" class="lw-btn lw-btn--xs lw-btn--outline" data-bs-toggle="tooltip" title="Detail"><i class="bi bi-eye"></i></a>
+                                        <a href="{{ route('sesi-lomba.edit', $sl->id) }}" class="lw-btn lw-btn--xs lw-btn--amber-soft {{ $isEditable ? '' : 'lw-btn-lock' }}" {{ $isEditable ? '' : 'tabindex=-1' }} data-bs-toggle="tooltip" title="{{ $isEditable ? 'Edit' : 'Terkunci' }}"><i class="bi bi-pencil"></i></a>
+                                        <button type="button" class="lw-btn lw-btn--xs lw-btn--danger-soft {{ $isDeletable ? '' : 'lw-btn-lock' }}" {{ $isDeletable ? '' : 'disabled' }}
+                                            data-sl-delete data-sl-id="{{ $sl->id }}" data-sl-nama="{{ e($sl->nama) }}" data-sl-haflah="{{ e($haflahNama) }}"
+                                            data-bs-toggle="tooltip" title="{{ $isDeletable ? 'Hapus' : ($hasLomba ? 'Dipakai lomba' : 'Terkunci') }}"><i class="bi bi-trash"></i></button>
+                                    </div>
+                                </td>
+                            </tr>
                         @endforeach
                     </tbody>
                 </table>
             </div>
-
-            {{-- Modal Hapus — tunggal, di luar tabel --}}
-            <div class="modal fade" id="hapusModal" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered modal-sm">
-                    <div class="modal-content">
-                        <div class="modal-header-custom border-0 pb-0">
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body-custom text-center px-4">
-                            <div class="delete-icon-wrap">
-                                <i class="fas fa-trash-alt"></i>
-                            </div>
-                            <h5 class="fw-bold mt-3 mb-2">Hapus Sesi Lomba?</h5>
-                            <p class="text-muted mb-3" style="font-size:14px">Data yang dihapus tidak dapat dikembalikan.</p>
-                            <div class="delete-info-box text-start">
-                                <div class="delete-label">Sesi</div>
-                                <div class="delete-value" id="hapusNama"></div>
-                            </div>
-                            <form id="hapusForm" action="" method="POST">
-                                @csrf @method('DELETE')
-                                <div class="d-flex justify-content-center gap-2 mt-3">
-                                    <button type="button" class="btn btn-cancel-modal" data-bs-dismiss="modal">Batal</button>
-                                    <button type="submit" class="btn btn-delete-final">
-                                        <i class="fas fa-trash me-1"></i> Ya, Hapus
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 pt-3">
-                <span class="text-muted" style="font-size:13px;">
-                    Menampilkan {{ $sesiLombas->firstItem() ?? 0 }}–{{ $sesiLombas->lastItem() ?? 0 }} dari {{ $sesiLombas->total() }} entri
-                </span>
-                <div class="pagination-ms">
-                    {{ $sesiLombas->onEachSide(1)->links() }}
-                </div>
-            </div>
-            @endif
-
         </div>
-    </div>
+
+        <div class="lw-mobile-card-list" id="slMobileStack">
+            @foreach($sesiLombas as $sl)
+                @php
+                    $hasLomba = $sl->lombas_count > 0;
+                    $isLocked = $sl->is_haflah_selesai;
+                    $statusLabel = $isLocked ? 'Haflah Selesai' : ($hasLomba ? 'Dipakai Lomba' : 'Belum Dipakai');
+                    $statusClass = $isLocked ? 'lw-chip--red' : ($hasLomba ? 'lw-chip--navy' : 'lw-chip--green');
+                    $statusIcon = $isLocked ? 'bi-archive-fill' : ($hasLomba ? 'bi-diagram-3-fill' : 'bi-check-circle-fill');
+                    $haflahNama = $sl->haflatulImtihan->nama_acara ?? '-';
+                    $tanggalLabel = \Carbon\Carbon::parse($sl->tanggal)->isoFormat('D MMM YYYY');
+                    $jamLabel = \Carbon\Carbon::parse($sl->jam_mulai)->format('H:i').' - '.\Carbon\Carbon::parse($sl->jam_selesai)->format('H:i');
+                    $filterText = strtolower(trim($haflahNama.' '.$sl->nama.' '.$tanggalLabel.' '.$jamLabel.' '.$statusLabel));
+                @endphp
+                <article class="lw-mobile-card {{ $isLocked ? 'locked' : '' }}" data-sl-item data-filter="{{ $filterText }}">
+                    <div class="lw-mobile-card-head">
+                        <div><h3 style="font-size:14px;font-weight:700;color:var(--lw-text);margin:0;">{{ $sl->nama }}</h3><div class="lw-sesi-ket">{{ $haflahNama }}</div></div>
+                        <span class="lw-chip {{ $statusClass }}">{{ $statusLabel }}</span>
+                    </div>
+                    <div class="lw-mobile-card-grid">
+                        <div class="lw-mobile-card-field"><span class="k">Tanggal</span><span class="v">{{ $tanggalLabel }}</span></div>
+                        <div class="lw-mobile-card-field"><span class="k">Jam</span><span class="v">{{ $jamLabel }}</span></div>
+                        <div class="lw-mobile-card-field"><span class="k">Lomba</span><span class="v">{{ $hasLomba ? $sl->lombas_count.' lomba' : 'Belum' }}</span></div>
+                        <div class="lw-mobile-card-field"><span class="k">Status</span><span class="v">{{ $statusLabel }}</span></div>
+                    </div>
+                    <div class="lw-mobile-card-actions">
+                        <a href="{{ route('sesi-lomba.show', $sl->id) }}" class="lw-btn lw-btn--xs lw-btn--outline" style="flex:1;"><i class="bi bi-eye"></i></a>
+                        <a href="{{ route('sesi-lomba.edit', $sl->id) }}" class="lw-btn lw-btn--xs lw-btn--amber-soft {{ $isLocked ? 'lw-btn-lock' : '' }}" style="flex:1;" {{ $isLocked ? 'tabindex=-1' : '' }}><i class="bi bi-pencil"></i></a>
+                        <button type="button" class="lw-btn lw-btn--xs lw-btn--danger-soft {{ ($isLocked||$hasLomba) ? 'lw-btn-lock' : '' }}" style="flex:1;" {{ ($isLocked||$hasLomba) ? 'disabled' : '' }}
+                            data-sl-delete data-sl-id="{{ $sl->id }}" data-sl-nama="{{ e($sl->nama) }}" data-sl-haflah="{{ e($haflahNama) }}"><i class="bi bi-trash"></i></button>
+                    </div>
+                </article>
+            @endforeach
+        </div>
+
+        <div class="lw-pagi">
+            <div class="lw-pagi-info">Menampilkan {{ $sesiLombas->firstItem() ?? 0 }}-{{ $sesiLombas->lastItem() ?? 0 }} dari {{ $total }} entri</div>
+            <div>{{ $sesiLombas->onEachSide(1)->links() }}</div>
+        </div>
+    @endif
+</div>
 
 </div>
 
+<a href="{{ route('sesi-lomba.create') }}" class="lw-fab" aria-label="Tambah sesi lomba"><i class="bi bi-plus-lg"></i></a>
+
+<form id="slDeleteForm" method="POST" class="d-none">@csrf @method('DELETE')</form>
+
 @push('scripts')
 <script>
-    (function() {
-        const form = document.getElementById('sesiLombaFilter');
-        if (!form) return;
+(function () {
+    var toolbar = document.getElementById('slFilter');
+    var searchInput = document.getElementById('slQuickSearch');
+    var items = Array.from(document.querySelectorAll('[data-sl-item]'));
+    var emptyState = document.getElementById('slClientEmpty');
+    var deleteForm = document.getElementById('slDeleteForm');
 
-        function applyFilter() {
-            const params = new URLSearchParams();
-            const data = new FormData(form);
-            for (const [k, v] of data.entries()) {
-                if (v) params.append(k, v);
-            }
-            window.location.search = params.toString();
-        }
-
-        let debounce;
-        form.querySelectorAll('select').forEach(function(el) {
-            el.addEventListener('change', applyFilter);
+    if (toolbar) {
+        toolbar.querySelectorAll('select').forEach(function (el) {
+            el.addEventListener('change', function () { toolbar.submit(); });
         });
-        form.querySelectorAll('input[type="search"], input[type="text"]').forEach(function(el) {
-            el.addEventListener('input', function() {
-                clearTimeout(debounce);
-                debounce = setTimeout(applyFilter, 350);
-            });
+    }
+
+    if (searchInput) {
+        var debounce;
+        searchInput.addEventListener('input', function () {
+            clearTimeout(debounce);
+            debounce = setTimeout(function () {
+                var q = searchInput.value.trim().toLowerCase();
+                var visible = 0;
+                items.forEach(function (item) {
+                    var match = !q || (item.dataset.filter || '').indexOf(q) !== -1;
+                    item.style.display = match ? '' : 'none';
+                    if (match) visible++;
+                });
+                if (emptyState) emptyState.style.display = visible === 0 ? 'block' : 'none';
+            }, 300);
+        });
+    }
+
+    (function staggerIn() {
+        document.querySelectorAll('.lw-table-desktop tbody tr').forEach(function (row, i) {
+            row.style.opacity = '0'; row.style.transition = 'opacity .3s ease';
+            setTimeout(function () { row.style.opacity = '1'; }, 40 + i * 50);
         });
     })();
 
-    document.addEventListener('DOMContentLoaded', function() {
-        var hapusModal = document.getElementById('hapusModal');
-        if (!hapusModal) return;
-
-        hapusModal.addEventListener('show.bs.modal', function(event) {
-            var button = event.relatedTarget;
-            var nama = button.getAttribute('data-nama');
-            var url = button.getAttribute('data-url');
-
-            document.getElementById('hapusNama').textContent = nama;
-            document.getElementById('hapusForm').action = url;
-
-            // Pindahkan modal ke body agar z-index nya di root stacking context
-            // (menghindari masalah .l-main { z-index:1 } di dark mode)
-            if (hapusModal.parentNode !== document.body) {
-                document.body.appendChild(hapusModal);
-            }
-        });
-
-        hapusModal.addEventListener('hidden.bs.modal', function() {
-            // Kembalikan modal ke tempat asal agar form tetap ter-submit dgn benar
-            var cardBody = document.querySelector('.card-body');
-            if (cardBody && hapusModal.parentNode !== cardBody) {
-                cardBody.appendChild(hapusModal);
-            }
+    document.querySelectorAll('[data-sl-delete]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var id = btn.dataset.slId, nama = btn.dataset.slNama, haflah = btn.dataset.slHaflah;
+            if (!id) return;
+            LW.confirm('Hapus Sesi Lomba?', 'Sesi "' + nama + '" pada "' + haflah + '" akan dihapus permanen.', 'bi-trash').then(function (ok) {
+                if (ok) { deleteForm.action = '{{ url('sesi-lomba') }}/' + id; deleteForm.submit(); }
+            });
         });
     });
+})();
 </script>
 @endpush
 @endsection

@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\SesiLomba;
-use App\Models\KategoriLomba;
 use App\Models\Lomba;
 use App\Models\PesertaLomba;
 use App\Models\KelompokLomba;
@@ -38,11 +37,9 @@ class DatabaseSeeder extends Seeder
         PesertaLomba::truncate();
         Lomba::truncate();
         SesiLomba::truncate();
-        KategoriLomba::truncate();
         \DB::statement('SET FOREIGN_KEY_CHECKS=1');
 
         $this->call([
-            KategoriLombaSeeder::class,
             SesiLombaSeeder::class,
             LombaSeeder::class,
             PesertaLombaSeeder::class,

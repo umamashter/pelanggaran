@@ -181,7 +181,6 @@ class HaflatulImtihanController extends Controller
             'peserta lomba' => $haflatul->pesertaLombas(),
             'lomba' => $haflatul->lombas(),
             'sesi lomba' => $haflatul->sesiLombas(),
-            'kategori lomba' => $haflatul->kategoriLombas(),
             'kelompok lomba' => $haflatul->kelompokLombas(),
             'juri lomba' => $haflatul->juriLombas(),
             'aspek penilaian' => $haflatul->aspekPenilaians(),

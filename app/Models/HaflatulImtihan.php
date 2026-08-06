@@ -31,11 +31,6 @@ class HaflatulImtihan extends Model
         return $this->hasMany(Lomba::class, 'haflah_id');
     }
 
-    public function kategoriLombas()
-    {
-        return $this->hasMany(KategoriLomba::class, 'haflah_id');
-    }
-
     public function pesertaLombas()
     {
         return $this->hasMany(PesertaLomba::class, 'haflah_id');

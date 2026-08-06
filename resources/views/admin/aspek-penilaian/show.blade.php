@@ -1,209 +1,196 @@
 @extends('layouts.main')
-@section('title', 'Detail Aspek Penilaian')
-@push('css')
+@section('title', 'Detail Rubrik — ' . ($lomba->nama ?? 'Penilaian'))
+@section('content')
+@include('component.admin.lomba-workspace')
+
 <style>
-    .detail-aspek-page {
-        font-family: 'Inter', 'Poppins', system-ui, sans-serif;
-        max-width: 680px;
-        margin: 22px auto 0;
-        padding: 0 16px;
-    }
-    .breadcrumb-cu { margin-bottom: 20px; }
-    .breadcrumb-cu .breadcrumb { background: transparent; padding: 0; margin: 0; }
-    .breadcrumb-cu .breadcrumb-item { font-size: 13px; }
-    .breadcrumb-cu .breadcrumb-item a { color: #64748b; text-decoration: none; }
-    .breadcrumb-cu .breadcrumb-item a:hover { color: #16a34a; }
-    .breadcrumb-cu .breadcrumb-item.active { color: #1e293b; font-weight: 500; }
-    .breadcrumb-cu .breadcrumb-item+.breadcrumb-item::before { color: #cbd5e1; }
-    .detail-card { border: none; border-radius: 18px; box-shadow: 0 4px 16px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.04); }
-    .detail-card-header { padding: 24px 28px 20px; border-bottom: 1px solid #f1f5f9; }
-    .detail-card-body { padding: 24px 28px 28px; }
-    .info-label { font-size: 12px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; }
-    .info-value { font-weight: 700; font-size: 16px; color: #1e293b; }
-    .btn-cu { height: 40px; padding: 0 22px; border-radius: 10px; font-size: 13px; font-weight: 600; transition: all .25s; display: inline-flex; align-items: center; justify-content: center; white-space: nowrap; border: none; gap: 6px; }
-    .btn-cu-secondary { background: #f1f5f9; color: #475569; border: 1.5px solid #e2e8f0; }
-    .btn-cu-secondary:hover { background: #e2e8f0; color: #334155; transform: translateY(-1px); box-shadow: 0 3px 8px rgba(0,0,0,.08); }
-    .modal-header-custom { padding:18px 24px; border-bottom:none; }
-    .modal-body-custom { padding:16px 24px 20px; }
-    html:not(.dark-mode) .modal-content { border:none; border-radius:20px; box-shadow:0 24px 80px rgba(0,0,0,.15); overflow:hidden; }
-    html.dark-mode .modal-content { background:#0d2f38 !important; border:2px solid #175265 !important; border-radius:24px !important; box-shadow:0 30px 70px -16px rgba(0,0,0,.7) !important; }
-    html:not(.dark-mode) .modal.fade .modal-dialog { transform:scale(0.92) translateY(16px); transition:transform .3s cubic-bezier(.2,.8,.2,1); }
-    html:not(.dark-mode) .modal.show .modal-dialog { transform:scale(1) translateY(0); }
-    .delete-icon-wrap { width:80px; height:80px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; margin-bottom:4px; }
-    html:not(.dark-mode) .delete-icon-wrap { background:linear-gradient(135deg,#fef2f2,#fee2e2); animation:deletePulse 2s ease-in-out infinite; }
-    html.dark-mode .delete-icon-wrap { background:rgba(220,38,38,.15); box-shadow:0 0 20px rgba(220,38,38,.1); }
-    .delete-icon-wrap i { font-size:32px; color:#dc2626; }
-    html:not(.dark-mode) .delete-icon-wrap i { animation:deleteShake 3s ease-in-out infinite; }
-    @keyframes deletePulse { 0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,.15)} 50%{box-shadow:0 0 0 12px rgba(220,38,38,0)} }
-    @keyframes deleteShake { 0%,100%{transform:rotate(0)} 2%{transform:rotate(8deg)} 4%{transform:rotate(-6deg)} 6%{transform:rotate(4deg)} 8%{transform:rotate(0)} }
-    .delete-info-box { border-left:4px solid #dc2626; border-radius:12px; padding:14px 18px; }
-    html:not(.dark-mode) .delete-info-box { background:linear-gradient(135deg,#f8fafc,#f1f5f9); border:1px solid #e2e8f0; }
-    html.dark-mode .delete-info-box { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); }
-    .delete-info-box .delete-label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; color:#94a3b8; margin-bottom:2px; }
-    .delete-info-box .delete-value { font-weight:700; font-size:16px; }
-    html:not(.dark-mode) .delete-info-box .delete-value { color:#1e293b; }
-    html.dark-mode .delete-info-box .delete-value { color:#e2e8f0; }
-    .btn-delete-final { border:none !important; border-radius:10px !important; padding:9px 22px !important; font-weight:600 !important; font-size:13px !important; transition:all .25s !important; }
-    html:not(.dark-mode) .btn-delete-final { background:linear-gradient(135deg,#dc2626,#b91c1c) !important; color:#fff !important; box-shadow:0 4px 14px rgba(220,38,38,.3) !important; }
-    html.dark-mode .btn-delete-final { background:linear-gradient(135deg,#dc2626,#b91c1c) !important; color:#fff !important; box-shadow:0 4px 14px rgba(220,38,38,.4) !important; }
-    .btn-delete-final:hover { transform:translateY(-2px) !important; }
-    .btn-cancel-modal { border:none !important; border-radius:10px !important; padding:9px 22px !important; font-weight:600 !important; font-size:13px !important; transition:all .25s !important; }
-    html:not(.dark-mode) .btn-cancel-modal { background:#f1f5f9 !important; color:#475569 !important; }
-    html:not(.dark-mode) .btn-cancel-modal:hover { background:#e2e8f0 !important; color:#1e293b !important; }
-    html.dark-mode .btn-cancel-modal { background:rgba(255,255,255,.08) !important; color:var(--text-secondary) !important; }
-    html.dark-mode .btn-cancel-modal:hover { background:rgba(255,255,255,.14) !important; color:var(--text-primary) !important; }
-    .btn-cancel-modal:hover { transform:translateY(-1px); }
-    @media (max-width: 768px) {
-        .detail-aspek-page { margin-top: 16px; padding: 0 12px; }
-        .detail-card-header, .detail-card-body { padding: 18px 20px; }
+    .page-title-content { display: none !important; }
+
+    /* ---------- Rubrik Detail ---------- */
+    .ar-detail { max-width: 980px; margin: 0 auto; }
+
+    .ar-stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 18px; }
+    .ar-stat { display: flex; align-items: center; gap: 12px; padding: 15px 16px; }
+    .ar-stat-icon { width: 40px; height: 40px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; font-size: 17px; }
+    .ar-stat-icon.blue { background: var(--lw-navy-soft); color: var(--lw-primary); }
+    .ar-stat-icon.green { background: var(--lw-green-soft); color: var(--lw-green); }
+    .ar-stat-icon.amber { background: var(--lw-amber-soft); color: var(--lw-amber); }
+    .ar-stat-icon.violet { background: var(--lw-violet-soft); color: var(--lw-violet); }
+    .ar-stat-num { font-size: 19px; font-weight: 700; line-height: 1.1; color: var(--lw-text); font-variant-numeric: tabular-nums; }
+    .ar-stat-label { font-size: 10.5px; font-weight: 600; color: var(--lw-text-3); text-transform: uppercase; letter-spacing: .4px; }
+
+    .ar-aspek-list { display: flex; flex-direction: column; gap: 10px; }
+    .ar-aspek-card { display: flex; align-items: center; gap: 13px; padding: 13px 15px; background: var(--lw-card); border: 1px solid var(--lw-border);
+        border-radius: 13px; box-shadow: var(--lw-shadow); transition: all .2s ease; }
+    .ar-aspek-card:hover { border-color: var(--lw-primary-border); transform: translateX(3px); box-shadow: var(--lw-shadow-lg); }
+    .ar-aspek-num { flex-shrink: 0; width: 34px; height: 34px; border-radius: 10px; background: var(--lw-navy-soft); color: var(--lw-primary);
+        font-size: 13px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; font-variant-numeric: tabular-nums; }
+    .ar-aspek-name { flex: 1; min-width: 0; font-size: 13.5px; font-weight: 600; color: var(--lw-text); }
+    .ar-aspek-name small { display: block; font-size: 10.5px; color: var(--lw-text-3); font-weight: 600; margin-top: 1px; }
+    .ar-aspek-acts { display: flex; gap: 7px; align-items: center; flex-shrink: 0; }
+    .ar-act-btn { width: 34px; height: 34px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; border: 1.5px solid var(--lw-border);
+        background: var(--lw-card); color: var(--lw-text-2); font-size: 13px; cursor: pointer; transition: all .2s ease; text-decoration: none; }
+    .ar-act-btn:hover { transform: translateY(-1px); box-shadow: var(--lw-shadow); }
+    .ar-act-btn.edit:hover { color: var(--lw-amber); border-color: var(--lw-amber-border); }
+    .ar-act-btn.del:hover { color: var(--lw-red); border-color: var(--lw-red-border); background: var(--lw-red-soft); }
+    .ar-act-btn:disabled { opacity: .4; cursor: not-allowed; transform: none; box-shadow: none; }
+    .ar-act-btn:disabled:hover { color: var(--lw-text-2); border-color: var(--lw-border); background: var(--lw-card); }
+
+    .ar-builder-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+    .ar-builder-foot .btns { display: flex; gap: 8px; align-items: center; }
+
+    @media (max-width: 767.98px) {
+        .ar-builder-foot { flex-direction: column; align-items: stretch; }
+        .ar-builder-foot .btns { justify-content: flex-end; }
+        .ar-aspek-card { flex-wrap: wrap; }
+        .ar-aspek-name { flex: 1 1 100%; order: -1; }
+        .ar-hero-right { width: 100%; }
+        .ar-hero-right .lw-btn { flex: 1; justify-content: center; }
     }
 </style>
-@endpush
-@section('content')
-@include('component.admin.ms-style')
-<div class="detail-aspek-page">
 
-    <nav aria-label="breadcrumb" class="breadcrumb-cu">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="/home"><i class="fas fa-home me-1"></i>Dashboard</a></li>
-            <li class="breadcrumb-item"><a href="{{ route('aspek-penilaian.index') }}">Aspek Penilaian</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Detail</li>
-        </ol>
-    </nav>
+@php
+    $isLocked = $lomba->is_haflah_selesai ?? false;
+    $total = $aspekPenilaians->count();
+    $pesertaCount = $lomba->peserta()->count();
+    $lockedText = $isLocked ? 'Terkunci — Haflah Selesai' : 'Aktif — Dapat Diubah';
+    $jenisIc = ($lomba->jenis ?? 'Individu') === 'Tim' ? 'bi-people' : 'bi-person';
+@endphp
 
-    <div class="card detail-card">
-        <div class="detail-card-header">
-            <div class="d-flex align-items-center gap-3">
-                <div class="header-icon" style="width:48px;height:48px;font-size:22px;">
-                    <i class="fas fa-clipboard-list"></i>
-                </div>
-                <div>
-                    <h4 class="mb-0 fw-bold" style="color: #1e293b; font-size: 18px;">Detail Aspek Penilaian</h4>
-                    <span style="font-size: 13px; color: #64748b;">Lomba: <strong>{{ $lomba->nama ?? '-' }}</strong></span>
-                </div>
-            </div>
-        </div>
+<div class="lw-mod">
+    <div class="ar-detail">
 
-        <div class="detail-card-body">
-
-            <div class="row g-4 mb-4">
-                <div class="col-sm-6">
-                    <div class="info-label">Lomba</div>
-                    <div class="info-value">{{ $lomba->nama ?? '-' }}</div>
-                </div>
-                <div class="col-sm-6">
-                    <div class="info-label">Jumlah Aspek</div>
-                    <div class="info-value">{{ $aspekPenilaians->count() }}</div>
-                </div>
-            </div>
-
-            <div class="info-label mb-2">Daftar Aspek</div>
-            <div class="table-responsive" style="border:1.5px solid #e2e8f0;border-radius:12px;overflow:hidden;">
-                <table class="table table-bordered mb-0" style="font-size:13px;">
-                    <thead style="background:#f8fafc;">
-                        <tr>
-                            <th style="width:40px;text-align:center;padding:10px 6px;">No</th>
-                            <th style="padding:10px 10px;">Nama Aspek</th>
-                            <th style="width:100px;text-align:center;padding:10px 6px;">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($aspekPenilaians as $idx => $a)
-                        <tr>
-                            <td style="text-align:center;vertical-align:middle;padding:10px 6px;">{{ $idx + 1 }}</td>
-                            <td style="vertical-align:middle;padding:10px 10px;">
-                                <span class="fw-semibold" style="color:#1e293b;">{{ $a->nama_aspek }}</span>
-                            </td>
-                            <td style="text-align:center;vertical-align:middle;padding:10px 6px;">
-                                @if($a->is_haflah_selesai)
-                                <span class="btn btn-outline-secondary btn-sm" title="Haflah selesai - terkunci" style="cursor:not-allowed;opacity:.5;pointer-events:none;">
-                                    <i class="fas fa-lock"></i>
-                                </span>
-                                @else
-                                <div class="d-flex justify-content-center gap-1">
-                                    <a href="{{ route('aspek-penilaian.edit', $a->id) }}" class="btn btn-outline-warning btn-sm" title="Edit"><i class="fas fa-edit"></i></a>
-                                    <button type="button" class="btn btn-outline-danger btn-sm" title="Hapus"
-                                        data-bs-toggle="modal" data-bs-target="#hapusModal"
-                                        data-nama="{{ $a->nama_aspek }}"
-                                        data-url="{{ route('aspek-penilaian.destroy', $a->id) }}">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                                @endif
-                            </td>
-                        </tr>
-                        @empty
-                        <tr><td colspan="3" style="text-align:center;padding:16px;color:#94a3b8;">Belum ada aspek</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-
-            <a href="{{ route('aspek-penilaian.index') }}" class="btn btn-cu btn-cu-secondary mt-4">
-                <i class="fas fa-arrow-left"></i> Kembali
-            </a>
-
-        </div>
-    </div>
-
-</div>
-
-<div class="modal fade" id="hapusModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content">
-            <div class="modal-header-custom border-0 pb-0">
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body-custom text-center px-4">
-                <div class="delete-icon-wrap">
-                    <i class="fas fa-trash-alt"></i>
-                </div>
-                <h5 class="fw-bold mt-3 mb-2">Hapus Aspek?</h5>
-                <p class="text-muted mb-3" style="font-size:14px">Data yang dihapus tidak dapat dikembalikan.</p>
-                <div class="delete-info-box text-start">
-                    <div class="delete-label">Aspek</div>
-                    <div class="delete-value" id="hapusNama"></div>
-                </div>
-                <form id="hapusForm" action="" method="POST">
-                    @csrf @method('DELETE')
-                    <div class="d-flex justify-content-center gap-2 mt-3">
-                        <button type="button" class="btn btn-cancel-modal" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-delete-final">
-                            <i class="fas fa-trash me-1"></i> Ya, Hapus
-                        </button>
+        {{-- HERO --}}
+        <div class="lw-hero">
+            <div class="lw-hero-grid">
+                <div class="lw-hero-left">
+                    <span class="lw-hero-icon"><i class="bi bi-clipboard2-check"></i></span>
+                    <div>
+                        <h1 class="lw-hero-title">{{ $lomba->nama ?? 'Lomba' }}</h1>
+                        <p class="lw-hero-sub">Detail rubrik penilaian yang digunakan juri saat menilai lomba ini.</p>
+                        <div class="lw-hero-badges">
+                            <span class="lw-hero-badge"><i class="bi {{ $jenisIc }}"></i>{{ $lomba->jenis ?? 'Individu' }}</span>
+                            <span class="lw-hero-badge"><i class="bi bi-flag"></i>{{ $lomba->status ?? '-' }}</span>
+                            <span class="lw-hero-badge"><i class="bi bi-list-check"></i>{{ $total }} aspek</span>
+                            <span class="lw-hero-badge {{ $isLocked ? 'lw-hero-badge--warn' : 'lw-hero-badge--ok' }}"><i class="bi {{ $isLocked ? 'bi-lock-fill' : 'bi-unlock' }}"></i>{{ $lockedText }}</span>
+                        </div>
                     </div>
-                </form>
+                </div>
+                <div class="lw-hero-right">
+                    <a href="{{ route('aspek-penilaian.index') }}" class="lw-btn lw-btn--light"><i class="bi bi-arrow-left"></i> Kembali</a>
+                    @if($total > 0)
+                    <a href="{{ route('aspek-penilaian.cetak-pdf', $lomba->id) }}" target="_blank" class="lw-btn lw-btn--light"><i class="bi bi-filetype-pdf"></i> Cetak PDF</a>
+                    <a href="{{ route('aspek-penilaian.export-excel', $lomba->id) }}" class="lw-btn lw-btn--light"><i class="bi bi-filetype-xlsx"></i> Export Excel</a>
+                    @endif
+                    @if(!$isLocked && $total > 0)
+                    <a href="{{ route('aspek-penilaian.edit', $aspekPenilaians->first()->id) }}" class="lw-btn lw-btn--solid"><i class="bi bi-pencil"></i> Edit</a>
+                    @endif
+                </div>
             </div>
         </div>
+
+        @if(session('success'))
+            <div class="lw-alert lw-alert--ok"><i class="bi bi-check-circle-fill"></i> {{ session('success') }}</div>
+        @endif
+        @if(session('error'))
+            <div class="lw-alert lw-alert--err"><i class="bi bi-exclamation-triangle-fill"></i> {{ session('error') }}</div>
+        @endif
+
+        {{-- SUMMARY --}}
+        <div class="ar-stat-grid">
+            <div class="lw-card lw-card-pad ar-stat"><span class="ar-stat-icon blue"><i class="bi bi-list-check"></i></span><div><div class="ar-stat-num">{{ $total }}</div><div class="ar-stat-label">Total Aspek</div></div></div>
+            <div class="lw-card lw-card-pad ar-stat"><span class="ar-stat-icon green"><i class="bi bi-check2-circle"></i></span><div><div class="ar-stat-num">{{ $total >= 4 ? 'Lengkap' : 'Minimal' }}</div><div class="ar-stat-label">Status Rubrik</div></div></div>
+            <div class="lw-card lw-card-pad ar-stat"><span class="ar-stat-icon amber"><i class="bi bi-people"></i></span><div><div class="ar-stat-num">{{ $pesertaCount }}</div><div class="ar-stat-label">Peserta</div></div></div>
+            <div class="lw-card lw-card-pad ar-stat"><span class="ar-stat-icon violet"><i class="bi {{ $isLocked ? 'bi-lock-fill' : 'bi-unlock' }}"></i></span><div><div class="ar-stat-num">{{ $isLocked ? 'Terkunci' : 'Aktif' }}</div><div class="ar-stat-label">Edit Akses</div></div></div>
+        </div>
+
+        {{-- ASPEK LIST --}}
+        <div class="lw-card lw-card-pad" style="margin-bottom:18px;">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                <div>
+                    <div class="lw-section-title" style="margin-bottom:0;"><i class="bi bi-journal-check"></i> Daftar Aspek Penilaian</div>
+                    <div class="lw-section-sub" style="margin:2px 0 0;">Urutan aspek sesuai dengan lembar penilaian juri.</div>
+                </div>
+                @if($total > 0)
+                <span class="lw-chip {{ $isLocked ? 'lw-chip--red' : 'lw-chip--green' }}"><i class="bi {{ $isLocked ? 'bi-lock-fill' : 'bi-shield-check' }}"></i>{{ $lockedText }}</span>
+                @endif
+            </div>
+
+            @if($aspekPenilaians->isEmpty())
+                <div class="lw-empty">
+                    <div class="lw-empty-illus"><div class="ring"></div><div class="core"><i class="bi bi-journal-x"></i></div></div>
+                    <div class="lw-empty-title">Belum ada aspek penilaian</div>
+                    <div class="lw-empty-sub">Lomba ini belum memiliki rubrik. Buat rubrik agar juri dapat menilai peserta.</div>
+                    @if(!$isLocked)
+                    <a href="{{ route('aspek-penilaian.create') }}" class="lw-btn lw-btn--solid"><i class="bi bi-plus-lg"></i> Buat Rubrik</a>
+                    @endif
+                </div>
+            @else
+                <div class="ar-aspek-list">
+                    @foreach($aspekPenilaians as $idx => $a)
+                    <div class="ar-aspek-card">
+                        <span class="ar-aspek-num">{{ $idx + 1 }}</span>
+                        <div class="ar-aspek-name">
+                            {{ $a->nama_aspek }}
+                            <small>Aspek #{{ $a->id }} &middot; Bobot {{ $a->bobot ?? '-' }}</small>
+                        </div>
+                        <div class="ar-aspek-acts">
+                            @if($isLocked)
+                            <span class="ar-act-btn" title="Terkunci — haflah selesai"><i class="bi bi-lock-fill"></i></span>
+                            @else
+                            <a href="{{ route('aspek-penilaian.edit', $a->id) }}" class="ar-act-btn edit" title="Edit" aria-label="Edit"><i class="bi bi-pencil"></i></a>
+                            <button type="button" class="ar-act-btn del" title="Hapus" aria-label="Hapus"
+                                data-ar-del-one data-id="{{ $a->id }}" data-nama="{{ e($a->nama_aspek) }}"><i class="bi bi-trash"></i></button>
+                            @endif
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+
+        @if($aspekPenilaians->isNotEmpty())
+        <div class="ar-builder-foot">
+            <div class="d-flex align-items-center gap-2" style="font-size:12px;color:var(--lw-text-3);"><i class="bi {{ $isLocked ? 'bi-lock-fill' : 'bi-shield-check' }}"></i> {{ $lockedText }} &middot; {{ $total }} aspek penilaian terpasang</div>
+            <div class="btns">
+                @if(!$isLocked)
+                <button type="button" class="lw-btn lw-btn--soft lw-btn--sm" style="color:var(--lw-red);border-color:var(--lw-red-border);background:var(--lw-red-soft);" id="arHapusSemua" data-lomba="{{ $lomba->nama }}" data-id="{{ $lomba->id }}" data-jml="{{ $total }}"><i class="bi bi-trash3"></i> Hapus Semua</button>
+                @endif
+            </div>
+        </div>
+        @endif
+
     </div>
 </div>
-@endsection
+
+<form id="arDelForm" method="POST" class="d-none">@csrf @method('DELETE')</form>
 
 @push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    var hapusModal = document.getElementById('hapusModal');
-    if (!hapusModal) return;
+(function () {
+    var delForm = document.getElementById('arDelForm');
 
-    hapusModal.addEventListener('show.bs.modal', function(event) {
-        var button = event.relatedTarget;
-        var nama = button.getAttribute('data-nama');
-        var url = button.getAttribute('data-url');
-
-        document.getElementById('hapusNama').textContent = nama;
-        document.getElementById('hapusForm').action = url;
-
-        if (hapusModal.parentNode !== document.body) {
-            document.body.appendChild(hapusModal);
-        }
+    /* ---------- delete one ---------- */
+    document.querySelectorAll('[data-ar-del-one]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var id = btn.dataset.id, nama = btn.dataset.nama;
+            LW.confirm('Hapus Aspek?', 'Aspek "' + nama + '" akan dihapus dari rubrik dan tidak dapat dikembalikan.', 'bi-trash').then(function (ok) {
+                if (ok) { delForm.action = '{{ url('aspek-penilaian') }}/' + id; delForm.submit(); }
+            });
+        });
     });
 
-    hapusModal.addEventListener('hidden.bs.modal', function() {
-        var cardBody = document.querySelector('.detail-card-body');
-        if (cardBody && hapusModal.parentNode !== cardBody) {
-            cardBody.appendChild(hapusModal);
-        }
-    });
-});
+    /* ---------- delete all ---------- */
+    var allBtn = document.getElementById('arHapusSemua');
+    if (allBtn) {
+        allBtn.addEventListener('click', function () {
+            var id = allBtn.dataset.id, nama = allBtn.dataset.lomba, jml = parseInt(allBtn.dataset.jml, 10) || 0;
+            LW.confirm('Hapus Semua Aspek?', 'Seluruh aspek penilaian lomba "' + nama + '" (' + jml + ' aspek) akan dihapus dan tidak dapat dikembalikan.', 'bi-trash').then(function (ok) {
+                if (ok) { delForm.action = '{{ url('aspek-penilaian/hapus-semua') }}/' + id; delForm.submit(); }
+            });
+        });
+    }
+})();
 </script>
 @endpush
+@endsection

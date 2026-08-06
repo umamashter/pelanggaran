@@ -1,177 +1,269 @@
 @extends('layouts.main')
 @section('title', 'Detail Peserta Lomba')
-@push('css')
-<style>
-    .detail-page { font-family: 'Inter', 'Poppins', system-ui, sans-serif; max-width: 680px; margin: 22px auto 0; padding: 0 16px; }
-    .breadcrumb-cu { margin-bottom: 20px; }
-    .breadcrumb-cu .breadcrumb { background: transparent; padding: 0; margin: 0; }
-    .breadcrumb-cu .breadcrumb-item { font-size: 13px; }
-    .breadcrumb-cu .breadcrumb-item a { color: #64748b; text-decoration: none; transition: color .2s; }
-    .breadcrumb-cu .breadcrumb-item a:hover { color: #16a34a; }
-    .breadcrumb-cu .breadcrumb-item.active { color: #1e293b; font-weight: 500; }
-    .breadcrumb-cu .breadcrumb-item+.breadcrumb-item::before { color: #cbd5e1; }
-    .create-card { border: none; border-radius: 18px; box-shadow: 0 4px 16px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.04); }
-    .create-card-header { padding: 24px 28px 20px; border-bottom: 1px solid #f1f5f9; }
-    .create-card-body { padding: 24px 28px 28px; }
-    .header-icon { width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, #16a34a, #22c55e); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 22px; flex-shrink: 0; box-shadow: 0 4px 12px rgba(22,163,74,.25); }
-    .detail-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .4px; color: #94a3b8; margin-bottom: 4px; }
-    .detail-value { font-size: 16px; font-weight: 600; color: #1e293b; }
-    .info-row { display: flex; align-items: center; padding: 14px 0; }
-    .info-row .info-icon { width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, #16a34a, #22c55e); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 16px; flex-shrink: 0; margin-right: 14px; box-shadow: 0 2px 8px rgba(22,163,74,.2); }
-    .badge-detail { display: inline-flex; align-items: center; gap: 5px; padding: 5px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; white-space: nowrap; }
-    .badge-detail.terdaftar { background: #dbeafe; color: #2563eb; }
-    .badge-detail.hadir { background: #dcfce7; color: #16a34a; }
-    .badge-detail.tidak-hadir { background: #fee2e2; color: #dc2626; }
-    .badge-detail.diskualifikasi { background: #fef3c7; color: #d97706; }
-
-    .btn-header-ms.btn-simpan-ms.btn-compact { height: 34px; padding: 0 14px; font-size: 12px; border-radius: 8px; }
-    .form-actions-cu { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 32px; padding-top: 20px; border-top: 1px solid #f1f5f9; }
-    @media (max-width:768px) { .detail-page { margin-top:16px; padding:0 12px; } .create-card-header { padding:18px 20px 16px; } .create-card-body { padding:18px 20px 22px; } .form-actions-cu { flex-direction:column; } .form-actions-cu .btn, .form-actions-cu a { width:100%; text-align:center; } }
-</style>
-@endpush
 @section('content')
-@include('component.admin.ms-style')
-<div class="detail-page">
+@include('component.admin.lomba-workspace')
 
-    <nav aria-label="breadcrumb" class="breadcrumb-cu">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="/home"><i class="fas fa-home me-1"></i>Dashboard</a></li>
-            <li class="breadcrumb-item"><a href="{{ route('peserta-lomba.index') }}">Peserta Lomba</a></li>
-            <li class="breadcrumb-item active">Detail</li>
-        </ol>
-    </nav>
+<style>
+    .page-title-content { display: none !important; }
+    .lw-detail-wrap { max-width: 960px; }
 
-    <div class="card create-card">
-        <div class="create-card-header">
-            <div class="d-flex align-items-center gap-3">
-                <div class="header-icon"><i class="fas fa-user-graduate"></i></div>
-                <div>
-                    <h4 class="mb-0 fw-bold" style="color:#1e293b;font-size:18px;">
-                        @if($pesertaLomba->isIndividu())
-                            {{ $pesertaLomba->student->user->name ?? 'Peserta Lomba' }}
-                        @elseif($pesertaLomba->kelompokLomba)
-                            {{ $pesertaLomba->kelompokLomba->nama_kelompok }}
-                        @else
-                            Peserta Lomba
-                        @endif
-                    </h4>
-                    <span style="font-size:13px;color:#64748b;">Detail peserta lomba haflatul imtihan</span>
-                </div>
-            </div>
-        </div>
-        <div class="create-card-body">
+    .lw-pipe { display: grid; grid-template-columns: 1fr 40px 1fr 40px 1fr; gap: 0; align-items: stretch; }
+    .lw-pipe .arr { display: flex; align-items: center; justify-content: center; color: var(--lw-border); font-size: 18px; }
+    .lw-pipe .arr.done { color: var(--lw-green); }
+    .lw-stage { border-radius: 14px; border: 1px solid var(--lw-border); background: var(--lw-card); padding: 14px; text-align: center; transition: all .2s ease; }
+    .lw-stage .ic { width: 40px; height: 40px; border-radius: 12px; margin: 0 auto 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 17px; background: var(--lw-bg); color: var(--lw-text-3); }
+    .lw-stage.done { border-color: var(--lw-green-border); background: var(--lw-green-soft); }
+    .lw-stage.done .ic { background: var(--lw-green); color: #fff; }
+    .lw-stage .t { font-size: 12.5px; font-weight: 800; color: var(--lw-text); }
+    .lw-stage .d { font-size: 11px; color: var(--lw-text-3); margin-top: 3px; }
+    .lw-stage .d b { color: var(--lw-text); font-size: 14px; font-variant-numeric: tabular-nums; }
 
-            <div style="background:#f8fafc;border-radius:14px;border:1px solid #e2e8f0;padding:6px 20px;">
-                <div class="info-row">
-                    <div class="info-icon"><i class="fas fa-trophy"></i></div>
-                    <div>
-                        <div class="detail-label">Lomba</div>
-                        <div class="detail-value">{{ $pesertaLomba->lomba->nama ?? '-' }}</div>
+    .lw-pen-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--lw-border); background: var(--lw-bg); margin-bottom: 8px; }
+    .lw-pen-item .score { flex-shrink: 0; width: 44px; height: 44px; border-radius: 12px; background: var(--lw-grad); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; font-variant-numeric: tabular-nums; }
+    .lw-pen-item .info { flex: 1; min-width: 0; }
+    .lw-pen-item .info .nm { font-size: 12.5px; font-weight: 700; color: var(--lw-text); }
+    .lw-pen-item .info .meta { font-size: 11px; color: var(--lw-text-3); }
+    .lw-pen-item .cat { font-size: 11px; color: var(--lw-text-2); font-style: italic; }
+
+    .lw-member-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px; }
+    .lw-member { display: flex; align-items: center; gap: 10px; padding: 9px 11px; border-radius: 11px; border: 1px solid var(--lw-border); background: var(--lw-bg); }
+    .lw-member .nm { font-size: 12.5px; font-weight: 700; color: var(--lw-text); }
+    .lw-member .id { font-size: 10.5px; color: var(--lw-text-3); }
+
+    .lw-empty-mini { text-align: center; padding: 20px 12px; color: var(--lw-text-3); font-size: 12px; }
+
+    @media (max-width: 767.98px) {
+        .lw-pipe { grid-template-columns: 1fr; gap: 8px; }
+        .lw-pipe .arr { transform: rotate(90deg); }
+    }
+</style>
+
+<div class="lw-mod jd-page-pl-show">
+
+@php
+    $isIndividu = $pesertaLomba->isIndividu();
+    $student = $pesertaLomba->student;
+    $kelompok = $pesertaLomba->kelompokLomba;
+    $statusMeta = [
+        'Terdaftar'      => ['cls' => 'lw-chip--navy',  'ic' => 'bi-person-check-fill'],
+        'Hadir'          => ['cls' => 'lw-chip--green', 'ic' => 'bi-check-circle-fill'],
+        'Tidak Hadir'    => ['cls' => 'lw-chip--red',   'ic' => 'bi-x-circle-fill'],
+        'Diskualifikasi' => ['cls' => 'lw-chip--amber', 'ic' => 'bi-slash-circle-fill'],
+    ];
+    $statusSm = $statusMeta[$pesertaLomba->status] ?? ['cls' => 'lw-chip--slate', 'ic' => 'bi-circle-fill'];
+    $userName = $isIndividu ? ($student->user->name ?? $student->nama ?? '-') : ($kelompok->nama_kelompok ?? '-');
+    $subtitle = $isIndividu ? ('NISN ' . ($student->nisn ?? '-')) : ($kelompok->kode_kelompok ?? '-');
+    $penilaian = $pesertaLomba->penilaian;
+    $hasil = $pesertaLomba->hasil;
+    $penIds = $penilaian->pluck('juri_lomba_id')->filter();
+    $aspekIds = $penilaian->pluck('aspek_penilaian_id')->filter();
+    $juriMap = $penIds->isNotEmpty()
+        ? \App\Models\JuriLomba::withoutGlobalScope(\App\Models\Scopes\HaflahScope::class)
+            ->whereIn('id', $penIds)->with('guru')->get()->keyBy('id') : collect();
+    $aspekMap = $aspekIds->isNotEmpty()
+        ? \App\Models\AspekPenilaian::withoutGlobalScope(\App\Models\Scopes\HaflahScope::class)
+            ->whereIn('id', $aspekIds)->get()->keyBy('id') : collect();
+    $tgl = optional($pesertaLomba->lomba->sesiLomba)->tanggal ? \Carbon\Carbon::parse($pesertaLomba->lomba->sesiLomba->tanggal)->translatedFormat('d F Y') : '-';
+    $sesiNama = optional($pesertaLomba->lomba->sesiLomba)->nama ?? '-';
+@endphp
+
+<div class="lw-detail-wrap">
+    <div class="lw-breadcrumb" style="margin-bottom:16px;">
+        <a href="{{ route('peserta-lomba.index') }}">Peserta Lomba</a> <i class="bi bi-chevron-right"></i> <span>Detail</span>
+    </div>
+
+    <div class="lw-detail-hero">
+        <div class="lw-detail-hero-grid">
+            <div class="d-flex align-items-center gap-3" style="min-width:0;">
+                <span class="lw-detail-avatar">{{ strtoupper(mb_substr($userName, 0, 1)) }}</span>
+                <div style="min-width:0;">
+                    <h1 class="lw-detail-title">{{ $userName }}</h1>
+                    <div class="lw-detail-sub">
+                        <i class="bi {{ $isIndividu ? 'bi-person-vcard' : 'bi-people-fill' }}"></i>{{ $subtitle }}
+                        &middot;
+                        <i class="bi bi-trophy-fill"></i>{{ $pesertaLomba->lomba->nama ?? '-' }}
                     </div>
-                </div>
-                <div class="info-row">
-                    <div class="info-icon"><i class="fas fa-calendar-week"></i></div>
-                    <div>
-                        <div class="detail-label">Sesi</div>
-                        <div class="detail-value">{{ $pesertaLomba->lomba->sesiLomba->nama ?? '-' }}</div>
-                        <div class="detail-label" style="margin-top:6px;">Tanggal</div>
-                        <div class="detail-value" style="font-size:14px;">{{ !empty($pesertaLomba->lomba->sesiLomba->tanggal) ? \Carbon\Carbon::parse($pesertaLomba->lomba->sesiLomba->tanggal)->translatedFormat('d F Y') : '-' }}</div>
-                    </div>
-                </div>
-                @if($pesertaLomba->isIndividu())
-                <div class="info-row">
-                    <div class="info-icon"><i class="fas fa-user"></i></div>
-                    <div>
-                        <div class="detail-label">Nama Siswa</div>
-                        <div class="detail-value">{{ $pesertaLomba->student->user->name ?? '-' }}</div>
-                    </div>
-                </div>
-                <div class="info-row">
-                    <div class="info-icon"><i class="fas fa-id-card"></i></div>
-                    <div>
-                        <div class="detail-label">NISN</div>
-                        <div class="detail-value">{{ $pesertaLomba->student->nisn ?? '-' }}</div>
-                    </div>
-                </div>
-                <div class="info-row">
-                    <div class="info-icon"><i class="fas fa-door-open"></i></div>
-                    <div>
-                        <div class="detail-label">Kelas</div>
-                        <div class="detail-value">{{ $pesertaLomba->student->kelasAktif->kelas->nama_kelas ?? '-' }}</div>
-                    </div>
-                </div>
-                <div class="info-row">
-                    <div class="info-icon"><i class="fas fa-layer-group"></i></div>
-                    <div>
-                        <div class="detail-label">Jenjang</div>
-                        <div class="detail-value">{{ $pesertaLomba->student->kelasAktif->kelas->jenjang->nama_jenjang ?? '-' }}</div>
-                    </div>
-                </div>
-                @elseif($pesertaLomba->kelompokLomba)
-                <div class="info-row">
-                    <div class="info-icon"><i class="fas fa-users"></i></div>
-                    <div>
-                        <div class="detail-label">Nama Kelompok</div>
-                        <div class="detail-value">{{ $pesertaLomba->kelompokLomba->nama_kelompok }}</div>
-                    </div>
-                </div>
-                <div class="info-row">
-                    <div class="info-icon"><i class="fas fa-tag"></i></div>
-                    <div>
-                        <div class="detail-label">Kode Kelompok</div>
-                        <div class="detail-value">{{ $pesertaLomba->kelompokLomba->kode_kelompok ?? '-' }}</div>
-                    </div>
-                </div>
-                <div class="info-row">
-                    <div class="info-icon"><i class="fas fa-id-card"></i></div>
-                    <div>
-                        <div class="detail-label">Anggota</div>
-                        <div class="detail-value">
-                            <ul style="margin:4px 0 0;padding-left:20px;">
-                            @foreach($pesertaLomba->kelompokLomba->anggota as $agt)
-                                <li>{{ $agt->student->user->name ?? $agt->student->nama ?? '-' }}</li>
-                            @endforeach
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                @endif
-                <div class="info-row">
-                    <div class="info-icon"><i class="fas fa-flag"></i></div>
-                    <div>
-                        <div class="detail-label">Status</div>
-                        <div>
-                            @php
-                                $badgeClass = match($pesertaLomba->status) {
-                                    'Terdaftar' => 'terdaftar',
-                                    'Hadir' => 'hadir',
-                                    'Tidak Hadir' => 'tidak-hadir',
-                                    'Diskualifikasi' => 'diskualifikasi',
-                                    default => 'terdaftar'
-                                };
-                                $statusIcon = match($pesertaLomba->status) {
-                                    'Terdaftar' => 'fa-user-check',
-                                    'Hadir' => 'fa-check-circle',
-                                    'Tidak Hadir' => 'fa-times-circle',
-                                    'Diskualifikasi' => 'fa-exclamation-triangle',
-                                    default => 'fa-circle'
-                                };
-                            @endphp
-                            <span class="badge-detail {{ $badgeClass }}">
-                                <i class="fas {{ $statusIcon }}"></i>
-                                {{ $pesertaLomba->status }}
-                            </span>
-                        </div>
+                    <div class="lw-detail-meta">
+                        <span class="lw-hero-badge"><i class="bi {{ $statusSm['ic'] }}"></i>{{ $pesertaLomba->status }}</span>
+                        <span class="lw-hero-badge"><i class="bi {{ $isIndividu ? 'bi-person-fill' : 'bi-people-fill' }}"></i>{{ $isIndividu ? 'Individu' : 'Tim' }}</span>
+                        <span class="lw-hero-badge"><i class="bi bi-hash"></i>No. Urut {{ $pesertaLomba->nomor_urut }}</span>
                     </div>
                 </div>
             </div>
-
-            <div class="form-actions-cu">
-                <a href="{{ route('peserta-lomba.index') }}" class="btn btn-header-ms btn-simpan-ms btn-compact" style="background:#fef3c7;color:#92400e;"><i class="fas fa-arrow-left"></i> Kembali</a>
-                <a href="{{ route('peserta-lomba.edit', $pesertaLomba->id) }}" class="btn btn-header-ms btn-simpan-ms btn-compact"><i class="fas fa-edit"></i> Edit</a>
+            <div class="lw-detail-meta">
+                <a href="{{ route('peserta-lomba.index') }}" class="lw-btn lw-btn--light"><i class="bi bi-arrow-left"></i> Kembali</a>
+                <a href="{{ route('peserta-lomba.edit', $pesertaLomba->id) }}" class="lw-btn lw-btn--accent"><i class="bi bi-pencil"></i> Edit</a>
             </div>
-
         </div>
     </div>
+
+    {{-- INFORMASI PESERTA --}}
+    <div class="lw-card lw-card-pad" style="margin-bottom:18px;">
+        <div class="lw-form-section"><i class="bi bi-info-circle-fill"></i> Informasi Peserta</div>
+        <div class="lw-info-grid">
+            <div class="lw-info-cell">
+                <div class="lbl"><i class="bi bi-trophy-fill"></i>Lomba</div>
+                <div class="val">{{ $pesertaLomba->lomba->nama ?? '-' }}</div>
+                <div class="lw-help-text" style="margin-top:3px;">{{ $isIndividu ? 'Kategori individu' : 'Kategori tim' }}</div>
+            </div>
+            <div class="lw-info-cell">
+                <div class="lbl"><i class="bi bi-calendar-event"></i>Sesi</div>
+                <div class="val">{{ $sesiNama }}</div>
+                <div class="lw-help-text" style="margin-top:3px;">{{ $tgl }}</div>
+            </div>
+            <div class="lw-info-cell">
+                <div class="lbl"><i class="bi bi-hash"></i>Nomor Urut</div>
+                <div class="val">{{ $pesertaLomba->nomor_urut }}</div>
+                <div class="lw-help-text" style="margin-top:3px;">Urutan penampilan</div>
+            </div>
+            <div class="lw-info-cell">
+                <div class="lbl"><i class="bi bi-flag-fill"></i>Status</div>
+                <div class="val"><span class="lw-chip {{ $statusSm['cls'] }}"><i class="bi {{ $statusSm['ic'] }}"></i>{{ $pesertaLomba->status }}</span></div>
+            </div>
+            @if($isIndividu && $student)
+                <div class="lw-info-cell">
+                    <div class="lbl"><i class="bi bi-person-vcard-fill"></i>NISN</div>
+                    <div class="val">{{ $student->nisn ?? '-' }}</div>
+                </div>
+                <div class="lw-info-cell">
+                    <div class="lbl"><i class="bi bi-mortarboard-fill"></i>Kelas</div>
+                    <div class="val">{{ $student->kelasAktif->kelas->nama_kelas ?? '-' }}</div>
+                    <div class="lw-help-text" style="margin-top:3px;">{{ $student->kelasAktif->kelas->jenjang->nama_jenjang ?? '-' }}</div>
+                </div>
+            @endif
+            @if(!$isIndividu && $kelompok)
+                <div class="lw-info-cell">
+                    <div class="lbl"><i class="bi bi-hash"></i>Kode Kelompok</div>
+                    <div class="val">{{ $kelompok->kode_kelompok ?? '-' }}</div>
+                </div>
+                <div class="lw-info-cell">
+                    <div class="lbl"><i class="bi bi-people-fill"></i>Anggota</div>
+                    <div class="val">{{ $kelompok->anggota->count() }} siswa</div>
+                    <div class="lw-help-text" style="margin-top:3px;">Anggota terdaftar</div>
+                </div>
+            @endif
+        </div>
+    </div>
+
+    @if(!$isIndividu && $kelompok && $kelompok->anggota->isNotEmpty())
+        <div class="lw-card lw-card-pad" style="margin-bottom:18px;">
+            <div class="lw-form-section"><i class="bi bi-people-fill"></i> Anggota Kelompok ({{ $kelompok->anggota->count() }})</div>
+            <div class="lw-member-grid">
+                @foreach($kelompok->anggota as $ang)
+                    @php $mName = $ang->student->user->name ?? $ang->student->nama ?? '-'; @endphp
+                    <div class="lw-member">
+                        <span class="lw-avatar lw-avatar--sm" style="background:{{ lw_ava_color($mName) }};">{{ strtoupper(mb_substr($mName, 0, 1)) }}</span>
+                        <div><div class="nm">{{ $mName }}</div><div class="id">NISN {{ $ang->student->nisn ?? '-' }}</div></div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    @endif
+
+    {{-- RELASI : PESERTA → PENILAIAN → HASIL --}}
+    <div class="lw-card lw-card-pad" style="margin-bottom:18px;">
+        <div class="lw-form-section"><i class="bi bi-diagram-3"></i> Alur Penilaian</div>
+        <div class="lw-pipe">
+            <div class="lw-stage done">
+                <span class="ic"><i class="bi bi-person-check-fill"></i></span>
+                <div class="t">Peserta</div>
+                <div class="d"><b>{{ $pesertaLomba->nomor_urut }}</b> &middot; {{ $pesertaLomba->status }}</div>
+            </div>
+            <div class="arr done"><i class="bi bi-arrow-right"></i></div>
+            <div class="lw-stage {{ $penilaian->isNotEmpty() ? 'done' : '' }}">
+                <span class="ic"><i class="bi bi-star-fill"></i></span>
+                <div class="t">Penilaian</div>
+                <div class="d"><b>{{ $penilaian->count() }}</b> penilaian</div>
+            </div>
+            <div class="arr {{ $hasil ? 'done' : '' }}"><i class="bi bi-arrow-right"></i></div>
+            <div class="lw-stage {{ $hasil ? 'done' : '' }}">
+                <span class="ic"><i class="bi bi-medal-fill"></i></span>
+                <div class="t">Hasil</div>
+                <div class="d">
+                    @if($hasil)
+                        <b>{{ $hasil->peringkat ? '#' . $hasil->peringkat : '-' }}</b> &middot; {{ $hasil->juara ?: 'Selesai' }}
+                    @else
+                        <span style="color:var(--lw-text-3);">Belum ada</span>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- PENILAIAN DETAIL --}}
+    <div class="lw-card lw-card-pad" style="margin-bottom:18px;">
+        <div class="lw-form-section"><i class="bi bi-star-fill"></i> Rincian Penilaian</div>
+        @if($penilaian->isEmpty())
+            <div class="lw-empty-mini"><i class="bi bi-inbox" style="font-size:26px;display:block;margin-bottom:8px;color:var(--lw-text-3);"></i>Belum ada penilaian untuk peserta ini.</div>
+        @else
+            @foreach($penilaian as $pen)
+                @php
+                    $juri = $juriMap->get($pen->juri_lomba_id);
+                    $aspek = $aspekMap->get($pen->aspek_penilaian_id);
+                    $juriNama = $juri ? ($juri->guru->nama ?? 'Juri #' . $pen->juri_lomba_id) : 'Juri';
+                    $aspekNama = $aspek->nama_aspek ?? 'Aspek';
+                @endphp
+                <div class="lw-pen-item">
+                    <span class="score">{{ number_format($pen->nilai, 0, ',', '.') }}</span>
+                    <div class="info">
+                        <div class="nm">{{ $aspekNama }}</div>
+                        <div class="meta"><i class="bi bi-person"></i> {{ $juriNama }} &middot; {{ \Carbon\Carbon::parse($pen->created_at)->translatedFormat('d M Y') }}</div>
+                    </div>
+                    @if($pen->catatan)<span class="cat"><i class="bi bi-chat-left-text"></i> {{ $pen->catatan }}</span>@endif
+                </div>
+            @endforeach
+        @endif
+    </div>
+
+    {{-- HASIL --}}
+    <div class="lw-card lw-card-pad" style="margin-bottom:18px;">
+        <div class="lw-form-section"><i class="bi bi-medal-fill"></i> Hasil Lomba</div>
+        @if($hasil)
+            <div class="lw-info-grid">
+                <div class="lw-info-cell">
+                    <div class="lbl"><i class="bi bi-hash"></i>Peringkat</div>
+                    <div class="val">#{{ $hasil->peringkat ?? '-' }}</div>
+                </div>
+                <div class="lw-info-cell">
+                    <div class="lbl"><i class="bi bi-award"></i>Juara</div>
+                    <div class="val">{{ $hasil->juara ?: '-' }}</div>
+                </div>
+                <div class="lw-info-cell">
+                    <div class="lbl"><i class="bi bi-calculator"></i>Total Nilai</div>
+                    <div class="val">{{ number_format($hasil->total_nilai, 2, ',', '.') }}</div>
+                </div>
+            </div>
+        @else
+            <div class="lw-empty-mini"><i class="bi bi-trophy" style="font-size:26px;display:block;margin-bottom:8px;color:var(--lw-text-3);"></i>Hasil belum dirilis untuk peserta ini.</div>
+        @endif
+    </div>
+
+    {{-- NAVIGASI CEPAT --}}
+    <div class="lw-card lw-card-pad" style="margin-bottom:18px;">
+        <div class="lw-form-section"><i class="bi bi-compass-fill"></i> Navigasi Cepat</div>
+        <div class="lw-qn-grid">
+            <a href="{{ route('penilaian-lomba.index') }}" class="lw-qn-card lw-qn--navy" style="text-decoration:none;">
+                <span class="lw-qn-ic"><i class="bi bi-star-fill"></i></span>
+                <span class="lw-qn-body"><span class="lw-qn-name">Penilaian Lomba</span><span class="lw-qn-sub">Input &amp; kelola nilai</span></span>
+                <i class="bi bi-chevron-right lw-qn-arrow"></i>
+            </a>
+            <a href="{{ route('hasil-lomba.index') }}" class="lw-qn-card lw-qn--violet" style="text-decoration:none;">
+                <span class="lw-qn-ic"><i class="bi bi-medal-fill"></i></span>
+                <span class="lw-qn-body"><span class="lw-qn-name">Hasil Lomba</span><span class="lw-qn-sub">Peringkat &amp; juara</span></span>
+                <i class="bi bi-chevron-right lw-qn-arrow"></i>
+            </a>
+            <a href="{{ route('peserta-lomba.edit', $pesertaLomba->id) }}" class="lw-qn-card lw-qn--green" style="text-decoration:none;">
+                <span class="lw-qn-ic"><i class="bi bi-pencil-square"></i></span>
+                <span class="lw-qn-body"><span class="lw-qn-name">Edit Peserta</span><span class="lw-qn-sub">Ubah data pendaftaran</span></span>
+                <i class="bi bi-chevron-right lw-qn-arrow"></i>
+            </a>
+        </div>
+    </div>
+
+    <div class="lw-wizard-nav">
+        <a href="{{ route('peserta-lomba.index') }}" class="lw-btn"><i class="bi bi-arrow-left"></i> Kembali ke Daftar</a>
+    </div>
+</div>
+
 </div>
 @endsection

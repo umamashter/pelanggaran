@@ -13,15 +13,17 @@ class AIParserService
     protected int $timeout;
     protected string $provider;
     protected ?OpenRouterVisionService $openRouterVision;
+    protected AttendanceImportAdapter $adapter;
 
-    public function __construct(?OpenRouterVisionService $openRouterVision = null)
+    public function __construct(?OpenRouterVisionService $openRouterVision = null, ?AttendanceImportAdapter $adapter = null)
     {
         $this->apiKey  = config('ocr.ai_api_key', '');
         $this->apiUrl  = config('ocr.ai_api_url', '');
         $this->model   = config('ocr.ai_model', 'gemini-2.0-flash');
-        $this->timeout = (int) config('ocr.ai_timeout', 30);
+        $this->timeout = (int) config('ocr.gemini_timeout', config('ocr.ai_timeout', 30));
         $this->provider = config('ocr.ai_provider', 'openrouter');
         $this->openRouterVision = $openRouterVision;
+        $this->adapter = $adapter ?? app(AttendanceImportAdapter::class);
     }
 
     public function isAvailable(): bool
@@ -35,44 +37,97 @@ class AIParserService
      *
      * @return array{success: bool, data?: array, error?: string, source: string, warning?: string, ai_error?: string}
      */
-    public function parseFromImage(string $imagePath, int $bulan, int $tahun): array
+    public function parseFromImage(string $imagePath, int $bulan, int $tahun, array $context = []): array
     {
-        $provider = $this->provider;
+        $providers = [];
+        $priority = config('ocr.provider_priority', ['openrouter', 'gemini', 'local_ocr']);
 
-        // Try OpenRouter first (if configured as provider)
-        if ($provider === 'openrouter' && $this->openRouterVision && $this->openRouterVision->isAvailable()) {
-            Log::info('Trying OpenRouter Vision.', ['model' => config('ocr.openrouter_model')]);
-            $result = $this->openRouterVision->parseFromImage($imagePath, $bulan, $tahun);
-            if ($result['success']) {
+        foreach ($priority as $provider) {
+            if ($provider === 'openrouter' && !(bool) config('ocr.enable_openrouter_primary', true)) {
+                continue;
+            }
+            if ($provider === 'gemini' && !$this->isAvailable()) {
+                continue;
+            }
+            if (in_array($provider, ['openrouter', 'gemini', 'local_ocr'], true)) {
+                $providers[] = $provider;
+            }
+        }
+
+        Log::info('Attendance provider orchestrator started.', [
+            'stage' => 'Provider Orchestrator',
+            'providers' => $providers,
+            'bulan' => $bulan,
+            'tahun' => $tahun,
+        ]);
+
+        foreach ($providers as $provider) {
+            $result = $this->runProviderWithRetry($provider, $imagePath, $bulan, $tahun, $context);
+            if ($result['success'] ?? false) {
                 return $result;
             }
-            Log::warning('OpenRouter Vision failed, trying Gemini fallback.', ['error' => $result['error'] ?? '']);
+
+            Log::warning('Attendance provider failed, switching fallback.', [
+                'stage' => 'Fallback',
+                'provider' => $provider,
+                'error' => $result['error'] ?? 'unknown',
+            ]);
         }
 
-        // Gemini fallback (or primary if provider=gemini)
-        if ($this->isAvailable()) {
-            $url = $this->apiUrl;
-            $isGemini = str_contains($url, 'generativelanguage.googleapis.com');
+        Log::error('Attendance provider orchestrator exhausted all providers.', [
+            'stage' => 'Error Report',
+            'bulan' => $bulan,
+            'tahun' => $tahun,
+        ]);
 
-            if ($isGemini) {
-                Log::info('Trying Gemini Vision.', ['model' => $this->model]);
-                return $this->parseFromImageGemini($imagePath, $bulan, $tahun);
+        return [
+            'success' => false,
+            'error'   => 'Semua provider import absensi gagal diproses.',
+            'source'  => 'error',
+        ];
+    }
+
+    protected function runProviderWithRetry(string $provider, string $imagePath, int $bulan, int $tahun, array $context = []): array
+    {
+        $maxRetries = match ($provider) {
+            'openrouter' => (int) config('ocr.openrouter_max_retries', 2),
+            'gemini'     => (int) config('ocr.gemini_max_retries', 1),
+            'local_ocr'  => (int) config('ocr.local_ocr_max_retries', 1),
+            default      => 0,
+        };
+
+        $attempts = max(1, $maxRetries + 1);
+
+        for ($attempt = 1; $attempt <= $attempts; $attempt++) {
+            Log::info('Attendance provider attempt.', [
+                'stage' => 'Retry',
+                'provider' => $provider,
+                'attempt' => $attempt,
+                'max_retries' => $maxRetries,
+                'attempts_total' => $attempts,
+            ]);
+
+            $result = match ($provider) {
+                'openrouter' => ($this->openRouterVision && $this->openRouterVision->isAvailable())
+                    ? $this->openRouterVision->parseFromImage($imagePath, $bulan, $tahun, $context)
+                    : ['success' => false, 'error' => 'OpenRouter tidak tersedia.', 'source' => 'error'],
+                'gemini'     => $this->parseFromImageGemini($imagePath, $bulan, $tahun, $context),
+                'local_ocr'  => $this->parseFromLocalOcr($imagePath, $context),
+                default      => ['success' => false, 'error' => 'Provider tidak dikenali.', 'source' => 'error'],
+            };
+
+            if ($result['success'] ?? false) {
+                return $result;
             }
         }
 
-        // Nothing configured
-        Log::info('No AI Vision provider available.');
-        return [
-            'success' => false,
-            'error'   => 'AI Vision belum dikonfigurasi. Set OPENROUTER_API_KEY atau AI_API_KEY di .env.',
-            'source'  => 'error',
-        ];
+        return $result ?? ['success' => false, 'error' => 'Provider gagal tanpa hasil.', 'source' => 'error'];
     }
 
     /**
      * Parse via Gemini Vision (legacy path).
      */
-    protected function parseFromImageGemini(string $imagePath, int $bulan, int $tahun): array
+    protected function parseFromImageGemini(string $imagePath, int $bulan, int $tahun, array $context = []): array
     {
         try {
             $fullPath = storage_path('app/' . $imagePath);
@@ -107,10 +162,35 @@ class AIParserService
                 ];
             }
 
+            $universal = $this->adapter->buildUniversalSkeleton([
+                'provider'       => 'gemini',
+                'provider_model' => $this->model,
+                'kelas'          => $context['kelas'] ?? '',
+                'bulan'          => $bulan,
+                'tahun'          => $tahun,
+                'students'       => $this->mapLegacyStudentsToUniversal($parsed['siswa'] ?? []),
+                'warnings'       => $parsed['warnings'] ?? [],
+                'confidence'     => [
+                    'provider' => 0.88,
+                    'ocr'      => 0.88,
+                    'matching' => 0,
+                    'overall'  => 0.88,
+                ],
+                'pipeline'       => [
+                    'classification' => 'pending',
+                    'quality'        => 'pending',
+                    'preprocess'     => 'pending',
+                    'vision'         => 'success',
+                    'validation'     => 'pending',
+                ],
+                'meta' => $parsed['meta'] ?? [],
+            ]);
+
             return [
-                'success' => true,
-                'data'    => $parsed,
-                'source'  => 'ai',
+                'success'   => true,
+                'data'      => $parsed,
+                'source'    => 'gemini',
+                'universal' => $universal,
             ];
         } catch (\Exception $e) {
             Log::error('Gemini Vision exception', ['error' => $e->getMessage()]);
@@ -128,7 +208,7 @@ class AIParserService
      *
      * @return array{success: bool, data?: array, error?: string, source: string, warning?: string}
      */
-    public function parseFromLocalOcr(string $imagePath): array
+    public function parseFromLocalOcr(string $imagePath, array $context = []): array
     {
         $pythonPath    = config('ocr.python_path', '');
         $tesseractPath = config('ocr.tesseract_path', '');
@@ -170,7 +250,7 @@ class AIParserService
         try {
             $output = [];
             $exitCode = 0;
-            set_time_limit(120);
+            set_time_limit((int) config('ocr.local_ocr_timeout', 120));
             exec($cmd . ' 2>&1', $output, $exitCode);
 
             $jsonStr = implode("\n", $output);
@@ -178,6 +258,9 @@ class AIParserService
 
             if (!$result || empty($result['success'])) {
                 $errorMsg = $result['error'] ?? 'Local OCR gagal (exit code: ' . $exitCode . ')';
+                if (!$result && trim($jsonStr) !== '') {
+                    $errorMsg .= ' Output: ' . trim($jsonStr);
+                }
                 Log::warning('Local OCR failed', ['error' => $errorMsg, 'output' => $jsonStr]);
                 return [
                     'success' => false,
@@ -188,7 +271,16 @@ class AIParserService
 
             $siswaList = $result['siswa'] ?? [];
 
-            $parsed = ['siswa' => $siswaList];
+            $parsed = [
+                'siswa' => $siswaList,
+                'meta' => $result['meta'] ?? [],
+                'ocr_text' => collect($siswaList)->map(function ($row) {
+                    $statuses = collect($row['ketidakhadiran'] ?? [])->map(function ($entry) {
+                        return ($entry['tanggal'] ?? '?') . ':' . ($entry['status'] ?? '?');
+                    })->implode(' ');
+                    return trim(($row['nisn'] ?? '') . ' ' . ($row['nama_ocr'] ?? '') . ' ' . $statuses);
+                })->implode("\n"),
+            ];
 
             $validStatuses = ['H', 'I', 'S', 'A', 'LIBUR', 'UNKNOWN'];
             foreach ($parsed['siswa'] as &$siswa) {
@@ -216,11 +308,36 @@ class AIParserService
             }
             unset($siswa);
 
+            $universal = $this->adapter->buildUniversalSkeleton([
+                'provider'       => 'local_ocr',
+                'provider_model' => 'tesseract',
+                'kelas'          => $context['kelas'] ?? ($result['metadata']['kelas'] ?? ''),
+                'bulan'          => $context['bulan'] ?? ($result['metadata']['bulan'] ?? null),
+                'tahun'          => $context['tahun'] ?? ($result['metadata']['tahun'] ?? null),
+                'students'       => $this->mapLegacyStudentsToUniversal($parsed['siswa'] ?? []),
+                'warnings'       => $result['warnings'] ?? [],
+                'confidence'     => [
+                    'provider' => 0.72,
+                    'ocr'      => 0.72,
+                    'matching' => 0,
+                    'overall'  => 0.72,
+                ],
+                'pipeline'       => [
+                    'classification' => 'pending',
+                    'quality'        => 'pending',
+                    'preprocess'     => 'pending',
+                    'vision'         => 'fallback_local_ocr',
+                    'validation'     => 'pending',
+                ],
+                'meta' => array_merge($parsed['meta'] ?? [], $result['metadata'] ?? []),
+            ]);
+
             return [
-                'success' => true,
-                'data'    => $parsed,
-                'source'  => 'local_ocr',
-                'warning' => 'Data diproses menggunakan OCR lokal (Tesseract). Wajib diverifikasi oleh operator.',
+                'success'   => true,
+                'data'      => $parsed,
+                'source'    => 'local_ocr',
+                'warning'   => 'Data diproses menggunakan OCR lokal (Tesseract). Wajib diverifikasi oleh operator.',
+                'universal' => $universal,
             ];
         } catch (\Exception $e) {
             Log::error('Local OCR exception', ['error' => $e->getMessage()]);
@@ -719,6 +836,19 @@ HANYA output JSON, langsung mulai dengan { dan tutup dengan }.';
         return $decoded;
     }
 
+    public function parseOcrTextToJson(string $ocrText, int $bulan, int $tahun): array
+    {
+        if (trim($ocrText) === '') {
+            return [
+                'success' => false,
+                'error'   => 'Teks OCR kosong.',
+                'source'  => 'error',
+            ];
+        }
+
+        return $this->fallbackParse($ocrText, $bulan, $tahun);
+    }
+
     /**
      * Fallback PHP parser — no AI needed.
      * Parses OCR text with regex to find I/S/A per student line.
@@ -726,6 +856,21 @@ HANYA output JSON, langsung mulai dengan { dan tutup dengan }.';
      *
      * @return array{success: bool, data: array, source: string, warning?: string}
      */
+    protected function mapLegacyStudentsToUniversal(array $students): array
+    {
+        return array_map(function (array $student, int $index) {
+            return [
+                'row_number'    => $student['no'] ?? ($index + 1),
+                'nisn'          => $student['nisn'] ?? null,
+                'nomor_induk'   => $student['nomor_induk'] ?? null,
+                'name'          => $student['nama_ocr'] ?? '',
+                'attendance'    => $student['ketidakhadiran'] ?? [],
+                'warnings'      => $student['warnings'] ?? [],
+                'confidence'    => $student['confidence'] ?? 0.6,
+            ];
+        }, $students, array_keys($students));
+    }
+
     public function fallbackParse(string $ocrText, int $bulan, int $tahun): array
     {
         $daysInMonth = (int) date('t', mktime(0, 0, 0, $bulan, 1, $tahun));
@@ -811,11 +956,34 @@ HANYA output JSON, langsung mulai dengan { dan tutup dengan }.';
             ];
         }
 
+        $universal = $this->adapter->buildUniversalSkeleton([
+            'provider'       => 'fallback_parser',
+            'provider_model' => 'regex',
+            'bulan'          => $bulan,
+            'tahun'          => $tahun,
+            'students'       => $this->mapLegacyStudentsToUniversal($siswaList),
+            'confidence'     => [
+                'provider' => 0.6,
+                'ocr'      => 0.6,
+                'matching' => 0,
+                'overall'  => 0.6,
+            ],
+            'pipeline' => [
+                'classification' => 'skipped',
+                'quality'        => 'skipped',
+                'preprocess'     => 'skipped',
+                'vision'         => 'fallback_parser',
+                'validation'     => 'pending',
+            ],
+            'meta' => ['raw_text_length' => mb_strlen($ocrText)],
+        ]);
+
         return [
-            'success' => true,
-            'data'    => ['siswa' => $siswaList],
-            'source'  => 'fallback',
-            'warning' => 'AI Parser tidak tersedia. Data diproses menggunakan parser sederhana dan wajib diverifikasi oleh operator.',
+            'success'   => true,
+            'data'      => ['siswa' => $siswaList],
+            'source'    => 'fallback',
+            'warning'   => 'AI Parser tidak tersedia. Data diproses menggunakan parser sederhana dan wajib diverifikasi oleh operator.',
+            'universal' => $universal,
         ];
     }
 }

@@ -9,6 +9,8 @@
         $jenjangSingkat = ['Madrasah Ibtidaiyah' => 'MI', 'Madrasah Tsanawiyah' => 'MTs', 'Madrasah Aliyah' => 'MA'];
         $jenjangNama = optional($jenjangCetak)->nama_jenjang;
         $jenjangLabel = $jenjangNama ? ($jenjangSingkat[$jenjangNama] ?? strtoupper($jenjangNama)) : 'SEMUA JENJANG';
+        $headerMadrasah = strtoupper(optional($profil)->nama_madrasah ?: 'NURUL ULUM');
+        $headerAlamat = optional($profil)->alamat ?: 'Patapan, Guluk-Guluk, Sumenep';
         $maxPerChunk = 3;
         $chunks = $kelasList->chunk($maxPerChunk);
 
@@ -182,6 +184,22 @@
 
         @media print {
             .no-print { display: none !important; }
+        .no-print-screen {
+            display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+            margin-bottom: 14px; padding: 12px 16px; border-radius: 14px; background: #0f172a; color: #fff;
+            box-shadow: 0 12px 28px -12px rgba(15,23,42,.55);
+        }
+        .no-print-screen .title { font-size: 14px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; }
+        .no-print-screen .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .no-print-screen .btn {
+            display: inline-flex; align-items: center; gap: 6px; border: none; border-radius: 10px;
+            font-size: 12.5px; font-weight: 600; padding: 9px 16px; cursor: pointer; text-decoration: none;
+        }
+        .no-print-screen .btn-primary { background: #2563eb; color: #fff; }
+        .no-print-screen .btn-primary:hover { background: #1d4ed8; }
+        .no-print-screen .btn-ghost { background: rgba(255,255,255,.12); color: #fff; }
+        .no-print-screen .btn-ghost:hover { background: rgba(255,255,255,.2); }
+        @media print { .no-print-screen { display: none !important; } }
             body {
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
@@ -195,13 +213,19 @@
 
     <div class="container-fluid p-0">
 
-        <div class="no-print text-end mb-1">
-            <button class="btn btn-success btn-sm" onclick="window.print()">
-                <i class="fas fa-print"></i> Cetak / PDF
-            </button>
-            <a href="{{ route('jadwal-siswa') }}" class="btn btn-secondary btn-sm">
-                <i class="fas fa-arrow-left"></i> Kembali
-            </a>
+        <div class="no-print-screen">
+            <div class="title">
+                <i class="fas fa-calendar-alt"></i> Cetak Jadwal Mata Pelajaran
+                <span style="font-size:11px;opacity:.75;font-weight:500;">&mdash; {{ $jenjangLabel }} &middot; {{ $tahunAjaran->tahun_ajaran }}</span>
+            </div>
+            <div class="actions">
+                <button class="btn btn-primary" onclick="window.print()">
+                    <i class="fas fa-print"></i> Cetak / PDF
+                </button>
+                <a href="{{ route('jadwal-pelajaran.index') }}" class="btn btn-ghost">
+                    <i class="fas fa-arrow-left"></i> Kembali
+                </a>
+            </div>
         </div>
 
         @foreach($chunks as $chunkIdx => $chunkKelas)
@@ -209,7 +233,7 @@
             <div class="page-wrap">
 
                 <div class="header-title">JADWAL MATA PELAJARAN</div>
-                <div class="header-sub"><strong>{{ $jenjangLabel }}</strong> NURUL ULUM PATAPAN GULUK GULUK SUMENEP</div>
+                <div class="header-sub"><strong>{{ $jenjangLabel }}</strong> {{ $headerMadrasah }}</div>
                 <div class="header-tahun">TAHUN PELAJARAN {{ $tahunAjaran->tahun_ajaran }}</div>
 
                 <table class="utama">
@@ -288,14 +312,18 @@
                     </div>
                     <div class="ttd-area">
                         <div class="tanggal">Guluk-Guluk, {{ tanggal_indonesia(optional($semesterGanjil)->tanggal_mulai ? $semesterGanjil->tanggal_mulai->format('Y-m-d') : now()->format('Y-m-d'), false) }}</div>
-                        <div style="margin-top:2px;">Kepala {{ $jenjangLabel }} Nurul Ulum,</div>
+                        <div style="margin-top:2px;">Kepala {{ $jenjangLabel }} {{ $headerMadrasah }},</div>
                         <div style="height:48px;"></div>
-                        @if($jenjangLabel === 'MI')
-                        <div>Ach. Fathorrosi, S.Pd.I</div>
-                        @elseif($jenjangLabel === 'MTs')
-                        <div>Nasir, S.Pd.I</div>
-                        @elseif($jenjangLabel === 'MA')
-                        <div>Minhaji, S.Kom</div>
+                        @php
+                            $kepalaTtd = optional($profil)->nama_kepala_sekolah;
+                            if (!$kepalaTtd) {
+                                $kepalaTtd = $jenjangLabel === 'MI' ? 'Ach. Fathorrosi, S.Pd.I'
+                                    : ($jenjangLabel === 'MTs' ? 'Nasir, S.Pd.I'
+                                    : ($jenjangLabel === 'MA' ? 'Minhaji, S.Kom' : ''));
+                            }
+                        @endphp
+                        @if($kepalaTtd)
+                        <div>{{ $kepalaTtd }}</div>
                         @endif
                     </div>
                 </div>

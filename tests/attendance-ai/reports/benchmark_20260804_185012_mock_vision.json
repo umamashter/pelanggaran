@@ -1,0 +1,40 @@
+{
+    "schema_version": "1.0",
+    "correlation_id": "IMP-20260804-000001",
+    "timestamp": "2026-08-04T18:50:12+07:00",
+    "provider": "mock_vision",
+    "parse_mode": "ai",
+    "pipeline_status": "SUCCESS",
+    "decision": {
+        "category": "SUCCESS",
+        "code": null,
+        "message": "ok"
+    },
+    "image_quality": {
+        "brightness": 30,
+        "contrast": 42,
+        "blur": 18,
+        "noise": 7
+    },
+    "pipeline": {
+        "total_duration_ms": 123,
+        "provider_duration_ms": 45,
+        "memory_usage_bytes": 1024
+    },
+    "result": {
+        "student_count": 1,
+        "status_count": 1,
+        "warning_count": 0,
+        "error_count": 0,
+        "average_confidence": 0.95
+    },
+    "validation": {
+        "expected_students": null,
+        "parsed_students": 1,
+        "expected_statuses": null,
+        "parsed_statuses": 1,
+        "expected_dates": null,
+        "parsed_dates": null,
+        "accuracy": null
+    }
+}

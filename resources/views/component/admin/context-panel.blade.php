@@ -20,12 +20,12 @@
         peserta: {
             title: 'Peserta',
             items: [{
-                    title: 'Lomba Individu',
-                    route: '{{ route("peserta-lomba.index") }}'
+                    title: 'Individu',
+                    route: '{{ route("peserta-lomba.index", ["tab" => "individu"]) }}'
                 },
                 {
-                    title: 'Lomba Kelompok',
-                    route: '{{ route("anggota-kelompok.index") }}'
+                    title: 'Kelompok',
+                    route: '{{ route("peserta-lomba.index", ["tab" => "kelompok"]) }}'
                 }
             ]
         }

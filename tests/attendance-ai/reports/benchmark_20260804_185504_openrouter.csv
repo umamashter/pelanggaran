@@ -1,0 +1,21 @@
+schema_version,1.0
+correlation_id,IMP-20260804-566625
+timestamp,2026-08-04T18:55:04+07:00
+provider,openrouter
+parse_mode,ai
+pipeline_status,WARNING
+decision_category,RECOVERABLE_WARNING
+decision_code,DENOISE_RECOMMENDED
+decision_message,"Image can be improved automatically before provider execution."
+brightness,8
+contrast,4
+blur,82
+noise,30
+total_duration_ms,9008
+provider_duration_ms,8980
+memory_usage_bytes,27262976
+student_count,13
+status_count,20
+warning_count,0
+error_count,0
+average_confidence,0.92

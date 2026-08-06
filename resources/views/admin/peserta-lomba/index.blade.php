@@ -1,435 +1,546 @@
 @extends('layouts.main')
 @section('title', 'Peserta Lomba')
-
 @section('content')
-@include('component.admin.ms-style')
+@include('component.admin.lomba-workspace')
+
 <style>
-    /* ---- Filter pill — model sama dengan login-history / anggota-kelompok ---- */
-    .filter-lomba-wrap { position: relative; }
-    .filter-lomba-wrap .form-select {
-        height: 34px; border-radius: 18px; border: 1.5px solid #e2e8f0;
-        font-size: 12px; padding: 0 30px 0 34px; background-color: #f8fafc;
-        color: #475569; min-width: 150px; cursor: pointer; transition: all .25s;
-        appearance: none; -webkit-appearance: none;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
-        background-repeat: no-repeat; background-position: right 14px center; background-size: 12px;
+    .page-title-content { display: none !important; }
+    .pl-mod .lw-kpi-grid { grid-template-columns: repeat(6, 1fr); }
+
+    .lw-dash { position: relative; overflow: hidden; border-radius: 20px; padding: 24px 26px; margin-bottom: 18px;
+        background: linear-gradient(135deg, var(--lw-card), var(--lw-bg)); border: 1px solid var(--lw-border); box-shadow: var(--lw-shadow); }
+    .lw-dash::before { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .55;
+        background-image: radial-gradient(rgba(43,60,120,.10) 1px, transparent 1px); background-size: 20px 20px; }
+    .lw-dash-inner { position: relative; }
+    .lw-dash-top { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .lw-dash-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 22px; align-items: stretch; }
+    .lw-metric-big { font-size: clamp(38px, 4.5vw, 54px); font-weight: 800; letter-spacing: -1.5px; line-height: 1; color: var(--lw-text); font-variant-numeric: tabular-nums; }
+    .lw-metric-label { font-size: 12px; font-weight: 700; color: var(--lw-text-2); text-transform: uppercase; letter-spacing: .5px; margin-top: 5px; }
+    .lw-metric-sub { font-size: 11.5px; color: var(--lw-text-3); margin-top: 3px; }
+    .lw-split { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; max-width: 320px; }
+    .lw-split-item { display: flex; align-items: center; gap: 9px; padding: 9px 12px; border-radius: 12px; background: var(--lw-card); border: 1px solid var(--lw-border); }
+    .lw-split-item i { font-size: 15px; }
+    .lw-split-item .n { font-size: 17px; font-weight: 800; line-height: 1; color: var(--lw-text); }
+    .lw-split-item .l { font-size: 10px; color: var(--lw-text-3); font-weight: 600; margin-top: 2px; }
+    .lw-dist { background: var(--lw-card); border: 1px solid var(--lw-border); border-radius: 16px; padding: 16px 18px; }
+    .lw-stack { display: flex; height: 12px; border-radius: 999px; overflow: hidden; background: var(--lw-bg); }
+    .lw-stack span { height: 100%; transition: width 1s cubic-bezier(.22,.61,.36,1); }
+    .lw-stack-legend { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 12px; }
+    .lw-legend { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; color: var(--lw-text-2); }
+    .lw-legend i { font-size: 10px; }
+    .lw-legend b { font-variant-numeric: tabular-nums; color: var(--lw-text); }
+
+    .lw-health { margin-bottom: 16px; }
+    .lw-health-item { display: grid; grid-template-columns: 200px 1fr 150px; gap: 12px; align-items: center; padding: 11px 14px; border-radius: 13px; background: var(--lw-card); border: 1px solid var(--lw-border); margin-bottom: 8px; transition: all .2s ease; }
+    .lw-health-item:hover { border-color: var(--lw-primary-border); transform: translateX(3px); }
+    .lw-health-name { font-size: 12.5px; font-weight: 700; color: var(--lw-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lw-health-name small { display: block; font-size: 10px; color: var(--lw-text-3); font-weight: 600; }
+    .lw-health-bar { height: 8px; border-radius: 999px; background: var(--lw-bg); overflow: hidden; position: relative; }
+    .lw-health-bar i { display: block; height: 100%; border-radius: 999px; width: 0; transition: width 1s cubic-bezier(.22,.61,.36,1); }
+    .lw-health-chip { display: inline-flex; align-items: center; justify-content: flex-end; gap: 6px; font-size: 11px; font-weight: 700; }
+    .lw-health-chip .pct { color: var(--lw-text); font-variant-numeric: tabular-nums; }
+
+    .lw-name { display: flex; align-items: center; gap: 11px; min-width: 0; }
+    .lw-name-info { min-width: 0; }
+    .lw-name-info .nm { font-size: 13.5px; font-weight: 700; color: var(--lw-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lw-name-info .id { font-size: 11px; color: var(--lw-text-3); font-variant-numeric: tabular-nums; }
+    .lw-cell-sub { font-size: 10.5px; color: var(--lw-text-3); margin-top: 1px; }
+    .lw-tag { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 600; background: var(--lw-bg); color: var(--lw-text-2); white-space: nowrap; }
+    .lw-tag i { font-size: 11px; color: var(--lw-primary); }
+
+    .lw-act { display: inline-flex; align-items: center; gap: 4px; }
+    .lw-act-btn { width: 34px; height: 34px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--lw-border); background: var(--lw-card); color: var(--lw-text-2); font-size: 13px; cursor: pointer; transition: all .2s ease; text-decoration: none; position: relative; overflow: hidden; }
+    .lw-act-btn:hover { transform: translateY(-1px); box-shadow: var(--lw-shadow); border-color: var(--lw-primary-border); color: var(--lw-primary); }
+    .lw-act-btn.edit:hover { color: var(--lw-amber); border-color: var(--lw-amber-border); }
+    .lw-act-btn.del:hover { color: var(--lw-red); border-color: var(--lw-red-border); }
+    .lw-act-btn.is-off { opacity: .4; cursor: not-allowed; }
+    .lw-act-btn.is-off:hover { transform: none; box-shadow: none; color: var(--lw-text-2); }
+
+    .lw-team-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .lw-team-card { position: relative; overflow: hidden; border: 1px solid var(--lw-border); border-radius: 16px; background: var(--lw-card); box-shadow: var(--lw-shadow); padding: 16px; display: flex; flex-direction: column; gap: 11px; transition: all .22s ease; }
+    .lw-team-card:hover { border-color: var(--lw-primary-border); transform: translateY(-3px); box-shadow: var(--lw-shadow-lg); }
+    .lw-team-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--lw-grad); opacity: 0; transition: opacity .2s; }
+    .lw-team-card:hover::before { opacity: 1; }
+    .lw-team-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+    .lw-team-top h3 { font-size: 14px; font-weight: 800; margin: 0; color: var(--lw-text); }
+    .lw-team-code { font-size: 10px; font-weight: 700; color: var(--lw-text-3); background: var(--lw-bg); padding: 3px 8px; border-radius: 7px; letter-spacing: .4px; }
+    .lw-team-meta { font-size: 11.5px; color: var(--lw-text-3); display: flex; align-items: center; gap: 6px; }
+    .lw-team-meta i { font-size: 12px; color: var(--lw-primary); }
+    .lw-team-members { display: flex; align-items: center; }
+    .lw-team-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+    .lw-team-stat { text-align: center; padding: 8px 6px; border-radius: 10px; background: var(--lw-bg); }
+    .lw-team-stat .v { font-size: 15px; font-weight: 800; color: var(--lw-text); line-height: 1; font-variant-numeric: tabular-nums; }
+    .lw-team-stat .l { font-size: 9px; color: var(--lw-text-3); margin-top: 3px; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; }
+    .lw-team-foot { display: flex; gap: 8px; border-top: 1px dashed var(--lw-border); padding-top: 10px; }
+    .lw-team-foot .lw-act-btn { flex: 1; width: auto; }
+    .lw-ava-sm { width: 30px; height: 30px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; font-size: 10.5px; font-weight: 800; color: #fff; margin-left: -8px; border: 2px solid var(--lw-card); }
+    .lw-ava-sm:first-child { margin-left: 0; }
+    .lw-ava-more { width: 30px; height: 30px; border-radius: 10px; margin-left: -8px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 800; background: var(--lw-bg); color: var(--lw-text-2); border: 2px solid var(--lw-card); }
+
+    @media (max-width: 1399.98px) { .pl-mod .lw-kpi-grid { grid-template-columns: repeat(3, 1fr); } .lw-team-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 991.98px) { .lw-dash-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 767.98px) {
+        .pl-mod .lw-kpi-grid { grid-template-columns: repeat(2, 1fr); }
+        .lw-team-grid { grid-template-columns: 1fr; }
+        .lw-health-item { grid-template-columns: 1fr; gap: 8px; }
+        .lw-health-chip { justify-content: flex-start; }
+        .lw-dash { padding: 18px 16px; }
     }
-    .filter-lomba-wrap .form-select:focus { border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,.1); background-color: #fff; }
-    .filter-lomba-wrap .filter-icon-prepend { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 12px; pointer-events: none; z-index: 1; }
-    .filter-lomba-wrap .form-select:hover { border-color: #cbd5e1; background-color: #fff; }
-
-    .search-pill {
-        height: 34px; border: 1.5px solid #e2e8f0; border-radius: 18px;
-        font-size: 12px; padding: 0 16px 0 34px; background-color: #f8fafc;
-        color: #475569; min-width: 240px; transition: all .25s; outline: none;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E");
-        background-repeat: no-repeat; background-position: 12px center; background-size: 14px;
-    }
-    .search-pill:focus { border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,.1); background-color: #fff; }
-    .search-pill::placeholder { color: #94a3b8; }
-
-    .dt-toolbar { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:12px; margin:0 0 14px; }
-    .dt-left, .dt-right { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
-    .dt-length-group { display:inline-flex; align-items:center; gap:8px; font-size:12px; color:#64748b; }
-
-    .pagination-ms { display:flex; justify-content:flex-end; }
-    .pagination-ms .pagination { margin:0; gap:4px; }
-    .pagination-ms .page-link {
-        min-width:34px; height:34px; padding:0 10px; border-radius:8px;
-        font-size:13px; font-weight:500; line-height:32px;
-        color:#475569; background:#fff; border:1px solid var(--ms-border); box-shadow:none;
-    }
-    .pagination-ms .page-link:hover { border-color:var(--ms-primary); color:var(--ms-primary); background:var(--ms-primary-light); }
-    .pagination-ms .page-item.active .page-link { background:var(--ms-primary); border-color:var(--ms-primary); color:#fff; box-shadow:0 2px 6px rgba(22,163,74,.25); }
-    .pagination-ms .page-item.disabled .page-link { opacity:.4; background:#f8fafc; }
-
-    /* Badge status khusus halaman peserta */
-    .badge-status { display:inline-block; padding:3px 12px; border-radius:20px; font-size:12px; font-weight:600; }
-    .badge-status.terdaftar { background:#dbeafe; color:#2563eb; }
-    .badge-status.hadir { background:#dcfce7; color:#16a34a; }
-    .badge-status.tidak-hadir { background:#fee2e2; color:#dc2626; }
-    .badge-status.diskualifikasi { background:#fef3c7; color:#d97706; }
-
-    .btn-simpan-ms.btn-compact {
-        height: 34px; padding: 0 14px; font-size: 12px; border-radius: 8px;
-    }
-
-    @media (max-width: 768px) {
-        #pesertaFilter { width:100%; }
-        .dt-toolbar { width:100%; margin:12px 0; }
-        .dt-left {
-            display:grid !important;
-            grid-template-columns:repeat(3,1fr);
-            gap:12px;
-            width:100% !important;
-            overflow:visible !important;
-            flex-wrap:wrap !important;
-        }
-        .dt-left > * { min-width:0; width:100%; }
-        .dt-length-group {
-            display:flex;
-            align-items:center;
-            gap:6px;
-            width:100%;
-        }
-        .dt-length-group span { white-space:nowrap; font-size:11px; flex-shrink:0; }
-        .dt-length-group .filter-lomba-wrap { flex:1; min-width:0; }
-        .dt-length-group .filter-lomba-wrap .form-select,
-        .dt-length-group .form-select { width:100% !important; min-width:0; }
-        .filter-lomba-wrap { width:100%; }
-        .filter-lomba-wrap .form-select { width:100% !important; min-width:0 !important; }
-        .search-pill { width:100% !important; min-width:0 !important; box-sizing:border-box; }
-        .table-responsive { overflow-x:auto; -webkit-overflow-scrolling:touch; }
-    }
-    @media (max-width: 480px) {
-        .dt-left { grid-template-columns:repeat(2,1fr); }
-    }
-
-    /* ============================================================
-       MODAL HAPUS
-       ============================================================ */
-    .modal-header-custom { padding:18px 24px; border-bottom:none; }
-    .modal-body-custom { padding:16px 24px 20px; }
-
-    html:not(.dark-mode) .modal-content {
-        border:none; border-radius:20px;
-        box-shadow:0 24px 80px rgba(0,0,0,.15); overflow:hidden;
-    }
-    html.dark-mode .modal-content {
-        background:#0d2f38 !important;
-        border:2px solid #175265 !important;
-        border-radius:24px !important;
-        box-shadow:0 30px 70px -16px rgba(0,0,0,.7) !important;
-        backdrop-filter:none !important;
-        -webkit-backdrop-filter:none !important;
-    }
-    html.dark-mode .table-card { border:2px solid #175265 !important; }
-
-    html:not(.dark-mode) .modal.fade .modal-dialog {
-        transform:scale(0.92) translateY(16px);
-        transition:transform .3s cubic-bezier(.2,.8,.2,1);
-    }
-    html:not(.dark-mode) .modal.show .modal-dialog { transform:scale(1) translateY(0); }
-
-    .delete-icon-wrap { width:80px; height:80px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; margin-bottom:4px; }
-    html:not(.dark-mode) .delete-icon-wrap { background:linear-gradient(135deg,#fef2f2,#fee2e2); animation:deletePulse 2s ease-in-out infinite; }
-    html.dark-mode .delete-icon-wrap { background:rgba(220,38,38,.15); box-shadow:0 0 20px rgba(220,38,38,.1); }
-    .delete-icon-wrap i { font-size:32px; color:#dc2626; }
-    html:not(.dark-mode) .delete-icon-wrap i { animation:deleteShake 3s ease-in-out infinite; }
-    @keyframes deletePulse { 0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,.15)} 50%{box-shadow:0 0 0 12px rgba(220,38,38,0)} }
-    @keyframes deleteShake { 0%,100%{transform:rotate(0)} 2%{transform:rotate(8deg)} 4%{transform:rotate(-6deg)} 6%{transform:rotate(4deg)} 8%{transform:rotate(0)} }
-
-    .delete-info-box { border-left:4px solid #dc2626; border-radius:12px; padding:14px 18px; }
-    html:not(.dark-mode) .delete-info-box { background:linear-gradient(135deg,#f8fafc,#f1f5f9); border:1px solid #e2e8f0; }
-    html.dark-mode .delete-info-box { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); }
-    .delete-info-box .delete-label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; color:#94a3b8; margin-bottom:2px; }
-    .delete-info-box .delete-value { font-weight:700; font-size:16px; }
-    html:not(.dark-mode) .delete-info-box .delete-value { color:var(--ms-text); }
-    html.dark-mode .delete-info-box .delete-value { color:var(--text-primary); }
-
-    .btn-delete-final { border:none !important; border-radius:10px !important; padding:9px 22px !important; font-weight:600 !important; font-size:13px !important; transition:all .25s !important; }
-    html:not(.dark-mode) .btn-delete-final { background:linear-gradient(135deg,#dc2626,#b91c1c) !important; color:#fff !important; box-shadow:0 4px 14px rgba(220,38,38,.3) !important; }
-    html.dark-mode .btn-delete-final { background:linear-gradient(135deg,#dc2626,#b91c1c) !important; color:#fff !important; box-shadow:0 4px 14px rgba(220,38,38,.4) !important; }
-    .btn-delete-final:hover { transform:translateY(-2px) !important; }
-    html:not(.dark-mode) .btn-delete-final:hover { box-shadow:0 8px 24px rgba(220,38,38,.4) !important; }
-    html.dark-mode .btn-delete-final:hover { box-shadow:0 8px 24px rgba(220,38,38,.5) !important; }
-    .btn-delete-final:active { transform:translateY(0) !important; }
-
-    .btn-cancel-modal { border:none !important; border-radius:10px !important; padding:9px 22px !important; font-weight:600 !important; font-size:13px !important; transition:all .25s !important; }
-    html:not(.dark-mode) .btn-cancel-modal { background:#f1f5f9 !important; color:#475569 !important; }
-    html:not(.dark-mode) .btn-cancel-modal:hover { background:#e2e8f0 !important; color:#1e293b !important; }
-    html.dark-mode .btn-cancel-modal { background:rgba(255,255,255,.08) !important; color:var(--text-secondary) !important; }
-    html.dark-mode .btn-cancel-modal:hover { background:rgba(255,255,255,.14) !important; color:var(--text-primary) !important; }
-    .btn-cancel-modal:hover { transform:translateY(-1px); }
 </style>
 
-@php $currentPerPage = (int) request('per_page', 10); @endphp
+<div class="lw-mod pl-mod jd-page-peserta">
 
-<div class="master-siswa-page">
+@php
+    $tab = request('tab', 'individu');
+    $today = \Carbon\Carbon::now()->translatedFormat('l, d F Y');
+    $selectedHaflah = request()->filled('haflah_id') ? request('haflah_id') : session('haflah_id');
+    $activeHaflah = $haflatuls->firstWhere('id', $selectedHaflah) ?? $haflatuls->firstWhere('id', session('haflah_id'));
 
-    @if(session('success'))
-        <div class="alert alert-modern-ms alert-success alert-dismissible fade show">
-            <i class="fas fa-check-circle me-1"></i> {{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    $statusMeta = [
+        'Terdaftar'     => ['cls' => 'lw-chip--navy',  'ic' => 'bi-person-check-fill', 'tone' => 'var(--lw-primary)'],
+        'Hadir'         => ['cls' => 'lw-chip--green', 'ic' => 'bi-check-circle-fill', 'tone' => 'var(--lw-green)'],
+        'Tidak Hadir'   => ['cls' => 'lw-chip--red',   'ic' => 'bi-x-circle-fill',     'tone' => 'var(--lw-red)'],
+        'Diskualifikasi'=> ['cls' => 'lw-chip--amber', 'ic' => 'bi-slash-circle-fill', 'tone' => 'var(--lw-amber)'],
+    ];
+
+    $qBase = \App\Models\PesertaLomba::withoutGlobalScope(\App\Models\Scopes\HaflahScope::class)
+        ->whereNotNull('student_id')
+        ->whereHas('lomba', function ($q) {
+            $q->withoutGlobalScope(\App\Models\Scopes\HaflahScope::class)
+              ->whereNull('jenis')->orWhere('jenis', '!=', 'Tim');
+        });
+    if ($selectedHaflah) { $qBase->where('haflah_id', $selectedHaflah); }
+
+    $aggStatus = $qBase->clone()->selectRaw('status, count(*) as c')->groupBy('status')->pluck('c', 'status');
+    $hadir = (int)($aggStatus['Hadir'] ?? 0);
+    $tdkHadir = (int)($aggStatus['Tidak Hadir'] ?? 0);
+    $diskualifikasi = (int)($aggStatus['Diskualifikasi'] ?? 0);
+    $terdaftar = (int)($aggStatus['Terdaftar'] ?? 0);
+    $totalIndividu = array_sum($aggStatus->all());
+
+    $kq = \App\Models\KelompokLomba::query();
+    if ($selectedHaflah) { $kq->withoutGlobalScope(\App\Models\Scopes\HaflahScope::class)->where('haflah_id', $selectedHaflah); }
+    $totalKelompok = $kq->count();
+
+    $totalPeserta = $totalIndividu + $totalKelompok;
+
+    $perLomba = $qBase->clone()->selectRaw('lomba_id, count(*) as c')->groupBy('lomba_id')->pluck('c', 'lomba_id');
+    $allLombas = \App\Models\Lomba::withoutGlobalScope(\App\Models\Scopes\HaflahScope::class)
+        ->where(function ($q) { $q->whereNull('jenis')->orWhere('jenis', '!=', 'Tim'); })
+        ->when($selectedHaflah, fn($q) => $q->where('haflah_id', $selectedHaflah))
+        ->orderBy('nama')->get();
+    $kelasTingkat = \App\Models\Kelas::pluck('tingkat', 'id');
+    $studentPerKelas = \App\Models\StudentKelas::where('aktif', true)
+        ->selectRaw('kelas_id, count(*) as c')->groupBy('kelas_id')->pluck('c', 'kelas_id');
+    $lombaEligible = $allLombas->mapWithKeys(function ($l) use ($kelasTingkat, $studentPerKelas) {
+        $min = $l->kelas_min !== null && $l->kelas_min !== '' ? (int)$l->kelas_min : null;
+        $max = $l->kelas_max !== null && $l->kelas_max !== '' ? (int)$l->kelas_max : null;
+        $n = 0;
+        foreach ($studentPerKelas as $kelasId => $cnt) {
+            $t = $kelasTingkat[$kelasId] ?? null;
+            if ($t === null) continue;
+            $t = (int)$t;
+            if (($min === null || $t >= $min) && ($max === null || $t <= $max)) { $n += (int)$cnt; }
+        }
+        return [$l->id => $n];
+    });
+    $lombaTerdaftar = $allLombas->filter(fn($l) => (int)($perLomba[$l->id] ?? 0) > 0)->count();
+    $progressLomba = $allLombas->count() > 0 ? round($lombaTerdaftar / $allLombas->count() * 100) : 0;
+
+    $health = $allLombas->map(function ($l) use ($perLomba, $lombaEligible) {
+        $reg = (int)($perLomba[$l->id] ?? 0);
+        $elig = (int)($lombaEligible[$l->id] ?? 0);
+        $name = $l->nama;
+        if ($elig === 0)      return ['name' => $name, 'cls' => 'lw-chip--slate', 'ic' => 'bi-question-circle-fill', 'label' => 'Belum ada siswa', 'pct' => 0, 'reg' => $reg, 'elig' => $elig, 'bar' => 'var(--lw-text-3)'];
+        if ($reg === 0)       return ['name' => $name, 'cls' => 'lw-chip--red', 'ic' => 'bi-x-circle-fill',        'label' => 'Belum ada peserta', 'pct' => 0, 'reg' => $reg, 'elig' => $elig, 'bar' => 'var(--lw-red)'];
+        if ($reg >= $elig)    return ['name' => $name, 'cls' => 'lw-chip--green', 'ic' => 'bi-check-circle-fill',  'label' => 'Lengkap', 'pct' => 100, 'reg' => $reg, 'elig' => $elig, 'bar' => 'var(--lw-green)'];
+        return ['name' => $name, 'cls' => 'lw-chip--amber', 'ic' => 'bi-exclamation-triangle-fill', 'label' => 'Sebagian', 'pct' => round($reg / $elig * 100), 'reg' => $reg, 'elig' => $elig, 'bar' => 'var(--lw-amber)'];
+    });
+@endphp
+
+<div class="lw-hero">
+    <div class="lw-hero-grid">
+        <div class="lw-hero-left">
+            <span class="lw-hero-icon"><i class="bi bi-trophy-fill"></i></span>
+            <div>
+                <h1 class="lw-hero-title">Peserta Lomba</h1>
+                <p class="lw-hero-sub">Participant Management — daftarkan peserta individu &amp; tim, pantau status kehadiran, dan kelola pendaftaran Haflatul Imtihan.</p>
+                <div class="lw-hero-badges">
+                    <span class="lw-hero-badge"><i class="bi bi-calendar3"></i>{{ optional($activeHaflah)->nama_acara ?? 'Haflah belum dipilih' }}</span>
+                    <span class="lw-hero-badge"><i class="bi bi-clock"></i>{{ $today }}</span>
+                    <span class="lw-hero-badge"><i class="bi bi-people-fill"></i>{{ $totalPeserta }} peserta</span>
+                </div>
+            </div>
         </div>
-    @endif
-    @if(session('info'))
-        <div class="alert alert-modern-ms alert-dismissible fade show" style="background:#eff6ff;color:#1d4ed8;border-left:4px solid #3b82f6;">
-            <i class="fas fa-info-circle me-1"></i> {{ session('info') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    @endif
-
-    {{-- HEADER CARD --}}
-    <div class="card border-0 shadow-sm mb-4" style="border-radius: 16px;">
-        <div class="card-body p-4 d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3">
-            <div class="d-flex align-items-center gap-3">
-                <div class="header-icon"><i class="fas fa-users"></i></div>
-                <div>
-                    <h4 class="mb-1 fw-bold" style="color: var(--ms-text); font-size: 20px;">Peserta Lomba</h4>
-                    <span style="font-size: 13px; color: #64748b;">Daftar peserta lomba individu</span>
-                </div>
-            </div>
-            <div class="d-flex align-items-center gap-2" style="flex-wrap:nowrap;">
-                <a href="{{ route('peserta-lomba.cetak-pdf', request()->query()) }}" target="_blank" rel="noopener" class="btn btn-header-ms btn-simpan-ms btn-compact" style="background:#fef3c7;color:#92400e;" title="Cetak PDF">
-                    <i class="fas fa-print"></i> PDF
-                </a>
-                <a href="{{ route('peserta-lomba.massal') }}" class="btn btn-header-ms btn-simpan-ms btn-compact" style="background:#e0f2fe;color:#0369a1;" title="Tambah Massal">
-                    <i class="fas fa-users"></i> Massal
-                </a>
-                <a href="{{ route('peserta-lomba.create') }}" class="btn btn-header-ms btn-simpan-ms btn-compact">
-                    <i class="fas fa-plus"></i> Tambah
-                </a>
-            </div>
-        </div>
-    </div>
-
-    {{-- TABLE CARD --}}
-    <div class="card table-card">
-        <div class="card-body">
-
-            {{-- Filter otomatis gaya DataTables, kontrol pill --}}
-            <form id="pesertaFilter" method="GET" autocomplete="off">
-                <div class="dt-toolbar" style="justify-content:flex-start;margin:16px 0;">
-                    <div class="dt-left" style="flex-wrap:nowrap;overflow:hidden;">
-                        <div class="dt-length-group" style="flex-wrap:nowrap;flex-shrink:0;">
-                            <span style="flex-shrink:0;font-size:12px;">Tampilkan</span>
-                            <div class="filter-lomba-wrap" style="min-width:50px;">
-                                <i class="fas fa-list-ol filter-icon-prepend"></i>
-                                <select name="per_page" class="form-select" style="min-width:50px;font-size:11px;">
-                                    @foreach ([10, 15, 25, 50, 100] as $opt)
-                                        <option value="{{ $opt }}" {{ $currentPerPage === $opt ? 'selected' : '' }}>{{ $opt }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <span style="flex-shrink:0;font-size:12px;">entri</span>
-                        </div>
-                        <div class="filter-lomba-wrap" style="flex-shrink:1;min-width:0;">
-                            <i class="fas fa-calendar-alt filter-icon-prepend"></i>
-                            <select name="haflah_id" class="form-select" style="width:110px;font-size:11px;">
-                                <option value="">Semua Haflah</option>
-                                @foreach($haflatuls as $h)
-                                <option value="{{ $h->id }}" {{ request('haflah_id')==$h->id ? 'selected' : '' }}>{{ $h->nama_acara }} ({{ $h->tahunAjaran->tahun_ajaran ?? '-' }})</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="filter-lomba-wrap" style="flex-shrink:1;min-width:0;">
-                            <i class="fas fa-clock filter-icon-prepend"></i>
-                            <select name="sesi_id" class="form-select" style="width:100px;font-size:11px;">
-                                <option value="">Semua Sesi</option>
-                                @foreach($sesiLombas as $sl)
-                                <option value="{{ $sl->id }}" {{ request('sesi_id')==$sl->id ? 'selected' : '' }}>{{ $sl->nama }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="filter-lomba-wrap" style="flex-shrink:1;min-width:0;">
-                            <i class="fas fa-trophy filter-icon-prepend"></i>
-                            <select name="lomba_id" class="form-select" style="width:140px;font-size:11px;">
-                                <option value="">Semua Lomba</option>
-                                @foreach($lombas as $l)
-                                <option value="{{ $l->id }}" {{ request('lomba_id')==$l->id ? 'selected' : '' }}>{{ $l->nama }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="filter-lomba-wrap" style="flex-shrink:1;min-width:0;">
-                            <i class="fas fa-circle-info filter-icon-prepend"></i>
-                            <select name="status" class="form-select" style="width:140px;font-size:11px;">
-                                <option value="">Semua Status</option>
-                                <option value="Terdaftar" {{ request('status')=='Terdaftar' ? 'selected' : '' }}>Terdaftar</option>
-                                <option value="Hadir" {{ request('status')=='Hadir' ? 'selected' : '' }}>Hadir</option>
-                                <option value="Tidak Hadir" {{ request('status')=='Tidak Hadir' ? 'selected' : '' }}>Tidak Hadir</option>
-                                <option value="Diskualifikasi" {{ request('status')=='Diskualifikasi' ? 'selected' : '' }}>Diskualifikasi</option>
-                            </select>
-                        </div>
-                        <input type="search" name="nama" value="{{ request('nama') }}" class="search-pill" placeholder="cari" style="width:120px;min-width:120px;font-size:11px;">
-                    </div>
-                </div>
-            </form>
-
-            <div class="table-responsive">
-                <table class="table table-ms">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Lomba</th>
-                            <th>Sesi</th>
-                            <th>Tanggal</th>
-                            <th>Nama Peserta</th>
-                            <th>Kelas</th>
-                            <th>Jenjang</th>
-                            <th>Status</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($pesertaLombas as $p)
-                        <tr>
-                            <td>{{ $loop->iteration }}</td>
-                            <td class="fw-semibold">{{ $p->lomba->nama ?? '-' }}</td>
-                            <td>{{ $p->lomba->sesiLomba->nama ?? '-' }}</td>
-                            <td>{{ !empty($p->lomba->sesiLomba->tanggal) ? \Carbon\Carbon::parse($p->lomba->sesiLomba->tanggal)->translatedFormat('d M Y') : '-' }}</td>
-                            <td>
-                                @if($p->isIndividu())
-                                {{ $p->student->user->name ?? '-' }}
-                                @elseif($p->kelompokLomba)
-                                <i class="fas fa-users me-1" style="color:#6b7280;"></i>
-                                {{ $p->kelompokLomba->nama_kelompok }}
-                                @else
-                                -
-                                @endif
-                            </td>
-                            <td>
-                                @if($p->isIndividu())
-                                {{ $p->student->kelasAktif->kelas->nama_kelas ?? '-' }}
-                                @else
-                                <span class="badge" style="background:#e0e7ff;color:#4338ca;font-size:11px;">Kelompok</span>
-                                @endif
-                            </td>
-                            <td>
-                                @if($p->isIndividu())
-                                {{ $p->student->kelasAktif->kelas->jenjang->nama_jenjang ?? '-' }}
-                                @else
-                                -
-                                @endif
-                            </td>
-                            <td>
-                                @php
-                                $badgeClass = match($p->status) {
-                                'Terdaftar' => 'terdaftar',
-                                'Hadir' => 'hadir',
-                                'Tidak Hadir' => 'tidak-hadir',
-                                'Diskualifikasi' => 'diskualifikasi',
-                                default => 'terdaftar'
-                                };
-                                @endphp
-                                <span class="badge-status {{ $badgeClass }}">{{ $p->status }}</span>
-                            </td>
-                            <td>
-                                <div class="action-group-ms">
-                                    <a href="{{ route('peserta-lomba.show', $p->id) }}" class="btn btn-outline-info" title="Detail"><i class="fas fa-eye"></i></a>
-                                    @if($p->is_haflah_selesai)
-                                    <span class="btn btn-outline-secondary" title="Haflah selesai - terkunci" style="cursor:not-allowed;opacity:.5;">
-                                        <i class="fas fa-lock"></i>
-                                    </span>
-                                    @elseif($p->penilaian_count + $p->hasil_count > 0)
-                                    <a href="{{ route('peserta-lomba.edit', $p->id) }}" class="btn btn-outline-warning" title="Edit"><i class="fas fa-edit"></i></a>
-                                    <span class="btn btn-outline-secondary" title="Tidak dapat dihapus, sudah memiliki data penilaian" style="cursor:not-allowed;opacity:.5;">
-                                        <i class="fas fa-trash text-muted"></i>
-                                    </span>
-                                    @else
-                                    <a href="{{ route('peserta-lomba.edit', $p->id) }}" class="btn btn-outline-warning" title="Edit"><i class="fas fa-edit"></i></a>
-                                    <button type="button" class="btn btn-outline-danger" title="Hapus"
-                                        data-bs-toggle="modal" data-bs-target="#hapusModal"
-                                        data-nama="{{ $p->isIndividu() ? $p->student->user->name : ($p->kelompokLomba->nama_kelompok ?? '-') }}"
-                                        data-url="{{ route('peserta-lomba.destroy', $p->id) }}">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                    @endif
-                                </div>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="9" class="text-center py-4" style="color:#94a3b8;">Belum ada data peserta.</td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-
-            @if($pesertaLombas->isNotEmpty())
-            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 pt-3">
-                <span class="text-muted" style="font-size:13px;">
-                    Menampilkan {{ $pesertaLombas->firstItem() ?? 0 }}–{{ $pesertaLombas->lastItem() ?? 0 }} dari {{ $pesertaLombas->total() }} entri
-                </span>
-                <div class="pagination-ms">
-                    {{ $pesertaLombas->onEachSide(1)->links() }}
-                </div>
-            </div>
-            @endif
-
-            {{-- Modal Hapus --}}
-            <div class="modal fade" id="hapusModal" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered modal-sm">
-                    <div class="modal-content">
-                        <div class="modal-header-custom border-0 pb-0">
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body-custom text-center px-4">
-                            <div class="delete-icon-wrap">
-                                <i class="fas fa-trash-alt"></i>
-                            </div>
-                            <h5 class="fw-bold mt-3 mb-2">Hapus Peserta?</h5>
-                            <p class="text-muted mb-3" style="font-size:14px">Data yang dihapus tidak dapat dikembalikan.</p>
-                            <div class="delete-info-box text-start">
-                                <div class="delete-label">Peserta</div>
-                                <div class="delete-value" id="hapusNama"></div>
-                            </div>
-                            <form id="hapusForm" action="" method="POST">
-                                @csrf @method('DELETE')
-                                <div class="d-flex justify-content-center gap-2 mt-3">
-                                    <button type="button" class="btn btn-cancel-modal" data-bs-dismiss="modal">Batal</button>
-                                    <button type="submit" class="btn btn-delete-final">
-                                        <i class="fas fa-trash me-1"></i> Ya, Hapus
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="lw-hero-right">
+            <a href="{{ route('peserta-lomba.create') }}" class="lw-btn lw-btn--accent"><i class="bi bi-person-plus-fill"></i> Tambah Peserta</a>
+            <a href="{{ route('peserta-lomba.massal') }}" class="lw-btn lw-btn--light"><i class="bi bi-layers-fill"></i> Tambah Massal</a>
+            <a href="{{ route('peserta-lomba.cetak-pdf', request()->query()) }}" class="lw-btn lw-btn--light" title="Export PDF" target="_blank"><i class="bi bi-filetype-pdf"></i></a>
+            <a href="{{ route('peserta-lomba.index') }}" class="lw-btn lw-btn--light" title="Refresh"><i class="bi bi-arrow-clockwise"></i></a>
         </div>
     </div>
-
 </div>
+
+@if(session('success'))
+    <div class="lw-alert lw-alert--ok"><i class="bi bi-check-circle-fill"></i> {{ session('success') }}</div>
+@endif
+@if(session('error'))
+    <div class="lw-alert lw-alert--err"><i class="bi bi-exclamation-triangle-fill"></i> {{ session('error') }}</div>
+@endif
+@if(session('info'))
+    <div class="lw-alert lw-alert--accent"><i class="bi bi-info-circle-fill"></i> {{ session('info') }}</div>
+@endif
+
+<div class="lw-dash">
+    <div class="lw-dash-inner">
+        <div class="lw-dash-top">
+            <div>
+                <div class="lw-section-title"><i class="bi bi-graph-up-arrow"></i> Registration Progress Dashboard</div>
+                <div class="lw-section-sub" style="margin-bottom:0;">Ringkasan pendaftaran {{ optional($activeHaflah)->nama_acara ?? 'Haflah Aktif' }}</div>
+            </div>
+            <span class="lw-chip lw-chip--glow"><i class="bi bi-kanban"></i> Progress pendaftaran <b style="margin-left:5px;" data-count="{{ $progressLomba }}">{{ $progressLomba }}</b>%</span>
+        </div>
+        <div class="lw-dash-grid">
+            <div>
+                <div>
+                    <div class="lw-metric-big" data-count="{{ $totalPeserta }}">{{ $totalPeserta }}</div>
+                    <div class="lw-metric-label">Total Peserta Terdaftar</div>
+                    <div class="lw-metric-sub">{{ $totalIndividu }} individu &middot; {{ $totalKelompok }} kelompok</div>
+                </div>
+                <div class="lw-split">
+                    <div class="lw-split-item"><i class="bi bi-person-fill" style="color:var(--lw-primary);"></i><div><div class="n" data-count="{{ $totalIndividu }}">{{ $totalIndividu }}</div><div class="l">Individu</div></div></div>
+                    <div class="lw-split-item"><i class="bi bi-people-fill" style="color:var(--lw-violet);"></i><div><div class="n" data-count="{{ $totalKelompok }}">{{ $totalKelompok }}</div><div class="l">Kelompok</div></div></div>
+                </div>
+            </div>
+            <div class="lw-dist">
+                <div class="lw-section-title" style="font-size:12px;"><i class="bi bi-bar-chart-fill"></i> Distribusi Status Peserta</div>
+                <div class="lw-stack" id="statusStack">
+                    <span style="background:var(--lw-primary);width:0%;" data-w="{{ $totalIndividu ? $terdaftar / $totalIndividu * 100 : 0 }}"></span>
+                    <span style="background:var(--lw-green);width:0%;" data-w="{{ $totalIndividu ? $hadir / $totalIndividu * 100 : 0 }}"></span>
+                    <span style="background:var(--lw-red);width:0%;" data-w="{{ $totalIndividu ? $tdkHadir / $totalIndividu * 100 : 0 }}"></span>
+                    <span style="background:var(--lw-amber);width:0%;" data-w="{{ $totalIndividu ? $diskualifikasi / $totalIndividu * 100 : 0 }}"></span>
+                </div>
+                <div class="lw-stack-legend">
+                    <span class="lw-legend"><i class="bi bi-circle-fill" style="color:var(--lw-primary);"></i>Terdaftar <b data-count="{{ $terdaftar }}">{{ $terdaftar }}</b></span>
+                    <span class="lw-legend"><i class="bi bi-circle-fill" style="color:var(--lw-green);"></i>Hadir <b data-count="{{ $hadir }}">{{ $hadir }}</b></span>
+                    <span class="lw-legend"><i class="bi bi-circle-fill" style="color:var(--lw-red);"></i>Tdk Hadir <b data-count="{{ $tdkHadir }}">{{ $tdkHadir }}</b></span>
+                    <span class="lw-legend"><i class="bi bi-circle-fill" style="color:var(--lw-amber);"></i>Diskualifikasi <b data-count="{{ $diskualifikasi }}">{{ $diskualifikasi }}</b></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="lw-tabs" role="tablist" style="margin-bottom:14px;">
+    <a href="{{ route('peserta-lomba.index', array_merge(request()->except('tab'), ['tab' => 'individu'])) }}" class="lw-tab {{ $tab !== 'kelompok' ? 'active' : '' }}" role="tab"><i class="bi bi-person-fill"></i> Individu <span class="lw-badge-count">{{ $pesertaLombas->total() }}</span></a>
+    <a href="{{ route('peserta-lomba.index', array_merge(request()->except('tab'), ['tab' => 'kelompok'])) }}" class="lw-tab {{ $tab === 'kelompok' ? 'active' : '' }}" role="tab"><i class="bi bi-people-fill"></i> Kelompok <span class="lw-badge-count">{{ $kelompoks->total() }}</span></a>
+</div>
+
+@if($tab !== 'kelompok')
+
+@if($health->isNotEmpty())
+<div class="lw-health">
+    <div class="lw-section-title" style="margin-bottom:10px;"><i class="bi bi-activity"></i> Registration Health</div>
+    @foreach($health->take(8) as $h)
+        <div class="lw-health-item">
+            <div class="lw-health-name">{{ $h['name'] }}<small><i class="bi bi-people-fill"></i> {{ $h['elig'] }} siswa eligible</small></div>
+            <div class="lw-health-bar"><i data-w="{{ $h['pct'] }}" style="background:{{ $h['bar'] }};"></i></div>
+            <div class="lw-health-chip"><span class="lw-chip {{ $h['cls'] }} lw-chip-mini"><i class="bi {{ $h['ic'] }}"></i>{{ $h['label'] }}</span><span class="pct">{{ $h['reg'] }}/{{ $h['elig'] }}</span></div>
+        </div>
+    @endforeach
+    @if($health->count() > 8)
+        <div class="text-end" style="margin-top:6px;"><button type="button" class="lw-btn lw-btn--sm lw-btn--ghost" id="healthExpand"><i class="bi bi-chevron-down"></i> Tampilkan semua ({{ $health->count() }} lomba)</button></div>
+    @endif
+</div>
+@endif
+
+<div class="lw-toolbar" id="pesertaToolbar">
+    <form id="pesertaFilter" method="GET" style="display:contents;" autocomplete="off">
+        <input type="hidden" name="tab" value="individu">
+        <div class="lw-filter"><label>Haflah</label>
+            <select name="haflah_id" class="lw-select">
+                <option value="">Haflah Aktif</option>
+                @foreach($haflatuls as $h)
+                    <option value="{{ $h->id }}" {{ request('haflah_id') == $h->id ? 'selected' : '' }}>{{ $h->nama_acara }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="lw-filter"><label>Sesi</label>
+            <select name="sesi_id" class="lw-select">
+                <option value="">Semua Sesi</option>
+                @foreach($sesiLombas as $sl)
+                    <option value="{{ $sl->id }}" {{ request('sesi_id') == $sl->id ? 'selected' : '' }}>{{ $sl->nama }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="lw-filter"><label>Lomba</label>
+            <select name="lomba_id" class="lw-select">
+                <option value="">Semua Lomba</option>
+                @foreach($lombas as $lmb)
+                    <option value="{{ $lmb->id }}" {{ request('lomba_id') == $lmb->id ? 'selected' : '' }}>{{ $lmb->nama }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="lw-filter"><label>Status</label>
+            <select name="status" class="lw-select">
+                <option value="">Semua</option>
+                @foreach(['Terdaftar', 'Hadir', 'Tidak Hadir', 'Diskualifikasi'] as $st)
+                    <option value="{{ $st }}" {{ request('status') == $st ? 'selected' : '' }}>{{ $st }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="lw-filter"><label>Entri</label>
+            <select name="per_page" class="lw-select" style="min-width:70px;">
+                @foreach([10, 15, 25, 50, 100] as $opt)
+                    <option value="{{ $opt }}" {{ (int) $perPage === $opt ? 'selected' : '' }}>{{ $opt }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="lw-search"><i class="bi bi-search"></i>
+            <input type="search" name="nama" value="{{ request('nama') }}" class="lw-control" placeholder="Cari nama peserta..." aria-label="Cari nama">
+        </div>
+        <div class="lw-toolbar-actions">
+            <a href="{{ route('peserta-lomba.index', ['tab' => 'individu']) }}" class="lw-btn lw-btn--ghost"><i class="bi bi-arrow-counterclockwise"></i> Reset</a>
+        </div>
+    </form>
+</div>
+
+<div class="lw-card lw-table-card">
+    <div class="lw-card-header">
+        <div>
+            <div class="lw-section-title" style="margin-bottom:2px;"><i class="bi bi-person-fill"></i> Daftar Peserta Individu</div>
+            <div class="lw-section-sub" style="margin-bottom:0;font-size:11.5px;">{{ $pesertaLombas->firstItem() ?? 0 }}-{{ $pesertaLombas->lastItem() ?? 0 }} dari {{ $pesertaLombas->total() }} peserta</div>
+        </div>
+    </div>
+
+    @if($pesertaLombas->isEmpty())
+        <div class="lw-empty">
+            <div class="lw-empty-illus"><div class="ring"></div><div class="ring-2"></div><div class="core"><i class="bi bi-person-dash"></i></div></div>
+            <div class="lw-empty-title">Belum Ada Peserta Individu</div>
+            <p class="lw-empty-sub">Daftarkan peserta pertama untuk memulai pendaftaran lomba.</p>
+            <a href="{{ route('peserta-lomba.create') }}" class="lw-btn lw-btn--solid"><i class="bi bi-person-plus-fill"></i> Tambah Peserta Pertama</a>
+        </div>
+    @else
+        <div class="lw-table-desktop"><div class="table-responsive">
+            <table class="table table-lw align-middle">
+                <thead><tr>
+                    <th>Peserta</th><th>Kelas</th><th>Lomba</th><th>Sesi</th><th>Tanggal</th><th class="text-center">No Urut</th><th>Status</th><th class="text-end">Aksi</th>
+                </tr></thead>
+                <tbody id="pesertaTbody">
+                    @foreach($pesertaLombas as $p)
+                        @php
+                            $student = $p->student;
+                            $userName = $student->user->name ?? $student->nama ?? '-';
+                            $nisn = $student->nisn ?? '-';
+                            $ini = strtoupper(mb_substr($userName, 0, 1));
+                            $kelasNama = $student->kelasAktif->kelas->nama_kelas ?? '-';
+                            $jenjangNama = $student->kelasAktif->kelas->jenjang->nama_jenjang ?? '-';
+                            $isLocked = $p->is_haflah_selesai;
+                            $hasScore = ($p->penilaian_count ?? 0) + ($p->hasil_count ?? 0) > 0;
+                            $sm = $statusMeta[$p->status] ?? ['cls' => 'lw-chip--slate', 'ic' => 'bi-circle-fill'];
+                            $tgl = optional($p->lomba->sesiLomba)->tanggal ? \Carbon\Carbon::parse($p->lomba->sesiLomba->tanggal)->translatedFormat('d M Y') : '-';
+                        @endphp
+                        <tr class="{{ $isLocked ? 'is-locked' : '' }}">
+                            <td><div class="lw-name"><span class="lw-avatar" style="background:{{ lw_ava_color($userName) }};">{{ $ini }}</span><div class="lw-name-info"><div class="nm">{{ $userName }}</div><div class="id">NISN {{ $nisn }}</div></div></div></td>
+                            <td><span class="lw-tag"><i class="bi bi-mortarboard-fill"></i>{{ $kelasNama }}</span><div class="lw-cell-sub">{{ $jenjangNama }}</div></td>
+                            <td><div style="font-size:13px;font-weight:600;color:var(--lw-text);">{{ $p->lomba->nama ?? '-' }}</div></td>
+                            <td><div class="lw-cell-sub" style="color:var(--lw-text-2);">{{ $p->lomba->sesiLomba->nama ?? '-' }}</div></td>
+                            <td><div class="lw-cell-sub" style="color:var(--lw-text-2);">{{ $tgl }}</div></td>
+                            <td class="text-center"><span class="lw-tag" style="justify-content:center;min-width:34px;"><b style="color:var(--lw-text);">{{ $p->nomor_urut }}</b></span></td>
+                            <td><span class="lw-chip {{ $sm['cls'] }}"><i class="bi {{ $sm['ic'] }}"></i>{{ $p->status }}</span></td>
+                            <td class="text-end"><div class="lw-act">
+                                <a href="{{ route('peserta-lomba.show', $p->id) }}" class="lw-act-btn" title="Detail"><i class="bi bi-eye"></i></a>
+                                @if($isLocked)
+                                    <span class="lw-act-btn is-off" title="Haflah telah selesai — data dikunci"><i class="bi bi-lock-fill"></i></span>
+                                @elseif($hasScore)
+                                    <a href="{{ route('peserta-lomba.edit', $p->id) }}" class="lw-act-btn edit" title="Edit"><i class="bi bi-pencil-square"></i></a>
+                                    <span class="lw-act-btn is-off" title="Memiliki data penilaian — tidak bisa dihapus"><i class="bi bi-trash"></i></span>
+                                @else
+                                    <a href="{{ route('peserta-lomba.edit', $p->id) }}" class="lw-act-btn edit" title="Edit"><i class="bi bi-pencil-square"></i></a>
+                                    <button type="button" class="lw-act-btn del" data-pl-delete data-pl-id="{{ $p->id }}" data-pl-nama="{{ e($userName) }}" title="Hapus"><i class="bi bi-trash"></i></button>
+                                @endif
+                            </div></td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div></div>
+
+        <div class="lw-mobile-card-list">
+            @foreach($pesertaLombas as $p)
+                @php
+                    $student = $p->student; $userName = $student->user->name ?? $student->nama ?? '-'; $nisn = $student->nisn ?? '-';
+                    $ini = strtoupper(mb_substr($userName, 0, 1));
+                    $kelasNama = $student->kelasAktif->kelas->nama_kelas ?? '-';
+                    $isLocked = $p->is_haflah_selesai;
+                    $sm = $statusMeta[$p->status] ?? ['cls' => 'lw-chip--slate', 'ic' => 'bi-circle-fill'];
+                @endphp
+                <div class="lw-mobile-card {{ $isLocked ? 'locked' : '' }}">
+                    <div class="lw-mobile-card-head">
+                        <div class="lw-name"><span class="lw-avatar lw-avatar--sm" style="background:{{ lw_ava_color($userName) }};">{{ $ini }}</span><div class="lw-name-info"><div class="nm">{{ $userName }}</div><div class="id">NISN {{ $nisn }}</div></div></div>
+                        <span class="lw-chip {{ $sm['cls'] }}"><i class="bi {{ $sm['ic'] }}"></i>{{ $p->status }}</span>
+                    </div>
+                    <div class="lw-mobile-card-grid">
+                        <div class="lw-mobile-card-field"><span class="k">Lomba</span><span class="v">{{ $p->lomba->nama ?? '-' }}</span></div>
+                        <div class="lw-mobile-card-field"><span class="k">Kelas</span><span class="v">{{ $kelasNama }}</span></div>
+                        <div class="lw-mobile-card-field"><span class="k">Sesi</span><span class="v">{{ $p->lomba->sesiLomba->nama ?? '-' }}</span></div>
+                        <div class="lw-mobile-card-field"><span class="k">No Urut</span><span class="v">{{ $p->nomor_urut }}</span></div>
+                    </div>
+                    <div class="lw-mobile-card-actions">
+                        <a href="{{ route('peserta-lomba.show', $p->id) }}" class="lw-btn lw-btn--sm lw-btn--soft"><i class="bi bi-eye"></i> Detail</a>
+                        <a href="{{ route('peserta-lomba.edit', $p->id) }}" class="lw-btn lw-btn--sm lw-btn--amber-soft {{ $isLocked ? 'lw-btn-lock' : '' }}"><i class="bi bi-pencil-square"></i> Edit</a>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+
+        <div class="lw-pagi">
+            <div class="lw-pagi-info">Menampilkan {{ $pesertaLombas->firstItem() ?? 0 }}-{{ $pesertaLombas->lastItem() ?? 0 }} dari {{ $pesertaLombas->total() }} entri</div>
+            <div>{{ $pesertaLombas->onEachSide(1)->links() }}</div>
+        </div>
+    @endif
+</div>
+
+@else
+
+<div class="lw-toolbar" id="kelompokToolbar">
+    <form id="kelompokFilter" method="GET" style="display:contents;" autocomplete="off">
+        <input type="hidden" name="tab" value="kelompok">
+        <div class="lw-filter"><label>Haflah</label>
+            <select name="haflah_id" class="lw-select">
+                <option value="">Haflah Aktif</option>
+                @foreach($haflatuls as $h)
+                    <option value="{{ $h->id }}" {{ request('haflah_id') == $h->id ? 'selected' : '' }}>{{ $h->nama_acara }}</option>
+                @endforeach
+            </select></div>
+        <div class="lw-filter"><label>Lomba</label>
+            <select name="lomba_id" class="lw-select">
+                <option value="">Semua Lomba</option>
+                @foreach($lombasKelompok as $lmb)
+                    <option value="{{ $lmb->id }}" {{ request('lomba_id') == $lmb->id ? 'selected' : '' }}>{{ $lmb->nama }}</option>
+                @endforeach
+            </select></div>
+        <div class="lw-filter"><label>Entri</label>
+            <select name="per_page" class="lw-select" style="min-width:70px;">
+                @foreach([10, 15, 25, 50, 100] as $opt)
+                    <option value="{{ $opt }}" {{ (int) $perPage === $opt ? 'selected' : '' }}>{{ $opt }}</option>
+                @endforeach
+            </select></div>
+        <div class="lw-toolbar-actions">
+            <a href="{{ route('peserta-lomba.index', ['tab' => 'kelompok']) }}" class="lw-btn lw-btn--ghost"><i class="bi bi-arrow-counterclockwise"></i> Reset</a>
+        </div>
+    </form>
+</div>
+
+<div class="lw-card lw-card-pad">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <div class="lw-section-title" style="margin-bottom:0;"><i class="bi bi-people-fill"></i> Peserta Kelompok</div>
+        <a href="{{ route('anggota-kelompok.create') }}" class="lw-btn lw-btn--solid lw-btn--sm"><i class="bi bi-person-plus-fill"></i> Tambah Anggota</a>
+    </div>
+    @if($kelompoks->isEmpty())
+        <div class="lw-empty">
+            <div class="lw-empty-illus"><div class="ring"></div><div class="ring-2"></div><div class="core"><i class="bi bi-people-fill"></i></div></div>
+            <div class="lw-empty-title">Belum Ada Peserta Kelompok</div>
+            <p class="lw-empty-sub">Buat kelompok melalui modul Kelompok Lomba, lalu daftarkan sebagai peserta tim.</p>
+            <a href="{{ route('anggota-kelompok.create') }}" class="lw-btn lw-btn--solid"><i class="bi bi-people-fill"></i> Buat Kelompok</a>
+        </div>
+    @else
+        <div class="lw-team-grid">
+            @foreach($kelompoks as $kp)
+                @php
+                    $isLocked = $kp->is_haflah_selesai;
+                    $ac = ($kp->anggota_count ?? 0) + ($kp->penilaian_lombas_count ?? 0);
+                    $members = $kp->anggota->take(4);
+                    $more = max(0, ($kp->anggota_count ?? 0) - 4);
+                @endphp
+                <div class="lw-team-card">
+                    <div class="lw-team-top">
+                        <div><h3>{{ $kp->nama_kelompok }}</h3><div class="lw-team-meta"><i class="bi bi-trophy-fill"></i>{{ $kp->lomba->nama ?? '-' }} &middot; {{ $kp->lomba->sesiLomba->nama ?? '-' }}</div></div>
+                        @if($kp->kode_kelompok)<span class="lw-team-code">{{ $kp->kode_kelompok }}</span>@endif
+                    </div>
+                    <div class="lw-team-members">
+                        @forelse($members as $idx => $ang)
+                            @php $mName = $ang->student->user->name ?? $ang->student->nama ?? '?'; @endphp
+                            <span class="lw-ava-sm" style="background:{{ lw_ava_color($mName) }};" title="{{ $mName }}">{{ strtoupper(mb_substr($mName, 0, 1)) }}</span>
+                        @empty
+                            <span style="font-size:11px;color:var(--lw-text-3);">Belum ada anggota</span>
+                        @endforelse
+                        @if($more > 0)<span class="lw-ava-more" title="+{{ $more }} anggota lagi">+{{ $more }}</span>@endif
+                    </div>
+                    <div class="lw-team-stats">
+                        <div class="lw-team-stat"><div class="v">{{ $kp->anggota_count }}</div><div class="l">Anggota</div></div>
+                        <div class="lw-team-stat"><div class="v">{{ $kp->penilaian_lombas_count }}</div><div class="l">Penilaian</div></div>
+                        <div class="lw-team-stat"><div class="v" style="font-size:12px;">{{ $kp->kode_kelompok ?? '-' }}</div><div class="l">Kode</div></div>
+                    </div>
+                    <div class="lw-team-foot">
+                        <a href="{{ route('kelompok-lomba.show', $kp->id) }}" class="lw-act-btn"><i class="bi bi-eye"></i> Detail</a>
+                        @if($isLocked || $ac > 0)
+                            <span class="lw-act-btn is-off" title="{{ $isLocked ? 'Haflah telah selesai — data dikunci' : 'Memiliki data penilaian' }}"><i class="bi bi-ban"></i></span>
+                        @else
+                            <a href="{{ route('anggota-kelompok.edit', $kp->id) }}" class="lw-act-btn edit"><i class="bi bi-pencil-square"></i> Edit</a>
+                        @endif
+                    </div>
+                </div>
+            @endforeach
+        </div>
+        <div class="lw-pagi">
+            <div class="lw-pagi-info">Menampilkan {{ $kelompoks->firstItem() ?? 0 }}-{{ $kelompoks->lastItem() ?? 0 }} dari {{ $kelompoks->total() }} entri</div>
+            <div>{{ $kelompoks->onEachSide(1)->links() }}</div>
+        </div>
+    @endif
+</div>
+@endif
+</div>
+
+<a href="{{ route('peserta-lomba.create') }}" class="lw-fab" aria-label="Tambah peserta"><i class="bi bi-plus-lg"></i></a>
+<form id="plDeleteForm" method="POST" class="d-none">@csrf @method('DELETE')</form>
 
 @push('scripts')
 <script>
 (function () {
-    const form = document.getElementById('pesertaFilter');
-    if (!form) return;
+    var sel = document.querySelectorAll('#pesertaFilter select, #pesertaFilter input[type=search], #kelompokFilter select');
+    sel.forEach(function (el) { el.addEventListener('change', function () { this.form.submit(); }); });
+    document.querySelectorAll('#pesertaFilter input[name=nama]').forEach(function (el) {
+        var t; el.addEventListener('input', function () { clearTimeout(t); t = setTimeout(function () { el.form.submit(); }, 380); });
+    });
 
-    function applyFilter() {
-        const params = new URLSearchParams();
-        const data = new FormData(form);
-        for (const [k, v] of data.entries()) {
-            if (v) params.append(k, v);
-        }
-        window.location.search = params.toString();
+    document.querySelectorAll('[data-count]').forEach(function (el) {
+        if (typeof LW !== 'undefined' && LW.counter) { LW.counter(el); }
+    });
+
+    document.querySelectorAll('#statusStack span, .lw-health-bar i').forEach(function (el) {
+        var w = parseFloat(el.dataset.w); if (isNaN(w)) w = 0;
+        setTimeout(function () { el.style.width = Math.max(w, 0.001) + '%'; }, 200);
+    });
+
+    document.querySelectorAll('.lw-act-btn').forEach(function (b) { b.addEventListener('click', function (e) { if (b.classList.contains('is-off')) e.preventDefault(); }); });
+
+    (function staggerIn() {
+        document.querySelectorAll('.lw-table-lw tbody tr, .lw-team-card').forEach(function (el, i) {
+            el.style.opacity = '0'; el.style.transform = 'translateY(6px)'; el.style.transition = 'opacity .3s ease, transform .3s ease';
+            setTimeout(function () { el.style.opacity = '1'; el.style.transform = 'none'; }, 40 + i * 28);
+        });
+    })();
+
+    var hExpand = document.getElementById('healthExpand');
+    if (hExpand) {
+        var extra = document.querySelectorAll('.lw-health-item:nth-child(n+4)');
+        extra.forEach(function (el, i) { if (i >= 2) el.style.display = 'none'; });
+        hExpand.addEventListener('click', function () {
+            extra.forEach(function (el, i) { if (i >= 2) el.style.display = ''; });
+            hExpand.style.display = 'none';
+        });
     }
 
-    let debounce;
-    form.querySelectorAll('select').forEach(function (el) {
-        el.addEventListener('change', applyFilter);
-    });
-    form.querySelectorAll('input[type="search"], input[type="text"]').forEach(function (el) {
-        el.addEventListener('input', function () {
-            clearTimeout(debounce);
-            debounce = setTimeout(applyFilter, 350);
+    document.querySelectorAll('[data-pl-delete]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var id = btn.dataset.plId, nama = btn.dataset.plNama; if (!id) return;
+            LW.confirm('Hapus Peserta?', 'Peserta "' + nama + '" akan dihapus permanen dari pendaftaran.', 'bi-trash').then(function (ok) {
+                if (ok) { var f = document.getElementById('plDeleteForm'); f.action = '{{ url('peserta-lomba') }}/' + id; f.submit(); }
+            });
         });
     });
 })();
-
-document.addEventListener('DOMContentLoaded', function() {
-    var hapusModal = document.getElementById('hapusModal');
-    if (!hapusModal) return;
-
-    hapusModal.addEventListener('show.bs.modal', function(event) {
-        var button = event.relatedTarget;
-        document.getElementById('hapusNama').textContent = button.getAttribute('data-nama');
-        document.getElementById('hapusForm').action = button.getAttribute('data-url');
-        if (hapusModal.parentNode !== document.body) {
-            document.body.appendChild(hapusModal);
-        }
-    });
-
-    hapusModal.addEventListener('hidden.bs.modal', function() {
-        var cardBody = document.querySelector('.card-body');
-        if (cardBody && hapusModal.parentNode !== cardBody) {
-            cardBody.appendChild(hapusModal);
-        }
-    });
-});
 </script>
 @endpush
 @endsection

@@ -1,217 +1,186 @@
 @extends('layouts.main')
 @section('title', 'Edit Lomba')
-@push('css')
-<style>
-    .edit-lomba-page { font-family: 'Inter', 'Poppins', system-ui, sans-serif; max-width: 780px; margin: 22px auto 0; padding: 0 16px; }
-    .breadcrumb-cu { margin-bottom: 20px; }
-    .breadcrumb-cu .breadcrumb { background: transparent; padding: 0; margin: 0; }
-    .breadcrumb-cu .breadcrumb-item { font-size: 13px; }
-    .breadcrumb-cu .breadcrumb-item a { color: #64748b; text-decoration: none; transition: color .2s; }
-    .breadcrumb-cu .breadcrumb-item a:hover { color: #16a34a; }
-    .breadcrumb-cu .breadcrumb-item.active { color: #1e293b; font-weight: 500; }
-    .breadcrumb-cu .breadcrumb-item+.breadcrumb-item::before { color: #cbd5e1; }
-    .create-card { border: none; border-radius: 18px; box-shadow: 0 4px 16px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.04); }
-    .create-card-header { padding: 16px 24px 14px; border-bottom: 1px solid #f1f5f9; }
-    .create-card-body { padding: 16px 24px 20px; }
-    .form-label-cu { font-weight: 600; font-size: 13px; color: #374151; margin-bottom: 4px; display: block; }
-    .invalid-feedback-cu { display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 13px; color: #dc2626; font-weight: 500; }
-    .input-group-cu { position: relative; }
-    .input-group-cu .form-control.is-invalid, .input-group-cu .form-select.is-invalid { border-color: #dc2626; background-image: none; }
-    .input-group-cu .form-control.is-invalid:focus, .input-group-cu .form-select.is-invalid:focus { box-shadow: 0 0 0 3px rgba(220,38,38,.1); }
-    .input-group-cu .form-control, .input-group-cu .form-select { height: 46px; padding-left: 42px; border-radius: 10px; border: 1.5px solid #e2e8f0; font-size: 14px; transition: border .2s, box-shadow .2s; width:100%; }
-    .input-group-cu .form-control:focus, .input-group-cu .form-select:focus { border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,.12); }
-    .input-group-cu .form-control::placeholder { color: #94a3b8; font-size: 13px; }
-    .input-group-cu-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 15px; z-index: 4; pointer-events: none; }
-    textarea.form-control { height: auto; padding-top: 12px; }
-    textarea.form-control + .input-group-cu-icon { top: 18px; transform: none; }
-    .alert-cu { border: none; border-radius: 12px; padding: 14px 20px; font-size: 14px; margin-bottom: 20px; }
-    .alert-cu.alert-danger { background: #fef2f2; color: #991b1b; border-left: 4px solid #dc2626; }
-    .alert-cu.alert-danger ul { padding-left: 20px; margin: 0; }
-    .alert-cu.alert-danger ul li { list-style: disc; }
-    .btn-cu { height: 38px; padding: 0 22px; border-radius: 10px; font-size: 13px; font-weight: 600; transition: all .25s; display: inline-flex; align-items: center; justify-content: center; white-space: nowrap; border: none; gap: 8px; }
-    .btn-cu-secondary { background: #f1f5f9; color: #475569; border: 1.5px solid #e2e8f0; }
-    .btn-cu-secondary:hover { background: #e2e8f0; color: #334155; transform: translateY(-1px); box-shadow: 0 3px 8px rgba(0,0,0,.08); }
-    .btn-cu-primary { background: linear-gradient(135deg, #16a34a, #22c55e); color: #fff; box-shadow: 0 2px 8px rgba(22,163,74,.25); }
-    .btn-cu-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(22,163,74,.35); color: #fff; }
-    .form-actions-cu { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 16px; padding-top: 12px; border-top: 1px solid #f1f5f9; }
-    @media (max-width: 768px) { .edit-lomba-page { margin-top: 16px; padding: 0 12px; } .create-card-header { padding: 14px 18px 12px; } .create-card-body { padding: 14px 18px 16px; } .form-actions-cu { flex-direction: column; } .form-actions-cu .btn-cu { width: 100%; } }
-    @media (max-width: 480px) { .create-card-header { padding: 12px 14px 10px; } .create-card-body { padding: 12px 14px 14px; } .input-group-cu .form-control, .input-group-cu .form-select { height: 40px; font-size: 13px; } .btn-cu { height: 36px; padding: 0 16px; font-size: 12px; } }
-</style>
-@endpush
 @section('content')
-@include('component.admin.ms-style')
-<div class="edit-lomba-page">
+@include('component.admin.lomba-workspace')
 
-    <nav aria-label="breadcrumb" class="breadcrumb-cu">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="/home"><i class="fas fa-home me-1"></i>Dashboard</a></li>
-            <li class="breadcrumb-item"><a href="{{ route('lomba.index') }}">Lomba</a></li>
-            <li class="breadcrumb-item active">Edit Lomba</li>
-        </ol>
-    </nav>
+<style>
+    .page-title-content { display: none !important; }
 
-    <div class="card create-card">
-        <div class="create-card-header">
-            <div class="d-flex align-items-center gap-3">
-                <div class="header-icon" style="width:48px;height:48px;font-size:22px;"><i class="fas fa-edit"></i></div>
+    .lw-form-card { max-width: 860px; }
+    .lw-breadcrumb { margin-bottom: 16px; }
+</style>
+
+@php $isLocked = $lomba->is_haflah_selesai; @endphp
+
+<div class="lw-mod jd-page-lomba-edit">
+
+<div class="lw-card lw-card-pad lw-form-card" style="margin:0 auto;">
+    <div class="lw-breadcrumb">
+        <a href="{{ route('lomba.index') }}">Lomba</a> <i class="bi bi-chevron-right"></i> <span>Edit Lomba</span>
+    </div>
+
+    <div class="lw-hero">
+        <div class="lw-hero-grid">
+            <div class="lw-hero-left">
+                <span class="lw-hero-icon"><i class="bi bi-pencil-square"></i></span>
                 <div>
-                    <h4 class="mb-0 fw-bold" style="color:#1e293b;font-size:18px;">Edit Lomba</h4>
-                    <span style="font-size:13px;color:#64748b;">Ubah data lomba.</span>
+                    <h1 class="lw-hero-title">Edit: {{ $lomba->nama }}</h1>
+                    <p class="lw-hero-sub">{{ $isLocked ? 'Lomba ini hanya dapat dilihat karena Haflah telah selesai.' : 'Ubah detail lomba. Validasi backend tetap berlaku.' }}</p>
+                    <div class="lw-hero-badges">
+                        <span class="lw-hero-badge"><i class="bi bi-trophy-fill"></i> {{ $lomba->nama }}</span>
+                        @if($isLocked)
+                            <span class="lw-hero-badge lw-hero-badge--lock"><i class="bi bi-lock-fill"></i> Haflah Selesai</span>
+                        @else
+                            <span class="lw-hero-badge lw-hero-badge--ok"><i class="bi bi-check2-circle"></i> Dapat Diedit</span>
+                        @endif
+                    </div>
+                </div>
+            </div>
+            <div class="lw-hero-right">
+                <a href="{{ route('lomba.index') }}" class="lw-btn lw-btn--light"><i class="bi bi-arrow-left"></i> Kembali</a>
+            </div>
+        </div>
+    </div>
+
+    @if ($errors->any())
+        <div class="lw-alert lw-alert--err">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <div style="flex:1;min-width:0;">
+                <b>Terdapat kesalahan pada form</b>
+                <ul>@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+            </div>
+        </div>
+    @endif
+
+    @if($isLocked)
+        <div class="lw-lock-banner">
+            <i class="bi bi-lock-fill"></i>
+            <div>
+                <b>Lomba Terkunci</b>
+                <p style="margin:2px 0 0;">Haflatul Imtihan sudah <b>Selesai</b>. Seluruh field bersifat readonly — data tidak dapat disimpan.</p>
+            </div>
+        </div>
+    @endif
+
+    <form action="{{ route('lomba.update', $lomba->id) }}" method="POST" id="lombaEditForm" novalidate>
+        @csrf @method('PUT')
+
+        <div class="row g-4" style="margin-bottom:8px;">
+            <div class="col-md-6">
+                <div class="lw-field">
+                    <label class="lw-field-label">Haflatul Imtihan</label>
+                    <input type="text" class="lw-control" value="{{ $lomba->haflatulImtihan->nama_acara ?? '-' }}" readonly>
+                    <div class="lw-help-text"><i class="bi bi-lock-fill"></i> Tidak dapat diubah.</div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="lw-field">
+                    <label class="lw-field-label" for="nama">Nama Lomba</label>
+                    <input type="text" id="nama" name="nama" class="lw-control @error('nama') is-invalid @enderror" value="{{ old('nama', $lomba->nama) }}" placeholder="Nama lomba" maxlength="255" {{ $isLocked ? 'readonly' : '' }}>
+                    @error('nama')<div class="lw-inline-error"><i class="bi bi-exclamation-circle-fill"></i> {{ $message }}</div>@enderror
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="lw-field">
+                    <label class="lw-field-label" for="jenis">Jenis</label>
+                    <select id="jenis" name="jenis" class="lw-select @error('jenis') is-invalid @enderror" {{ $isLocked ? 'disabled' : '' }}>
+                        <option value="Individu" {{ old('jenis', $lomba->jenis) == 'Individu' ? 'selected' : '' }}>Individu</option>
+                        <option value="Tim" {{ old('jenis', $lomba->jenis) == 'Tim' ? 'selected' : '' }}>Tim</option>
+                    </select>
+                    @error('jenis')<div class="lw-inline-error"><i class="bi bi-exclamation-circle-fill"></i> {{ $message }}</div>@enderror
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="lw-field">
+                    <label class="lw-field-label" for="lokasi">Lokasi</label>
+                    <input type="text" id="lokasi" name="lokasi" class="lw-control @error('lokasi') is-invalid @enderror" value="{{ old('lokasi', $lomba->lokasi) }}" placeholder="Lokasi" maxlength="255" {{ $isLocked ? 'readonly' : '' }}>
+                    @error('lokasi')<div class="lw-inline-error"><i class="bi bi-exclamation-circle-fill"></i> {{ $message }}</div>@enderror
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="lw-field">
+                    <label class="lw-field-label" for="sesi_lomba_id">Sesi Lomba</label>
+                    <select id="sesi_lomba_id" name="sesi_lomba_id" class="lw-select @error('sesi_lomba_id') is-invalid @enderror" {{ $isLocked ? 'disabled' : '' }}>
+                        <option value="">-- Pilih --</option>
+                        @foreach($sesiLombas as $sl)
+                            <option value="{{ $sl->id }}" {{ old('sesi_lomba_id', $lomba->sesi_lomba_id) == $sl->id ? 'selected' : '' }}>{{ $sl->nama }}</option>
+                        @endforeach
+                    </select>
+                    @error('sesi_lomba_id')<div class="lw-inline-error"><i class="bi bi-exclamation-circle-fill"></i> {{ $message }}</div>@enderror
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="lw-field">
+                    <label class="lw-field-label" for="status">Status</label>
+                    <select id="status" name="status" class="lw-select @error('status') is-invalid @enderror" {{ $isLocked ? 'disabled' : '' }}>
+                        <option value="Belum Mulai" {{ old('status', $lomba->status) == 'Belum Mulai' ? 'selected' : '' }}>Belum Mulai</option>
+                        <option value="Berlangsung" {{ old('status', $lomba->status) == 'Berlangsung' ? 'selected' : '' }}>Berlangsung</option>
+                        <option value="Selesai" {{ old('status', $lomba->status) == 'Selesai' ? 'selected' : '' }}>Selesai</option>
+                    </select>
+                    @error('status')<div class="lw-inline-error"><i class="bi bi-exclamation-circle-fill"></i> {{ $message }}</div>@enderror
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="lw-field">
+                    <label class="lw-field-label" for="kelas_min">Dari Kelas</label>
+                    <select id="kelas_min" name="kelas_min" class="lw-select @error('kelas_min') is-invalid @enderror" {{ $isLocked ? 'disabled' : '' }}>
+                        <option value="">Semua Kelas</option>
+                        @foreach($tingkatList as $t)
+                            <option value="{{ $t }}" {{ old('kelas_min', $lomba->kelas_min) == $t ? 'selected' : '' }}>Kelas {{ $t }}</option>
+                        @endforeach
+                    </select>
+                    @error('kelas_min')<div class="lw-inline-error"><i class="bi bi-exclamation-circle-fill"></i> {{ $message }}</div>@enderror
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="lw-field">
+                    <label class="lw-field-label" for="kelas_max">Sampai Kelas</label>
+                    <select id="kelas_max" name="kelas_max" class="lw-select @error('kelas_max') is-invalid @enderror" {{ $isLocked ? 'disabled' : '' }}>
+                        <option value="">Semua Kelas</option>
+                        @foreach($tingkatList as $t)
+                            <option value="{{ $t }}" {{ old('kelas_max', $lomba->kelas_max) == $t ? 'selected' : '' }}>Kelas {{ $t }}</option>
+                        @endforeach
+                    </select>
+                    @error('kelas_max')<div class="lw-inline-error"><i class="bi bi-exclamation-circle-fill"></i> {{ $message }}</div>@enderror
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="lw-field">
+                    <label class="lw-field-label" for="deskripsi">Deskripsi</label>
+                    <textarea id="deskripsi" name="deskripsi" class="lw-control @error('deskripsi') is-invalid @enderror" rows="3" placeholder="Deskripsi (opsional)" {{ $isLocked ? 'readonly' : '' }}>{{ old('deskripsi', $lomba->deskripsi) }}</textarea>
+                    @error('deskripsi')<div class="lw-inline-error"><i class="bi bi-exclamation-circle-fill"></i> {{ $message }}</div>@enderror
                 </div>
             </div>
         </div>
-        <div class="create-card-body">
 
-            @if ($errors->any())
-                <div class="alert alert-cu alert-danger">
-                    <i class="fas fa-exclamation-triangle me-1"></i> Terdapat kesalahan pada form:
-                    <ul class="mt-2">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
-                </div>
-            @endif
-
-            <form action="{{ route('lomba.update', $lomba->id) }}" method="POST">
-                @csrf @method('PUT')
-
-                <div class="row g-2">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="form-label-cu">Haflatul Imtihan</label>
-                            <div class="input-group-cu">
-                                <i class="fas fa-calendar-alt input-group-cu-icon"></i>
-                                <input type="text" class="form-control" value="{{ $lomba->haflatulImtihan->nama_acara ?? '-' }}" readonly style="background:#f8fafc;color:#64748b;cursor:default;">
-                                <input type="hidden" name="haflah_id" value="{{ $lomba->haflah_id }}">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="form-label-cu">Lokasi</label>
-                            <div class="input-group-cu">
-                                <i class="fas fa-map-marker-alt input-group-cu-icon"></i>
-                                <input type="text" name="lokasi" class="form-control @error('lokasi') is-invalid @enderror" value="{{ old('lokasi', $lomba->lokasi) }}" placeholder="Lokasi lomba">
-                                @error('lokasi')<div class="invalid-feedback-cu"><i class="fas fa-exclamation-circle"></i> {{ $message }}</div>@enderror
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row g-2">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="form-label-cu">Sesi Lomba</label>
-                            <div class="input-group-cu">
-                                <i class="fas fa-clock input-group-cu-icon"></i>
-                                <select name="sesi_lomba_id" class="form-select @error('sesi_lomba_id') is-invalid @enderror">
-                                    <option value="">-- Pilih --</option>
-                                    @foreach($sesiLombas as $sl)
-                                    <option value="{{ $sl->id }}" {{ old('sesi_lomba_id', $lomba->sesi_lomba_id)==$sl->id ? 'selected' : '' }}>{{ $sl->nama }}</option>
-                                    @endforeach
-                                </select>
-                                @error('sesi_lomba_id')<div class="invalid-feedback-cu"><i class="fas fa-exclamation-circle"></i> {{ $message }}</div>@enderror
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="form-label-cu">Kategori Lomba</label>
-                            <div class="input-group-cu">
-                                <i class="fas fa-tag input-group-cu-icon"></i>
-                                <select name="kategori_lomba_id" class="form-select @error('kategori_lomba_id') is-invalid @enderror">
-                                    <option value="">-- Pilih --</option>
-                                    @foreach($kategoriLombas as $kl)
-                                    <option value="{{ $kl->id }}" {{ old('kategori_lomba_id', $lomba->kategori_lomba_id)==$kl->id ? 'selected' : '' }}>{{ $kl->nama }}</option>
-                                    @endforeach
-                                </select>
-                                @error('kategori_lomba_id')<div class="invalid-feedback-cu"><i class="fas fa-exclamation-circle"></i> {{ $message }}</div>@enderror
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label-cu">Nama Lomba</label>
-                    <div class="input-group-cu">
-                        <i class="fas fa-trophy input-group-cu-icon"></i>
-                        <input type="text" name="nama" class="form-control @error('nama') is-invalid @enderror" value="{{ old('nama', $lomba->nama) }}" placeholder="Masukkan nama lomba">
-                        @error('nama')<div class="invalid-feedback-cu"><i class="fas fa-exclamation-circle"></i> {{ $message }}</div>@enderror
-                    </div>
-                </div>
-
-                <div class="row g-2">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="form-label-cu">Jenis</label>
-                            <div class="input-group-cu">
-                                <i class="fas fa-users input-group-cu-icon"></i>
-                                <select name="jenis" class="form-select @error('jenis') is-invalid @enderror">
-                                    <option value="">-- Pilih --</option>
-                                    <option value="Individu" {{ old('jenis', $lomba->jenis)=='Individu' ? 'selected' : '' }}>Individu</option>
-                                    <option value="Tim" {{ old('jenis', $lomba->jenis)=='Tim' ? 'selected' : '' }}>Tim</option>
-                                </select>
-                                @error('jenis')<div class="invalid-feedback-cu"><i class="fas fa-exclamation-circle"></i> {{ $message }}</div>@enderror
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="form-label-cu">Status</label>
-                            <div class="input-group-cu">
-                                <i class="fas fa-flag input-group-cu-icon"></i>
-                                <select name="status" class="form-select @error('status') is-invalid @enderror">
-                                    <option value="">-- Pilih --</option>
-                                    <option value="Belum Mulai" {{ old('status', $lomba->status)=='Belum Mulai' ? 'selected' : '' }}>Belum Mulai</option>
-                                    <option value="Berlangsung" {{ old('status', $lomba->status)=='Berlangsung' ? 'selected' : '' }}>Berlangsung</option>
-                                    <option value="Selesai" {{ old('status', $lomba->status)=='Selesai' ? 'selected' : '' }}>Selesai</option>
-                                </select>
-                                @error('status')<div class="invalid-feedback-cu"><i class="fas fa-exclamation-circle"></i> {{ $message }}</div>@enderror
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label-cu">Aturan Peserta</label>
-                    <div class="row g-2">
-                        <div class="col-md-6">
-                            <label style="font-size:12px;color:#64748b;margin-bottom:4px;display:block;">Dari Kelas</label>
-                            <select name="kelas_min" class="form-select @error('kelas_min') is-invalid @enderror" style="padding-left:14px;">
-                                <option value="">Semua Kelas</option>
-                                @foreach($tingkatList as $t)
-                                <option value="{{ $t }}" {{ old('kelas_min', $lomba->kelas_min)==$t ? 'selected' : '' }}>Kelas {{ $t }}</option>
-                                @endforeach
-                            </select>
-                            @error('kelas_min')<div class="invalid-feedback-cu"><i class="fas fa-exclamation-circle"></i> {{ $message }}</div>@enderror
-                        </div>
-                        <div class="col-md-6">
-                            <label style="font-size:12px;color:#64748b;margin-bottom:4px;display:block;">Sampai Kelas</label>
-                            <select name="kelas_max" class="form-select @error('kelas_max') is-invalid @enderror" style="padding-left:14px;">
-                                <option value="">Semua Kelas</option>
-                                @foreach($tingkatList as $t)
-                                <option value="{{ $t }}" {{ old('kelas_max', $lomba->kelas_max)==$t ? 'selected' : '' }}>Kelas {{ $t }}</option>
-                                @endforeach
-                            </select>
-                            @error('kelas_max')<div class="invalid-feedback-cu"><i class="fas fa-exclamation-circle"></i> {{ $message }}</div>@enderror
-                        </div>
-                    </div>
-                    <div style="font-size:11px;color:#94a3b8;margin-top:4px;"><i class="fas fa-info-circle me-1"></i> Kosongkan jika semua peserta boleh ikut.</div>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label-cu">Deskripsi</label>
-                    <div class="input-group-cu">
-                        <i class="fas fa-align-left input-group-cu-icon" style="top:16px;transform:none;"></i>
-                        <textarea name="deskripsi" class="form-control @error('deskripsi') is-invalid @enderror" rows="2" placeholder="Masukkan deskripsi lomba" style="padding-left:42px;padding-top:10px;height:auto;">{{ old('deskripsi', $lomba->deskripsi) }}</textarea>
-                        @error('deskripsi')<div class="invalid-feedback-cu"><i class="fas fa-exclamation-circle"></i> {{ $message }}</div>@enderror
-                    </div>
-                </div>
-
-                <div class="form-actions-cu">
-                    <a href="{{ route('lomba.index') }}" class="btn btn-cu btn-cu-secondary"><i class="fas fa-arrow-left"></i> Kembali</a>
-                    <button type="submit" class="btn btn-cu btn-cu-primary"><i class="fas fa-save"></i> Simpan</button>
-                </div>
-
-            </form>
+        <div class="lw-wizard-nav">
+            <a href="{{ route('lomba.index') }}" class="lw-btn"><i class="bi bi-arrow-left"></i> Kembali ke Daftar</a>
+            <span class="spacer"></span>
+            <button type="submit" class="lw-btn lw-btn--solid" data-submit-button {{ $isLocked ? 'disabled' : '' }}>
+                <span class="btn-label"><i class="bi bi-save"></i> {{ $isLocked ? 'Terkunci' : 'Simpan Perubahan' }}</span>
+                <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+            </button>
         </div>
-    </div>
+    </form>
 </div>
+
+</div>
+
+@push('scripts')
+<script>
+(function() {
+    var form = document.getElementById('lombaEditForm');
+    var submitBtn = document.querySelector('[data-submit-button]');
+    if (form && submitBtn && !submitBtn.disabled) {
+        form.addEventListener('submit', function() {
+            submitBtn.disabled = true;
+            var label = submitBtn.querySelector('.btn-label');
+            if (label) label.classList.add('d-none');
+            var spinner = submitBtn.querySelector('.spinner-border');
+            if (spinner) spinner.classList.remove('d-none');
+        });
+    }
+})();
+</script>
+@endpush
 @endsection

@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 use App\Models\Lomba;
 use App\Models\HaflatulImtihan;
 use App\Models\SesiLomba;
-use App\Models\KategoriLomba;
 use App\Models\Scopes\HaflahScope;
 use App\Http\Controllers\Traits\ProtectsCompletedHaflah;
 
@@ -16,14 +15,11 @@ class LombaController extends Controller
 
     public function index(Request $request)
     {
-        $query = Lomba::with(['haflatulImtihan', 'sesiLomba', 'kategori'])->withCount(['peserta', 'kelompok', 'juri', 'aspekPenilaians', 'hasil']);
+        $query = Lomba::with(['haflatulImtihan', 'sesiLomba'])->withCount(['peserta', 'kelompok', 'juri', 'aspekPenilaians', 'hasil']);
 
         if ($request->filled('haflah_id')) {
             $query->withoutGlobalScope(HaflahScope::class)
                   ->where('haflah_id', $request->haflah_id);
-        }
-        if ($request->filled('kategori_lomba_id')) {
-            $query->where('kategori_lomba_id', $request->kategori_lomba_id);
         }
         if ($request->filled('jenis')) {
             $query->where('jenis', $request->jenis);
@@ -42,18 +38,15 @@ class LombaController extends Controller
         $lombas = $query->latest()->paginate($perPage)->withQueryString();
 
         $haflatuls = HaflatulImtihan::with('tahunAjaran')->orderBy('nama_acara')->get();
-        $kategoriLombas = KategoriLomba::orderBy('urutan')->get();
-
-        return view('admin.lomba.index', compact('lombas', 'haflatuls', 'kategoriLombas', 'perPage'));
+        return view('admin.lomba.index', compact('lombas', 'haflatuls', 'perPage'));
     }
 
     public function create()
     {
         $sesiLombas = SesiLomba::orderBy('nama')->get();
-        $kategoriLombas = KategoriLomba::orderBy('urutan')->get();
         $tingkatList = range(1, 12);
 
-        return view('admin.lomba.create', compact('sesiLombas', 'kategoriLombas', 'tingkatList'));
+        return view('admin.lomba.create', compact('sesiLombas', 'tingkatList'));
     }
 
     public function store(Request $request)
@@ -65,7 +58,6 @@ class LombaController extends Controller
         $request->validate([
             'haflah_id' => 'required|exists:haflatul_imtihans,id',
             'sesi_lomba_id' => 'nullable|exists:sesi_lombas,id',
-            'kategori_lomba_id' => 'nullable|exists:kategori_lombas,id',
             'nama' => 'required|max:255',
             'jenis' => 'required|in:Individu,Tim',
             'lokasi' => 'nullable|max:255',
@@ -84,7 +76,7 @@ class LombaController extends Controller
     public function show($id)
     {
         $lomba = Lomba::with([
-            'haflatulImtihan', 'sesiLomba', 'kategori',
+            'haflatulImtihan', 'sesiLomba',
             'peserta.student', 'juri.guru'
         ])->findOrFail($id);
 
@@ -124,10 +116,9 @@ class LombaController extends Controller
         }
 
         $sesiLombas = SesiLomba::orderBy('nama')->get();
-        $kategoriLombas = KategoriLomba::orderBy('urutan')->get();
         $tingkatList = range(1, 12);
 
-        return view('admin.lomba.edit', compact('lomba', 'sesiLombas', 'kategoriLombas', 'tingkatList'));
+        return view('admin.lomba.edit', compact('lomba', 'sesiLombas', 'tingkatList'));
     }
 
     public function update(Request $request, $id)
@@ -140,7 +131,6 @@ class LombaController extends Controller
 
         $request->validate([
             'sesi_lomba_id' => 'nullable|exists:sesi_lombas,id',
-            'kategori_lomba_id' => 'nullable|exists:kategori_lombas,id',
             'nama' => 'required|max:255',
             'jenis' => 'required|in:Individu,Tim',
             'lokasi' => 'nullable|max:255',

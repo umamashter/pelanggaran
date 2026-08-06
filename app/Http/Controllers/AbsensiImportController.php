@@ -7,23 +7,34 @@ use App\Models\Student;
 use App\Models\TahunAjaran;
 use App\Services\AbsensiImportService;
 use App\Services\AIParserService;
+use App\Services\AttendanceImportAdapter;
+use App\Services\AttendanceImportPipelineService;
 use App\Services\OpenRouterVisionService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Throwable;
 
 class AbsensiImportController extends Controller
 {
     protected $importService;
     protected $aiParser;
+    protected $pipelineService;
+    protected $adapter;
 
-    public function __construct(AbsensiImportService $importService, AIParserService $aiParser)
-    {
-        $this->importService = $importService;
-        $this->aiParser      = $aiParser;
+    public function __construct(
+        AbsensiImportService $importService,
+        AIParserService $aiParser,
+        AttendanceImportPipelineService $pipelineService,
+        AttendanceImportAdapter $adapter
+    ) {
+        $this->importService   = $importService;
+        $this->aiParser        = $aiParser;
+        $this->pipelineService = $pipelineService;
+        $this->adapter         = $adapter;
     }
 
     /**
@@ -73,9 +84,38 @@ class AbsensiImportController extends Controller
         ));
     }
 
+    protected function buildImportPreviewData(Request $request): array
+    {
+        $tahunAktif = TahunAjaran::where('status', 'Aktif')->firstOrFail();
+        $bulan = (int) $request->bulan;
+        $tahun = (int) $request->tahun;
+
+        $monthStart = Carbon::createFromDate($tahun, $bulan, 1);
+        $totalDays  = $monthStart->daysInMonth;
+
+        if ($tahunAktif->tanggal_mulai && $monthStart->lt(Carbon::parse($tahunAktif->tanggal_mulai)->startOfMonth())) {
+            throw new \InvalidArgumentException('Bulan yang dipilih sebelum periode tahun ajaran aktif.');
+        }
+
+        $monthEnd = $monthStart->copy()->endOfMonth();
+        if ($tahunAktif->tanggal_selesai && $monthEnd->gt(Carbon::parse($tahunAktif->tanggal_selesai)->endOfMonth())) {
+            throw new \InvalidArgumentException('Bulan yang dipilih setelah periode tahun ajaran aktif.');
+        }
+
+        $siswas = Student::whereHas('kelasAktif', function ($q) use ($request, $tahunAktif) {
+            $q->where('kelas_id', $request->kelas_id)
+              ->where('tahun_ajaran_id', $tahunAktif->id);
+        })->orderBy('nama')->get();
+
+        if ($siswas->isEmpty()) {
+            throw new \InvalidArgumentException('Tidak ada siswa aktif di kelas ini.');
+        }
+
+        return [$tahunAktif, $bulan, $tahun, $monthStart, $totalDays, $siswas];
+    }
+
     /**
-     * Receive attendance photo and parse via Gemini Vision API.
-     * Also supports legacy text-based OCR (manual mode).
+     * Receive attendance photo and extract OCR text for operator review.
      */
     public function parseOcrText(Request $request): JsonResponse
     {
@@ -89,29 +129,10 @@ class AbsensiImportController extends Controller
                 'parse_mode' => 'nullable|in:ai,manual,local',
             ]);
 
-            $tahunAktif = TahunAjaran::where('status', 'Aktif')->firstOrFail();
-            $bulan = (int) $request->bulan;
-            $tahun = (int) $request->tahun;
-
-            $monthStart = Carbon::createFromDate($tahun, $bulan, 1);
-            $totalDays  = $monthStart->daysInMonth;
-
-            if ($tahunAktif->tanggal_mulai && $monthStart->lt(Carbon::parse($tahunAktif->tanggal_mulai)->startOfMonth())) {
-                return response()->json(['error' => 'Bulan yang dipilih sebelum periode tahun ajaran aktif.'], 422);
-            }
-
-            $monthEnd = $monthStart->copy()->endOfMonth();
-            if ($tahunAktif->tanggal_selesai && $monthEnd->gt(Carbon::parse($tahunAktif->tanggal_selesai)->endOfMonth())) {
-                return response()->json(['error' => 'Bulan yang dipilih setelah periode tahun ajaran aktif.'], 422);
-            }
-
-            $siswas = Student::whereHas('kelasAktif', function ($q) use ($request, $tahunAktif) {
-                $q->where('kelas_id', $request->kelas_id)
-                  ->where('tahun_ajaran_id', $tahunAktif->id);
-            })->orderBy('nama')->get();
-
-            if ($siswas->isEmpty()) {
-                return response()->json(['error' => 'Tidak ada siswa aktif di kelas ini.'], 422);
+            try {
+                [$tahunAktif, $bulan, $tahun, $monthStart, $totalDays, $siswas] = $this->buildImportPreviewData($request);
+            } catch (\InvalidArgumentException $e) {
+                return response()->json(['error' => $e->getMessage()], 422);
             }
 
             $parseMode = $request->input('parse_mode', 'ai');
@@ -127,45 +148,118 @@ class AbsensiImportController extends Controller
             $tmpName   = 'vision_' . $request->kelas_id . '_' . $bulan . '_' . $tahun . '_' . time() . '.' . $ext;
             $tmpPath   = $file->storeAs($uploadDir, $tmpName, $disk);
 
-            // Parse: Manual / AI with fallback chain
-            $parseMode = $request->input('parse_mode', 'ai');
-
             if ($parseMode === 'manual') {
-                $ocrText = $request->input('ocr_text', '');
+                $ocrText = trim((string) $request->input('ocr_text', ''));
                 if (strlen($ocrText) < 5) {
                     return response()->json(['error' => 'Teks OCR terlalu pendek untuk mode manual.'], 422);
                 }
-                $aiResult = $this->aiParser->fallbackParse($ocrText, $bulan, $tahun);
-            } elseif ($parseMode === 'local') {
-                $aiResult = $this->aiParser->parseFromLocalOcr($tmpPath);
+                $universal = $this->adapter->buildUniversalSkeleton([
+                    'provider' => 'manual',
+                    'bulan'    => $bulan,
+                    'tahun'    => $tahun,
+                    'meta'     => [],
+                ]);
+                $parserResult = ['success' => true, 'ocr_text' => $ocrText, 'meta' => [], 'universal' => $universal, 'source' => 'manual'];
             } else {
-                // AI mode: OpenRouter Vision → Gemini Vision → Local Tesseract → PHP regex
-                $aiResult = $this->aiParser->parseFromImage($tmpPath, $bulan, $tahun);
+                $kelasModelContext = Kelas::find($request->kelas_id);
+                $context = [
+                    'kelas' => optional($kelasModelContext)->nama_kelas,
+                    'bulan' => $bulan,
+                    'tahun' => $tahun,
+                    'correlation_id' => null,
+                ];
 
-                if (!$aiResult['success']) {
-                    Log::info('Gemini Vision failed, falling back to local OCR.', ['error' => $aiResult['error'] ?? '']);
-                    $aiResult = $this->aiParser->parseFromLocalOcr($tmpPath);
-
-                    if (!$aiResult['success']) {
-                        Log::info('Local OCR failed, falling back to PHP regex parser.', ['error' => $aiResult['error'] ?? '']);
-                        $ocrText = $request->input('ocr_text', '');
-                        $aiResult = $this->aiParser->fallbackParse($ocrText ?: '', $bulan, $tahun);
-                        $aiResult['warning'] = 'AI Vision dan OCR lokal gagal. Menggunakan parser teks biasa.';
-                    }
+                if ($this->pipelineService->isEnabled() && $parseMode === 'ai') {
+                    $parserResult = $this->pipelineService->parseAttendanceImage($tmpPath, $bulan, $tahun, $context);
+                } else {
+                    $parserResult = $this->aiParser->parseFromLocalOcr($tmpPath, $context);
                 }
             }
 
-            if (!$aiResult['success']) {
-                // Cleanup temp file on failure
+            if (!$parserResult['success']) {
                 $this->importService->cleanupFile(storage_path('app/' . $tmpPath));
                 return response()->json([
-                    'error' => 'Gagal memproses foto: ' . ($aiResult['error'] ?? 'Kesalahan tidak diketahui.'),
+                    'error' => 'Gagal memproses foto: ' . ($parserResult['error'] ?? 'Kesalahan tidak diketahui.'),
                 ], 422);
             }
 
-            $aiSiswaList = $aiResult['data']['siswa'] ?? [];
-            $parseSource = $aiResult['source'] ?? 'ai';
+            $ocrText = trim((string) ($parserResult['ocr_text'] ?? ''));
+            if ($ocrText === '') {
+                $ocrSourceRows = $parserResult['data']['siswa'] ?? ($parserResult['siswa'] ?? []);
+                $ocrText = collect($ocrSourceRows)->map(function ($row) {
+                    $statuses = collect($row['ketidakhadiran'] ?? [])->map(function ($entry) {
+                        return ($entry['tanggal'] ?? '?') . ':' . ($entry['status'] ?? '?');
+                    })->implode(' ');
+                    return trim(($row['nisn'] ?? '') . ' ' . ($row['nama_ocr'] ?? '') . ' ' . $statuses);
+                })->implode("\n");
+            }
 
+            $legacyPreview = $this->adapter->toLegacyPreview(
+                $parserResult['universal'] ?? $this->adapter->buildUniversalSkeleton(['bulan' => $bulan, 'tahun' => $tahun]),
+                $ocrText,
+                $tmpPath,
+                (int) $request->kelas_id,
+                (int) $tahunAktif->id,
+                $bulan,
+                $tahun,
+                $parserResult['source'] ?? $parseMode
+            );
+
+            session([
+                'import_preview' => $legacyPreview,
+            ]);
+
+            return response()->json([
+                'ocr_text'       => $ocrText,
+                'parser_meta'    => $parserResult['meta'] ?? [],
+                'ai_warning'     => $legacyPreview['ai_warning'] ?? null,
+                'decision'       => $parserResult['universal']['decision'] ?? null,
+                'image_quality'  => $parserResult['universal']['image_quality'] ?? null,
+                'correlation_id' => $legacyPreview['correlation_id'] ?? null,
+            ]);
+
+        } catch (Throwable $e) {
+            Log::error('Parse OCR text error', [
+                'error' => $e->getMessage(),
+                'file'  => $e->getFile(),
+                'line'  => $e->getLine(),
+            ]);
+            return response()->json([
+                'error' => 'Terjadi kesalahan: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function parseGeneratedJson(Request $request): JsonResponse
+    {
+        try {
+            $request->validate([
+                'ocr_text' => 'required|string|min:5|max:50000',
+            ]);
+
+            $preview = session('import_preview');
+            if (!$preview) {
+                return response()->json(['error' => 'Sesi OCR telah berakhir. Silakan upload ulang foto.'], 422);
+            }
+
+            $fakeRequest = new Request([
+                'kelas_id' => $preview['kelas_id'],
+                'bulan'    => $preview['bulan'],
+                'tahun'    => $preview['tahun'],
+            ]);
+            try {
+                [$tahunAktif, $bulan, $tahun, $monthStart, $totalDays, $siswas] = $this->buildImportPreviewData($fakeRequest);
+            } catch (\InvalidArgumentException $e) {
+                return response()->json(['error' => $e->getMessage()], 422);
+            }
+
+            $aiResult = $this->aiParser->parseOcrTextToJson($request->ocr_text, $bulan, $tahun);
+            if (!$aiResult['success']) {
+                return response()->json(['error' => $aiResult['error'] ?? 'Gagal membuat JSON dari OCR text.'], 422);
+            }
+
+            $aiSiswaList = $aiResult['data']['siswa'] ?? [];
+            $parseSource = $aiResult['source'] ?? 'fallback';
             $actualDates = range(1, $totalDays);
 
             $matchedData = $this->importService->matchStudentsWithAi(
@@ -173,9 +267,8 @@ class AbsensiImportController extends Controller
             );
 
             $validation = $this->importService->validateImportData($matchedData, $totalDays, $monthStart, $actualDates);
-
             $existingDates = $this->importService->getExistingDates(
-                $request->kelas_id, $tahunAktif->id, $monthStart, $totalDays
+                $preview['kelas_id'], $tahunAktif->id, $monthStart, $totalDays
             );
 
             $daysInfo = [];
@@ -195,17 +288,13 @@ class AbsensiImportController extends Controller
                 ];
             }
 
-            $kelasModel = Kelas::find($request->kelas_id);
-
-            // Final foto path for verify page
-            $fotoPath = $tmpPath;
-
+            $kelasModel = Kelas::find($preview['kelas_id']);
             $aiJson = $aiResult['data'] ?? [];
 
             session([
                 'import_data' => [
                     'matched_data'    => $matchedData,
-                    'kelas_id'        => $request->kelas_id,
+                    'kelas_id'        => $preview['kelas_id'],
                     'kelas_nama'      => $kelasModel ? $kelasModel->nama_kelas : '',
                     'tahun_ajaran_id' => $tahunAktif->id,
                     'bulan'           => $bulan,
@@ -213,12 +302,15 @@ class AbsensiImportController extends Controller
                     'total_days'      => $totalDays,
                     'days_info'       => $daysInfo,
                     'existing_dates'  => $existingDates,
-                    'foto_path'       => $fotoPath,
+                    'foto_path'       => $preview['foto_path'] ?? null,
                     'stats'           => $validation['stats'],
                     'actual_dates'    => $actualDates,
                     'parse_source'    => $parseSource,
-                    'ocr_raw_text'    => '',
+                    'ocr_raw_text'    => $request->ocr_text,
                     'ai_json'         => $aiJson,
+                    'parser_meta'     => $preview['parser_meta'] ?? [],
+                    'correlation_id'  => $preview['correlation_id'] ?? null,
+                    'decision_report' => $preview['decision_report'] ?? null,
                     'ai_warning'      => $aiResult['warning'] ?? null,
                     'ai_error'        => $aiResult['ai_error'] ?? null,
                 ],
@@ -227,16 +319,13 @@ class AbsensiImportController extends Controller
             return response()->json([
                 'redirect' => route('absensi.import.verify'),
             ]);
-
         } catch (Throwable $e) {
-            Log::error('Parse OCR text error', [
+            Log::error('Generate JSON OCR error', [
                 'error' => $e->getMessage(),
                 'file'  => $e->getFile(),
                 'line'  => $e->getLine(),
             ]);
-            return response()->json([
-                'error' => 'Terjadi kesalahan: ' . $e->getMessage(),
-            ], 500);
+            return response()->json(['error' => 'Terjadi kesalahan: ' . $e->getMessage()], 500);
         }
     }
 
@@ -319,6 +408,7 @@ class AbsensiImportController extends Controller
             'parseSource'   => $importData['parse_source'] ?? 'unknown',
             'ocrRawText'    => $importData['ocr_raw_text'] ?? '',
             'aiJson'        => $importData['ai_json'] ?? [],
+            'parserMeta'    => $importData['parser_meta'] ?? [],
             'aiWarning'     => $importData['ai_warning'] ?? null,
             'aiError'       => $importData['ai_error'] ?? null,
             'reviewItems'   => $reviewItems,
@@ -352,10 +442,10 @@ class AbsensiImportController extends Controller
 
             foreach ($dayStatuses as $day => $status) {
                 $dayKey = (string) $day;
-                if (!in_array($status, ['H', 'I', 'S', 'A'], true)) continue;
+                if (!in_array($status, ['H', 'I', 'S', 'A', 'UNKNOWN'], true)) continue;
 
                 $prevStatus = $editedData[$idx]['statuses'][$dayKey] ?? null;
-                $prevSource = $editedData[$idx]['sources'][$dayKey] ?? 'DEFAULT';
+                $prevSource = $editedData[$idx]['sources'][$dayKey] ?? 'REVIEW';
 
                 $editedData[$idx]['statuses'][$dayKey] = $status;
 

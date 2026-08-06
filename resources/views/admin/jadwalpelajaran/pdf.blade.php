@@ -44,7 +44,7 @@
 
 <div class="judul">
 
-    <h2>MADRASAH IBTIDAIYAH NURUL ULUM</h2>
+    <h2>{{ strtoupper(optional($profil)->nama_madrasah ?: 'MADRASAH IBTIDAIYAH NURUL ULUM') }}</h2>
 
     <h3>DATA JADWAL PELAJARAN</h3>
 
@@ -56,6 +56,12 @@
         -
         Semester
         {{ optional($jadwals->first()->tahunAjaran->semesterAktif)->nama ?? '-' }}
+        @if($kelas)
+        &middot; Kelas {{ $kelas->nama_kelas }}
+        @endif
+        @if($guru)
+        &middot; Guru {{ $guru->nama }}
+        @endif
     </p>
 
     @endif
@@ -166,6 +172,12 @@
             <strong>
                 _______________________
             </strong>
+
+            @if(optional($profil)->nama_kepala_sekolah)
+            <p style="margin:0;font-weight:bold;">
+                {{ $profil->nama_kepala_sekolah }}
+            </p>
+            @endif
         </td>
     </tr>
 </table>

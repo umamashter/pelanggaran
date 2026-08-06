@@ -1,0 +1,48 @@
+{
+    "schema_version": "1.0",
+    "correlation_id": "IMP-20260804-053349",
+    "timestamp": "2026-08-04T20:04:11+07:00",
+    "provider": "openrouter",
+    "parse_mode": "ai",
+    "pipeline_status": "WARNING",
+    "decision": {
+        "category": "RECOVERABLE_WARNING",
+        "code": "DENOISE_RECOMMENDED",
+        "message": "Image can be improved automatically before provider execution."
+    },
+    "template": {
+        "matched": false,
+        "template_name": "mi_nurul_ulum",
+        "template_confidence": 0.4964,
+        "layout_confidence": 0.3783,
+        "alignment_score": 0.6539,
+        "fallback_used": true
+    },
+    "image_quality": {
+        "brightness": 8,
+        "contrast": 4,
+        "blur": 82,
+        "noise": 30
+    },
+    "pipeline": {
+        "total_duration_ms": 45809,
+        "provider_duration_ms": 22776,
+        "memory_usage_bytes": 29360128
+    },
+    "result": {
+        "student_count": 13,
+        "status_count": 20,
+        "warning_count": 0,
+        "error_count": 0,
+        "average_confidence": 0.92
+    },
+    "validation": {
+        "expected_students": null,
+        "parsed_students": 13,
+        "expected_statuses": null,
+        "parsed_statuses": 20,
+        "expected_dates": null,
+        "parsed_dates": null,
+        "accuracy": null
+    }
+}

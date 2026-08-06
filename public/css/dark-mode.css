@@ -2512,77 +2512,87 @@ html.dark-mode .sidebar--flyout .menu-submenu-item.has-submenu > .menu-submenu-n
 }
 
 /* ============================================================
-   PUBLIC LANDING PAGE (layouts/app.blade.php)
+   PUBLIC LANDING PAGE (layouts/app.blade.php) — BLUE redesign
+   Light styles live in app.blade.php <style>; this block owns the
+   dark theme so it loads last and wins. Palette mirrors the
+   dashboard --ab-* tokens: cyan-blue accents on navy surfaces.
    ============================================================ */
 html.dark-mode #header {
-    background: linear-gradient(135deg, rgba(7, 26, 32, 0.96), rgba(10, 37, 48, 0.9)) !important;
-    border-bottom: 1px solid var(--glass-border) !important;
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: rgba(7, 26, 36, 0.82) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+html.dark-mode #header.header-scrolled {
+    background: rgba(7, 26, 36, 0.94) !important;
+    box-shadow: 0 14px 34px -16px rgba(0, 0, 0, 0.6) !important;
 }
 html.dark-mode #hero {
-    background: linear-gradient(135deg, #071A20 0%, #0A2530 50%, #071A20 100%) !important;
+    background: linear-gradient(135deg, #1e40af 0%, #2563eb 48%, #3b82f6 100%) !important;
 }
 html.dark-mode .profile-section,
 html.dark-mode .announcement-section,
+html.dark-mode .galery-section,
 html.dark-mode .calendar-section,
-html.dark-mode .section-bg { background: transparent !important; }
-html.dark-mode .section-title h2 { color: var(--text-primary) !important; }
-html.dark-mode .section-title p { color: var(--text-muted) !important; }
+html.dark-mode .section-bg { background: #071A24 !important; }
+html.dark-mode .section-title h2 { color: #f8fafc !important; }
+html.dark-mode .section-title p { color: #7d96a6 !important; }
 html.dark-mode .visi-card {
-    background: linear-gradient(135deg, rgba(0,229,255, 0.10), var(--glass)) !important;
-    border: 1px solid var(--glass-border);
+    background: linear-gradient(135deg, rgba(61, 169, 252, 0.10), rgba(255, 255, 255, 0.03)) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    border-left-color: #3DA9FC !important;
 }
-html.dark-mode .visi-card p { color: var(--text-secondary) !important; }
-html.dark-mode .visi-card h5 { color: var(--primary) !important; }
-html.dark-mode .profile-img-wrap { background: var(--glass) !important; border: 1px solid var(--glass-border); }
-html.dark-mode .contact-item { border-bottom-color: var(--glass-border) !important; }
-html.dark-mode .contact-item .value { color: var(--text-primary) !important; }
-html.dark-mode .contact-item .label { color: var(--text-muted) !important; }
-html.dark-mode .card-modern h5 { color: var(--text-primary) !important; }
-html.dark-mode .announcement-card h5 { color: var(--text-primary) !important; }
-html.dark-mode .announcement-card p { color: var(--text-secondary) !important; }
-html.dark-mode .announcement-date { color: var(--text-muted) !important; }
-html.dark-mode .calendar-table-wrap {
-    border-color: var(--glass-border) !important;
-    background: var(--glass) !important;
-}
-html.dark-mode .calendar-table-wrap tbody td { color: var(--text-primary) !important; border-bottom-color: var(--glass-border) !important; }
-html.dark-mode .calendar-table-wrap tbody tr:hover td { background: rgba(0,229,255, 0.06) !important; }
-html.dark-mode .month-card { border-color: var(--glass-border) !important; }
-html.dark-mode .month-days-header { background: rgba(0,229,255, 0.06) !important; border-bottom-color: var(--glass-border) !important; }
-html.dark-mode .month-days-header span { color: var(--text-muted) !important; }
-html.dark-mode .month-days-grid .day { color: var(--text-primary) !important; }
-html.dark-mode .month-days-grid .day:hover { background: rgba(0,229,255, 0.10) !important; color: var(--primary) !important; }
-html.dark-mode .month-days-grid .weekend { color: var(--danger) !important; }
-html.dark-mode .map-wrap { border-color: var(--glass-border) !important; }
+html.dark-mode .visi-card h5 { color: #3DA9FC !important; }
+html.dark-mode .visi-card p { color: #cbd5e1 !important; }
+html.dark-mode .profile-img-wrap { background: rgba(255, 255, 255, 0.04) !important; border-color: rgba(255, 255, 255, 0.1) !important; }
+html.dark-mode .contact-item { border-bottom-color: rgba(255, 255, 255, 0.06) !important; }
+html.dark-mode .contact-item .label { color: #7d96a6 !important; }
+html.dark-mode .contact-item .value { color: #f8fafc !important; }
+html.dark-mode .card-modern { background: #0D2F38 !important; border-color: rgba(255, 255, 255, 0.08) !important; }
+html.dark-mode .card-modern h5 { color: #f8fafc !important; }
+html.dark-mode .announcement-card { background: #0D2F38 !important; border-color: rgba(255, 255, 255, 0.08) !important; }
+html.dark-mode .announcement-card h5 { color: #f8fafc !important; }
+html.dark-mode .announcement-card p { color: #cbd5e1 !important; }
+html.dark-mode .announcement-date { color: #7d96a6 !important; }
+html.dark-mode .calendar-table-wrap { border-color: rgba(255, 255, 255, 0.1) !important; background: #0D2F38 !important; }
+html.dark-mode .calendar-table-wrap tbody td { color: #f8fafc !important; border-bottom-color: rgba(255, 255, 255, 0.06) !important; }
+html.dark-mode .calendar-table-wrap tbody tr:hover td { background: rgba(61, 169, 252, 0.08) !important; }
+html.dark-mode .month-card { background: #0D2F38 !important; border-color: rgba(255, 255, 255, 0.08) !important; }
+html.dark-mode .month-header { background: linear-gradient(135deg, #2EA8FF, #00E5FF) !important; color: #001019 !important; }
+html.dark-mode .month-days-header { background: rgba(255, 255, 255, 0.04) !important; border-bottom-color: rgba(255, 255, 255, 0.08) !important; }
+html.dark-mode .month-days-header span { color: #7d96a6 !important; }
+html.dark-mode .month-days-grid .day { color: #f8fafc !important; }
+html.dark-mode .month-days-grid .day:hover { background: rgba(61, 169, 252, 0.12) !important; color: #3DA9FC !important; }
+html.dark-mode .month-days-grid .weekend { color: #fb7185 !important; }
+html.dark-mode .month-days-grid .highlight { color: #001019 !important; }
+html.dark-mode .month-days-grid .highlight:hover { color: #001019 !important; }
+html.dark-mode .map-wrap { border-color: rgba(255, 255, 255, 0.1) !important; }
 html.dark-mode #footer {
-    background: linear-gradient(135deg, #0A2530, #071A20) !important;
-    border-top: 1px solid var(--glass-border) !important;
+    background: linear-gradient(135deg, #0D2B38, #071A24) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
 }
-html.dark-mode #footer .footer-contact p { color: var(--text-muted) !important; }
-html.dark-mode #footer a { color: var(--text-muted) !important; }
-html.dark-mode #footer a:hover { color: var(--primary) !important; }
-html.dark-mode .faq-list a { color: var(--text-primary) !important; }
-html.dark-mode .faq-list .collapse.show { background: var(--glass) !important; border: 1px solid var(--glass-border); }
-html.dark-mode .faq-list .collapse.show p { color: var(--text-secondary) !important; }
+html.dark-mode #footer h3,
+html.dark-mode #footer h4 { color: #f8fafc !important; }
+html.dark-mode #footer .footer-contact p { color: #7d96a6 !important; }
+html.dark-mode #footer a { color: #7d96a6 !important; }
+html.dark-mode #footer a:hover { color: #3DA9FC !important; }
+html.dark-mode .footer-quick li { color: #cbd5e1 !important; }
+html.dark-mode .footer-quick li i { color: #3DA9FC !important; }
+html.dark-mode .faq-list li { background: #0D2F38 !important; border-color: rgba(255, 255, 255, 0.08) !important; }
+html.dark-mode .faq-list a { color: #f8fafc !important; }
+html.dark-mode .faq-list a.collapsed { color: #f8fafc !important; }
+html.dark-mode .faq-list a.collapsed:hover { color: #3DA9FC !important; }
+html.dark-mode .faq-list .icon-help { color: #3DA9FC !important; }
+html.dark-mode .faq-list .icon-show,
+html.dark-mode .faq-list .icon-close { color: #3DA9FC !important; }
+html.dark-mode .faq-list .collapse.show { background: rgba(255, 255, 255, 0.03) !important; border: 1px solid rgba(255, 255, 255, 0.08); }
+html.dark-mode .faq-list .collapse.show p { color: #cbd5e1 !important; }
+html.dark-mode .galery-card { background: rgba(255, 255, 255, 0.04) !important; border-color: rgba(255, 255, 255, 0.08) !important; }
 
 /* Event badges */
-html.dark-mode .event-badge.academic  { background: rgba(52, 211, 153, 0.18) !important; color: var(--success) !important; }
-html.dark-mode .event-badge.holiday   { background: rgba(251, 113, 133, 0.18) !important; color: var(--danger) !important; }
-html.dark-mode .event-badge.exam      { background: rgba(52, 211, 153, 0.18) !important; color: var(--success) !important; }
-html.dark-mode .event-badge.national  { background: rgba(61, 169, 252, 0.18) !important; color: var(--info) !important; }
-html.dark-mode .event-badge.islamic   { background: rgba(0,229,255, 0.18) !important; color: var(--primary) !important; }
-
-/* Galery section (app.blade inline overrides) */
-html.dark-mode html.dark-mode .galery-section { background: transparent !important; }
-html.dark-mode .galery-section { background: transparent !important; }
-html.dark-mode .galery-card {
-    background: var(--glass) !important;
-    border: 1px solid var(--glass-border) !important;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-}
+html.dark-mode .event-badge.academic  { background: rgba(52, 211, 153, 0.18) !important; color: #34d399 !important; }
+html.dark-mode .event-badge.holiday   { background: rgba(251, 113, 133, 0.18) !important; color: #fb7185 !important; }
+html.dark-mode .event-badge.exam      { background: rgba(61, 169, 252, 0.18) !important; color: #3DA9FC !important; }
+html.dark-mode .event-badge.national  { background: rgba(61, 169, 252, 0.18) !important; color: #3DA9FC !important; }
+html.dark-mode .event-badge.islamic   { background: rgba(0, 229, 255, 0.18) !important; color: #00E5FF !important; }
 
 /* ============================================================
    AUTH / LOGIN

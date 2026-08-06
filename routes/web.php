@@ -31,7 +31,6 @@ use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\JadwalPelajaranController;
 use App\Http\Controllers\HaflatulImtihanController;
 use App\Http\Controllers\SesiLombaController;
-use App\Http\Controllers\KategoriLombaController;
 use App\Http\Controllers\LombaController;
 use App\Http\Controllers\PesertaLombaController;
 use App\Http\Controllers\KelompokLombaController;
@@ -201,6 +200,7 @@ Route::group(['middleware' => ['auth', '2fa', 'require.2fa']], function () {
         //jadwal pelajaran
         Route::get('/jadwal-pelajaran/export-pdf', [JadwalPelajaranController::class, 'exportPdf'])->name('jadwal-pelajaran.export-pdf');
         Route::post('/jadwal-pelajaran/salin', [JadwalPelajaranController::class, 'salin'])->name('jadwal-pelajaran.salin');
+        Route::get('/jadwal-pelajaran/cetak-siswa/{jenjang_id?}', [JadwalPelajaranController::class, 'cetakJadwalSiswa'])->name('jadwal-pelajaran.cetak-siswa');
         Route::resource('jadwal-pelajaran', JadwalPelajaranController::class);
 
         //jadwalPerkelas
@@ -213,10 +213,10 @@ Route::group(['middleware' => ['auth', '2fa', 'require.2fa']], function () {
         Route::get('/jadwal-jenjang', [JadwalPelajaranController::class, 'jadwalJenjang'])->name('jadwal-jenjang');
         Route::get('/jadwal-grid', [JadwalPelajaranController::class, 'grid'])->name('jadwal.grid');
 
-        //jadwal siswa
-        Route::get('/jadwal-siswa/cetak/{jenjang_id?}', [JadwalPelajaranController::class, 'cetakJadwalSiswa'])->name('jadwal-siswa.cetak');
-        Route::get('/jadwal-siswa', [JadwalPelajaranController::class, 'jadwalSiswa'])->name('jadwal-siswa');
-        Route::get('/jadwal-siswa/{kelas_id}', [JadwalPelajaranController::class, 'jadwalSiswaKelas'])->name('jadwal-siswa.kelas');
+        //jadwal siswa (hidden — cetak dipindah ke halaman jadwal pelajaran)
+        // Route::get('/jadwal-siswa/cetak/{jenjang_id?}', [JadwalPelajaranController::class, 'cetakJadwalSiswa'])->name('jadwal-siswa.cetak');
+        // Route::get('/jadwal-siswa', [JadwalPelajaranController::class, 'jadwalSiswa'])->name('jadwal-siswa');
+        // Route::get('/jadwal-siswa/{kelas_id}', [JadwalPelajaranController::class, 'jadwalSiswaKelas'])->name('jadwal-siswa.kelas');
         //kurikulum
         Route::resource('kurikulum', KurikulumController::class);
         Route::resource('struktur-kurikulum', StrukturKurikulumController::class);
@@ -241,6 +241,7 @@ Route::group(['middleware' => ['auth', '2fa', 'require.2fa']], function () {
         // Absensi Import dari Foto (before {id} to avoid route conflict)
         Route::get('/absensi/import', [AbsensiImportController::class, 'showForm'])->name('absensi.import');
         Route::post('/absensi/import/parse', [AbsensiImportController::class, 'parseOcrText'])->name('absensi.import.parse');
+        Route::post('/absensi/import/generate-json', [AbsensiImportController::class, 'parseGeneratedJson'])->name('absensi.import.generate-json');
         Route::get('/absensi/import/verify', [AbsensiImportController::class, 'showVerify'])->name('absensi.import.verify');
         Route::post('/absensi/import/confirm', [AbsensiImportController::class, 'confirmImport'])->name('absensi.import.confirm');
         Route::get('/absensi/import/test-openrouter', [AbsensiImportController::class, 'testOpenRouter'])->name('absensi.import.test-openrouter');
@@ -311,8 +312,7 @@ Route::group(['middleware' => ['auth', '2fa', 'require.2fa']], function () {
         Route::get('/haflatul-imtihan/aktifkan/{id}', [HaflatulImtihanController::class, 'aktifkan'])->name('haflah.aktifkan');
         Route::resource('haflatul-imtihan', HaflatulImtihanController::class);
         Route::resource('sesi-lomba', SesiLombaController::class);
-        Route::resource('kategori-lomba', KategoriLombaController::class);
-        Route::resource('lomba', LombaController::class);
+                Route::resource('lomba', LombaController::class);
         Route::get('/peserta-lomba/cetak-pdf', [PesertaLombaController::class, 'cetakPdf'])->name('peserta-lomba.cetak-pdf');
         Route::match(['get', 'post'], '/peserta-lomba/tambah-massal', [PesertaLombaController::class, 'massal'])->name('peserta-lomba.massal');
         Route::resource('peserta-lomba', PesertaLombaController::class);
@@ -325,6 +325,7 @@ Route::group(['middleware' => ['auth', '2fa', 'require.2fa']], function () {
         Route::resource('anggota-kelompok', AnggotaKelompokController::class);
         Route::get('/anggota-kelompok/get-siswa/{kelompokLomba}', [AnggotaKelompokController::class, 'getStudentsByKelompok'])->name('anggota-kelompok.get-siswa');
         Route::delete('/anggota-kelompok/hapus-semua/{kelompokLomba}', [AnggotaKelompokController::class, 'hapusSemua'])->name('anggota-kelompok.hapus-semua');
+        Route::get('/juri-lomba/create', [JuriLombaController::class, 'create'])->name('juri-lomba.create');
         Route::resource('juri-lomba', JuriLombaController::class);
         Route::get('/aspek-penilaian/export-excel/{lomba}', [AspekPenilaianController::class, 'exportForm'])->name('aspek-penilaian.export-excel');
         Route::get('/aspek-penilaian/cetak-pdf/{lomba}', [AspekPenilaianController::class, 'cetakPdf'])->name('aspek-penilaian.cetak-pdf');

@@ -62,7 +62,8 @@
                     </ul>
                 </li>
 
-                <li class="menu-item has-submenu{{ request()->is('kepsek/laporan*') ? ' has-active' : '' }}">
+                {{-- Laporan (hidden, di-comment untuk pengembangan nanti) --}}
+                {{-- <li class="menu-item has-submenu{{ request()->is('kepsek/laporan*') ? ' has-active' : '' }}">
                     <a href="#" class="menu-link menu-toggle" title="Laporan" data-flyout-toggle aria-haspopup="true" aria-expanded="false">
                         <span class="menu-icon"><i class="fas fa-file-alt"></i></span>
                         <span class="menu-text">Laporan</span>
@@ -74,7 +75,7 @@
                             <a href="{{ route('kepsek.laporan-pelanggaran') }}" class="menu-submenu-link">Pelanggaran</a>
                         </li>
                     </ul>
-                </li>
+                </li> --}}
 
                 <li class="menu-item has-submenu{{ request()->is('kepsek/profil-madrasah*') ? ' has-active' : '' }}">
                     <a href="#" class="menu-link menu-toggle" title="Profil" data-flyout-toggle aria-haspopup="true" aria-expanded="false">

@@ -1,116 +1,164 @@
 @extends('layouts.main')
 @section('title', 'Detail Sesi Lomba')
-@push('css')
-<style>
-    .create-sesi-page { font-family: 'Inter', 'Poppins', system-ui, sans-serif; max-width: 680px; margin: 22px auto 0; padding: 0 16px; }
-    .breadcrumb-cu { margin-bottom: 20px; }
-    .breadcrumb-cu .breadcrumb { background: transparent; padding: 0; margin: 0; }
-    .breadcrumb-cu .breadcrumb-item { font-size: 13px; }
-    .breadcrumb-cu .breadcrumb-item a { color: #64748b; text-decoration: none; transition: color .2s; }
-    .breadcrumb-cu .breadcrumb-item a:hover { color: #16a34a; }
-    .breadcrumb-cu .breadcrumb-item.active { color: #1e293b; font-weight: 500; }
-    .breadcrumb-cu .breadcrumb-item+.breadcrumb-item::before { color: #cbd5e1; }
-    .create-card { border: none; border-radius: 18px; box-shadow: 0 4px 16px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.04); }
-    .create-card-header { padding: 24px 28px 20px; border-bottom: 1px solid #f1f5f9; }
-    .create-card-body { padding: 24px 28px 28px; }
-    .header-icon { width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, #16a34a, #22c55e); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 22px; flex-shrink: 0; box-shadow: 0 4px 12px rgba(22,163,74,.25); }
-    .detail-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .4px; color: #94a3b8; margin-bottom: 4px; }
-    .detail-value { font-size: 16px; font-weight: 600; color: #1e293b; }
-    .info-row { display: flex; align-items: center; padding: 14px 0; border-bottom: 1px solid #f1f5f9; }
-    .info-row:last-child { border-bottom: none; }
-    .info-row .info-icon { width: 40px; height: 40px; border-radius: 10px; background: #f0fdf4; display: flex; align-items: center; justify-content: center; color: #16a34a; font-size: 16px; flex-shrink: 0; margin-right: 14px; }
-    .badge-show { display: inline-flex; align-items: center; gap: 5px; padding: 5px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; white-space: nowrap; }
-    .badge-show.bg-pink { background: #fdf2f8; color: #be185d; }
-    .badge-show.bg-blue { background: #eff6ff; color: #1d4ed8; }
-    .badge-show.bg-gray { background: #f1f5f9; color: #64748b; }
-    .btn-cu { height: 44px; padding: 0 28px; border-radius: 10px; font-size: 14px; font-weight: 600; transition: all .25s; display: inline-flex; align-items: center; gap: 8px; border: none; text-decoration: none; }
-    .btn-cu-secondary { background: #f1f5f9; color: #475569; border: 1.5px solid #e2e8f0; }
-    .btn-cu-secondary:hover { background: #e2e8f0; color: #334155; transform: translateY(-1px); box-shadow: 0 3px 8px rgba(0,0,0,.08); }
-    .btn-cu-primary { background: linear-gradient(135deg, #16a34a, #22c55e); color: #fff; box-shadow: 0 2px 8px rgba(22,163,74,.25); }
-    .btn-cu-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(22,163,74,.35); color: #fff; }
-    .form-actions-cu { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 32px; padding-top: 20px; border-top: 1px solid #f1f5f9; }
-    @media (max-width:768px) { .create-sesi-page { margin-top:16px; padding:0 12px; } .create-card-header { padding:18px 20px 16px; } .create-card-body { padding:18px 20px 22px; } .form-actions-cu { flex-direction:column; } .form-actions-cu .btn-cu { width:100%; } }
-</style>
-@endpush
 @section('content')
-@include('component.admin.ms-style')
-<div class="create-sesi-page">
+@include('component.admin.lomba-workspace')
 
-    <nav aria-label="breadcrumb" class="breadcrumb-cu">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="/home"><i class="fas fa-home me-1"></i>Dashboard</a></li>
-            <li class="breadcrumb-item"><a href="{{ route('sesi-lomba.index') }}">Sesi Lomba</a></li>
-            <li class="breadcrumb-item active">Detail</li>
-        </ol>
-    </nav>
+<style>
+    .page-title-content { display: none !important; }
 
-    <div class="card create-card">
-        <div class="create-card-header">
-            <div class="d-flex align-items-center gap-3">
-                <div class="header-icon"><i class="fas fa-calendar-week"></i></div>
-                <div>
-                    <h4 class="mb-0 fw-bold" style="color:#1e293b;font-size:18px;">{{ $sesiLomba->nama }}</h4>
-                    <span style="font-size:13px;color:#64748b;">Detail sesi lomba haflatul imtihan</span>
+    .lw-detail-wrap { max-width: 900px; }
+
+    .lw-detail-meta .lw-hero-badge { color: #fff; }
+    .lw-detail-meta .lw-hero-badge--ok { background: rgba(14, 159, 110, .35); border-color: rgba(14, 159, 110, .6); }
+    .lw-detail-meta .lw-hero-badge--lock { background: rgba(220, 76, 76, .35); border-color: rgba(220, 76, 76, .6); }
+
+    .lw-sesi-tl { display: flex; align-items: center; gap: 0; padding: 14px 16px; background: var(--lw-bg);
+        border: 1px solid var(--lw-border); border-radius: 14px; }
+    .lw-sesi-tl .point { display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0; }
+    .lw-sesi-tl .point .dot { width: 12px; height: 12px; border-radius: 999px; background: var(--lw-green); box-shadow: 0 0 0 4px var(--lw-green-soft); }
+    .lw-sesi-tl .point .time { font-size: 11px; font-weight: 700; color: var(--lw-text); }
+    .lw-sesi-tl .bar { flex: 1; height: 6px; border-radius: 999px; background: var(--lw-grad); margin: 0 6px; position: relative; }
+    .lw-sesi-tl .bar .dur { position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font-size: 10px;
+        font-weight: 700; color: var(--lw-text-3); white-space: nowrap; }
+</style>
+
+@php
+    $isLocked = $sesiLomba->is_haflah_selesai;
+    $lombaCount = $sesiLomba->lombas->count();
+    $haflahNama = $sesiLomba->haflatulImtihan->nama_acara ?? '-';
+    $statusLabel = $isLocked ? 'Haflah Selesai' : ($lombaCount > 0 ? 'Dipakai Lomba' : 'Belum Dipakai');
+
+    $jamMulai = \Carbon\Carbon::parse($sesiLomba->jam_mulai);
+    $jamSelesai = \Carbon\Carbon::parse($sesiLomba->jam_selesai);
+    $durasiMenit = $jamMulai->diffInMinutes($jamSelesai);
+    $durasiLabel = floor($durasiMenit/60).' jam '.($durasiMenit%60).' menit';
+@endphp
+
+<div class="lw-mod jd-page-sesilomba">
+
+<div class="lw-detail-wrap">
+    <div class="lw-breadcrumb" style="margin-bottom:16px;">
+        <a href="{{ route('sesi-lomba.index') }}">Sesi Lomba</a> <i class="bi bi-chevron-right"></i> <span>Detail</span>
+    </div>
+
+    <div class="lw-detail-hero">
+        <div class="lw-detail-hero-grid">
+            <div class="d-flex align-items-center gap-3" style="min-width:0;">
+                <span class="lw-detail-avatar"><i class="bi bi-calendar-week"></i></span>
+                <div style="min-width:0;">
+                    <div class="lw-detail-sub" style="opacity:.8;font-weight:600;text-transform:uppercase;letter-spacing:.5px;font-size:10px;margin-bottom:2px;">Session Insight</div>
+                    <h1 class="lw-detail-title">{{ $sesiLomba->nama }}</h1>
+                    <div class="lw-detail-sub">{{ $haflahNama }}</div>
                 </div>
             </div>
-        </div>
-        <div class="create-card-body">
-
-            <div style="background:#f8fafc;border-radius:14px;border:1px solid #e2e8f0;padding:6px 20px;">
-                <div class="info-row">
-                    <div class="info-icon"><i class="fas fa-calendar-alt"></i></div>
-                    <div>
-                        <div class="detail-label">Haflatul Imtihan</div>
-                        <div class="detail-value">{{ $sesiLomba->haflatulImtihan->nama_acara ?? '-' }}</div>
-                    </div>
-                </div>
-                <div class="info-row">
-                    <div class="info-icon"><i class="fas fa-tag"></i></div>
-                    <div>
-                        <div class="detail-label">Nama Sesi</div>
-                        <div class="detail-value">{{ $sesiLomba->nama }}</div>
-                    </div>
-                </div>
-                <div class="info-row">
-                    <div class="info-icon"><i class="fas fa-calendar-day"></i></div>
-                    <div>
-                        <div class="detail-label">Tanggal</div>
-                        <div class="detail-value">
-                            <span class="badge-show bg-pink">
-                                <i class="fas fa-calendar-day me-1"></i>
-                                {{ \Carbon\Carbon::parse($sesiLomba->tanggal)->isoFormat('D MMM YYYY') }}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-                <div class="info-row">
-                    <div class="info-icon"><i class="fas fa-clock"></i></div>
-                    <div>
-                        <div class="detail-label">Jam</div>
-                        <div class="detail-value">
-                            <span class="badge-show bg-blue"><i class="fas fa-play me-1"></i>{{ $sesiLomba->jam_mulai ? \Carbon\Carbon::parse($sesiLomba->jam_mulai)->format('H:i') : '-' }}</span>
-                            <span style="color:#94a3b8;margin:0 6px;">s/d</span>
-                            <span class="badge-show bg-blue"><i class="fas fa-stop me-1"></i>{{ $sesiLomba->jam_selesai ? \Carbon\Carbon::parse($sesiLomba->jam_selesai)->format('H:i') : '-' }}</span>
-                        </div>
-                    </div>
-                </div>
-                @if($sesiLomba->keterangan)
-                <div class="info-row">
-                    <div class="info-icon"><i class="fas fa-align-left"></i></div>
-                    <div>
-                        <div class="detail-label">Keterangan</div>
-                        <div class="detail-value" style="font-weight:400;font-size:14px;">{{ $sesiLomba->keterangan }}</div>
-                    </div>
-                </div>
-                @endif
+            <div class="lw-detail-meta">
+                <span class="lw-hero-badge {{ $isLocked ? 'lw-hero-badge--lock' : ($lombaCount > 0 ? '' : 'lw-hero-badge--ok') }}">
+                    <i class="bi {{ $isLocked ? 'bi-x-circle-fill' : ($lombaCount > 0 ? 'bi-diagram-3-fill' : 'bi-check2-circle') }}"></i>{{ $statusLabel }}
+                </span>
+                <span class="lw-hero-badge"><i class="bi bi-calendar-day"></i>{{ \Carbon\Carbon::parse($sesiLomba->tanggal)->isoFormat('D MMM YYYY') }}</span>
             </div>
-
-            <div class="form-actions-cu">
-                <a href="{{ route('sesi-lomba.index') }}" class="btn btn-cu btn-cu-secondary"><i class="fas fa-arrow-left"></i> Kembali</a>
-                <a href="{{ route('sesi-lomba.edit', $sesiLomba->id) }}" class="btn btn-cu btn-cu-primary"><i class="fas fa-edit"></i> Edit</a>
-            </div>
-
         </div>
     </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-lg-7">
+            <div class="lw-card lw-card-pad" style="margin-bottom:14px;">
+                <div class="lw-form-section"><i class="bi bi-info-circle-fill"></i> Informasi Sesi</div>
+                <div class="lw-info-grid">
+                    <div class="lw-info-cell">
+                        <div class="lbl"><i class="bi bi-building"></i> Haflatul Imtihan</div>
+                        <div class="val">{{ $haflahNama }}</div>
+                    </div>
+                    <div class="lw-info-cell">
+                        <div class="lbl"><i class="bi bi-tag-fill"></i> Nama Sesi</div>
+                        <div class="val">{{ $sesiLomba->nama }}</div>
+                    </div>
+                    <div class="lw-info-cell">
+                        <div class="lbl"><i class="bi bi-calendar2-week"></i> Tanggal</div>
+                        <div class="val">{{ \Carbon\Carbon::parse($sesiLomba->tanggal)->isoFormat('D MMM YYYY') }}</div>
+                    </div>
+                    <div class="lw-info-cell">
+                        <div class="lbl"><i class="bi bi-clock"></i> Jam Mulai</div>
+                        <div class="val">{{ $jamMulai->format('H:i') }}</div>
+                    </div>
+                    <div class="lw-info-cell">
+                        <div class="lbl"><i class="bi bi-stopwatch"></i> Jam Selesai</div>
+                        <div class="val">{{ $jamSelesai->format('H:i') }}</div>
+                    </div>
+                    <div class="lw-info-cell">
+                        <div class="lbl"><i class="bi bi-hourglass-split"></i> Durasi</div>
+                        <div class="val">{{ $durasiLabel }}</div>
+                    </div>
+                    @if($sesiLomba->keterangan)
+                    <div class="lw-info-cell" style="grid-column:1 / -1;">
+                        <div class="lbl"><i class="bi bi-align-left"></i> Keterangan</div>
+                        <div class="val" style="font-weight:500;font-size:12.5px;">{{ $sesiLomba->keterangan }}</div>
+                    </div>
+                    @endif
+                </div>
+            </div>
+
+            <div class="lw-card lw-card-pad">
+                <div class="lw-form-section"><i class="bi bi-arrow-left-right"></i> Linimasa Sesi</div>
+                <div class="lw-sesi-tl">
+                    <div class="point">
+                        <span class="dot"></span>
+                        <span class="time">{{ $jamMulai->format('H:i') }}</span>
+                    </div>
+                    <div class="bar"><span class="dur">{{ $durasiLabel }}</span></div>
+                    <div class="point">
+                        <span class="dot"></span>
+                        <span class="time">{{ $jamSelesai->format('H:i') }}</span>
+                    </div>
+                </div>
+                <div class="lw-note" style="margin-top:12px;">
+                    <i class="bi bi-info-circle"></i>
+                    <span>{{ $isLocked ? 'Haflah telah selesai — sesi tidak dapat diubah.' : ($lombaCount > 0 ? 'Sesi sudah dipakai '.$lombaCount.' lomba.' : 'Sesi masih bebas digunakan.') }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="lw-card lw-card-pad">
+                <div class="lw-form-section"><i class="bi bi-trophy-fill"></i> Lomba Menggunakan Sesi Ini</div>
+                <div class="lw-stat" style="padding:0 0 14px;">
+                    <span class="lw-stat-icon navy"><i class="bi bi-trophy"></i></span>
+                    <div>
+                        <div class="lw-stat-num">{{ $lombaCount }}</div>
+                        <div class="lw-stat-label">Total Lomba</div>
+                    </div>
+                </div>
+                @if($lombaCount > 0)
+                    <div class="lw-breakdown">
+                        @foreach($sesiLomba->lombas->take(5) as $lomba)
+                            <div class="lw-breakdown-item">
+                                <span class="lw-breakdown-name"><i class="bi bi-diagram-3-fill"></i> {{ $lomba->nama }}</span>
+                                <a href="{{ route('lomba.show', $lomba->id) }}" class="lw-btn lw-btn--xs lw-btn--soft"><i class="bi bi-eye"></i></a>
+                            </div>
+                        @endforeach
+                        @if($sesiLomba->lombas->count() > 5)
+                            <div class="lw-help-text" style="text-align:center;">+{{ $sesiLomba->lombas->count() - 5 }} lomba lainnya</div>
+                        @endif
+                    </div>
+                @else
+                    <div class="lw-empty" style="padding:20px 14px;">
+                        <span class="lw-empty-illus" style="width:74px;height:74px;margin:0 auto 12px;">
+                            <span class="core" style="inset:14px;font-size:26px;"><i class="bi bi-trophy"></i></span>
+                        </span>
+                        <div class="lw-empty-title">Belum ada lomba</div>
+                        <p class="lw-empty-sub" style="margin-bottom:0;">Sesi ini belum dipakai oleh lomba apapun.</p>
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
+
+    <div class="lw-wizard-nav">
+        <a href="{{ route('sesi-lomba.index') }}" class="lw-btn"><i class="bi bi-arrow-left"></i> Kembali ke Daftar</a>
+        <span class="spacer"></span>
+        <a href="{{ route('sesi-lomba.edit', $sesiLomba->id) }}" class="lw-btn lw-btn--solid"><i class="bi bi-pencil"></i> Edit Sesi</a>
+    </div>
+</div>
+
 </div>
 @endsection

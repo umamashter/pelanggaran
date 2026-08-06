@@ -95,9 +95,28 @@ class PesertaLombaController extends Controller
                 }
             });
         })->orderBy('nama')->get();
-        $haflatuls = HaflatulImtihan::orderBy('nama_acara')->get();
 
-        return view('admin.peserta-lomba.index', compact('pesertaLombas', 'lombas', 'sesiLombas', 'haflatuls'));
+        /* ── Data untuk tab Anggota Kelompok ── */
+        $kelompokQuery = KelompokLomba::with(['lomba.sesiLomba', 'anggota'])
+            ->withCount(['anggota', 'penilaianLombas']);
+
+        if ($request->filled('haflah_id')) {
+            $kelompokQuery->withoutGlobalScope(HaflahScope::class)
+                ->where('haflah_id', $request->haflah_id);
+        }
+        if ($request->filled('lomba_id')) {
+            $kelompokQuery->where('lomba_id', $request->lomba_id);
+        }
+        $kelompoks = $kelompokQuery->orderBy('nama_kelompok')->paginate($perPage)->withQueryString();
+
+        $lombasKelompok = Lomba::where('jenis', 'Tim')->orderBy('nama')->get();
+
+        $haflatuls = HaflatulImtihan::with('tahunAjaran')->orderBy('nama_acara')->get();
+
+        return view('admin.peserta-lomba.index', compact(
+            'pesertaLombas', 'lombas', 'sesiLombas', 'haflatuls',
+            'kelompoks', 'lombasKelompok', 'perPage'
+        ));
     }
 
     public function cetakPdf(Request $request)

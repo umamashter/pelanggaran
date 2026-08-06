@@ -1,624 +1,433 @@
 @extends('layouts.main')
 @section('title', 'Jadwal Pelajaran')
 @section('content')
-@include('component.admin.ms-style')
+@include('component.admin.jadwal-module')
 <style>
     .page-title-content { display: none !important; }
 
-    .btn-header-ms.btn-simpan-ms.btn-compact {
-        height: 36px;
-        padding: 0 8px;
-        font-size: 10px;
-        border-radius: 8px;
-        gap: 3px;
+    .jd-tabs > .jd-tab { z-index: 1; }
+    .jd-tabs { max-width: 100%; }
+    .jd-tabs-kelas { margin-top: 2px; }
+    .jd-cell-masked { opacity: .3; }
+
+    .jd-alert { display: flex; align-items: center; gap: 12px; border-radius: 14px; padding: 13px 16px; font-size: 13px; font-weight: 600;
+        margin-bottom: 18px; border: 1px solid var(--jd-border); background: var(--jd-card); box-shadow: var(--jd-shadow); }
+    .jd-alert i { font-size: 16px; flex-shrink: 0; }
+    .jd-alert b { font-weight: 700; }
+    .jd-alert span { font-weight: 500; opacity: .85; }
+    .jd-alert--warn { border-color: var(--jd-amber-border); background: var(--jd-amber-soft); color: var(--jd-amber); }
+    .jd-alert--err { border-color: var(--jd-red-border); background: var(--jd-red-soft); color: var(--jd-red); }
+    .jd-alert--ok { border-color: var(--jd-green-border); background: var(--jd-green-soft); color: var(--jd-green); }
+    .jd-alert--info { border-color: var(--jd-primary-border); background: var(--jd-primary-soft); color: var(--jd-primary); }
+
+    .jd-chip-select { display: inline-flex; align-items: center; gap: 8px; border-radius: 11px; padding: 10px 16px; font-size: 12.5px; font-weight: 600;
+        color: var(--jd-text-2); border: 1.5px solid var(--jd-border); background: var(--jd-card); cursor: pointer; transition: all .2s ease; font-family: inherit; }
+    .jd-chip-select:hover { border-color: var(--jd-primary-border); color: var(--jd-text); transform: translateY(-1px); }
+    .jd-chip-select.active { background: var(--jd-primary-soft); border-color: var(--jd-primary); color: var(--jd-primary); box-shadow: 0 4px 14px -6px rgba(37,99,235,.4); }
+    .jd-chip-select i { font-size: 12px; }
+
+    .jd-modal-card { border: none !important; border-radius: 20px !important; overflow: hidden; background: var(--jd-card); box-shadow: 0 25px 60px rgba(15,23,42,.18); }
+    .jd-modal-head { position: relative; padding: 24px 24px 20px; color: #fff; background: var(--mc, #2563eb); }
+    .jd-modal-head::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255,255,255,.14), rgba(0,0,0,.16)); pointer-events: none; }
+    .jd-modal-head > * { position: relative; z-index: 1; }
+    .jd-modal-head .btn-close { z-index: 2 !important; }
+
+    .jd-wizard-pane { min-height: 190px; }
+    .jd-wizard-hint { font-size: 12px; color: var(--jd-text-3); margin-top: 6px; display: flex; align-items: center; gap: 6px; }
+    .jd-wizard-hint i { color: var(--jd-primary); }
+
+    @media (max-width: 767.98px) {
+        .jd-step-txt { display: none; }
+        .jd-step { justify-content: center; }
+        .jd-stepper { gap: 4px; }
+        .jd-step-line { margin: 0 6px; min-width: 12px; }
     }
-    .btn-header-ms.btn-simpan-ms.btn-compact i { font-size: 10px; }
-    .btn-header-ms:disabled { opacity:.65; cursor:not-allowed; background:rgba(22,163,74,.25)!important; color:rgba(255,255,255,.7)!important; border:1px solid rgba(22,163,74,.3)!important; }
 
-    /* Tab Jenjang */
-    .nav-jenjang .nav-link {
-        border-radius: 12px 12px 0 0;
-        font-weight: 600;
-        font-size: 13px;
-        color: var(--ms-text-soft);
-        padding: 10px 20px;
-        transition: all .2s;
-    }
-    .nav-jenjang .nav-link.active { background: rgb(86, 179, 67); color: #fff; }
-    .nav-jenjang .nav-link:not(.active):hover { background: rgba(86,179,74,.1); color: rgb(86,179,67); }
-
-    /* Tab Kelas */
-    .nav-kelas .nav-link {
-        border-radius: 10px;
-        font-weight: 600;
-        font-size: 12px;
-        padding: 6px 14px;
-        color: var(--ms-text-soft);
-        background: #f1f5f9;
-        border: 1px solid #e2e8f0;
-        transition: all .2s;
-        margin-right: 6px;
-        margin-bottom: 4px;
-    }
-    .nav-kelas .nav-link.active { background: #2563eb; color: #fff; border-color: #2563eb; }
-    .nav-kelas .nav-link:not(.active):hover { background: #dbeafe; color: #2563eb; }
-
-    /* Matrix Table */
-    .jadwal-matrix {
-        border-collapse: separate;
-        border-spacing: 0;
-        width: 100%;
-        font-size: 12px;
-    }
-    .jadwal-matrix thead th {
-        background: #16a34a;
-        color: #fff;
-        text-align: center;
-        vertical-align: middle;
-        padding: 10px 6px;
-        font-weight: 600;
-        border: none;
-        font-size: 12px;
-    }
-    .jadwal-matrix thead th:first-child { border-radius: 10px 0 0 0; }
-    .jadwal-matrix thead th:last-child { border-radius: 0 10px 0 0; }
-    .jadwal-matrix tbody td {
-        padding: 8px 6px;
-        vertical-align: middle;
-        border: 1px solid #e5e7eb;
-        height: 60px;
-    }
-    .jadwal-matrix tbody tr:last-child td:first-child { border-radius: 0 0 0 10px; }
-    .jadwal-matrix tbody tr:last-child td:last-child { border-radius: 0 0 10px 0; }
-
-    .jam-cell-matrix {
-        background: #f0fdf4;
-        text-align: center;
-        font-weight: 700;
-        color: #166534;
-        white-space: nowrap;
-    }
-    .jam-cell-matrix .jam-label { font-size: 13px; display: block; }
-    .jam-cell-matrix .jam-waktu { font-size: 10px; color: #6b7280; font-weight: 400; }
-
-    .mapel-cell-matrix { text-align: center; background: #fff; transition: all 0.2s; cursor: pointer; }
-    .mapel-cell-matrix:hover { background: #f0fdf4; box-shadow: inset 0 0 0 2px #16a34a; }
-    .mapel-cell-matrix .nama-mapel { font-weight: 700; color: #166534; font-size: 12px; display: block; margin-bottom: 1px; }
-    .mapel-cell-matrix .nama-guru { font-size: 10px; color: #6b7280; }
-    .kosong-cell { text-align: center; color: #d1d5db; font-size: 16px; }
-    .add-cell-btn {
-        width: 32px; height: 32px; border-radius: 10px; border: 2px dashed #d1d5db;
-        background: transparent; color: #94a3b8; display: inline-flex;
-        align-items: center; justify-content: center; cursor: pointer;
-        transition: all .2s; font-size: 14px; font-weight: 700; line-height: 1;
-    }
-    .add-cell-btn:hover { border-color: #16a34a; color: #16a34a; background: #f0fdf4; transform: scale(1.1); }
-
-    .empty-state { text-align: center; padding: 40px 20px; color: #94a3b8; }
-    .empty-state i { font-size: 48px; margin-bottom: 12px; display: block; }
-
-    .delete-icon-wrap {
-        width: 90px; height: 90px; border-radius: 50%;
-        background: rgba(220, 38, 38, .08);
-        display: inline-flex; align-items: center; justify-content: center;
-    }
-    .delete-icon-wrap i { font-size: 2.5rem; color: #dc2626; }
-
-    .salin-icon-wrap { width:80px; height:80px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; margin-bottom:4px; }
-    html:not(.dark-mode) .salin-icon-wrap { background:linear-gradient(135deg,#eff6ff,#dbeafe); animation:salinPulse 2s ease-in-out infinite; }
-    html.dark-mode .salin-icon-wrap { background:rgba(37,99,235,.15); box-shadow:0 0 20px rgba(37,99,235,.1); }
-    .salin-icon-wrap i { font-size:32px; color:#2563eb; }
-    html:not(.dark-mode) .salin-icon-wrap i { animation:salinBounce 2.5s ease-in-out infinite; }
-    @keyframes salinPulse { 0%,100%{box-shadow:0 0 0 0 rgba(37,99,235,.15)} 50%{box-shadow:0 0 0 12px rgba(37,99,235,0)} }
-    @keyframes salinBounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-3px)} }
-
-    .salin-info-box { border-left:4px solid #2563eb; border-radius:12px; padding:14px 18px; }
-    html:not(.dark-mode) .salin-info-box { background:linear-gradient(135deg,#f8fafc,#f1f5f9); border:1px solid #e2e8f0; }
-    html.dark-mode .salin-info-box { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); }
-    .salin-info-box .salin-label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; color:#94a3b8; margin-bottom:2px; }
-    .salin-info-box .salin-value { font-weight:700; font-size:15px; }
-    html:not(.dark-mode) .salin-info-box .salin-value { color:var(--ms-text); }
-    html.dark-mode .salin-info-box .salin-value { color:var(--text-primary); }
-
-    .btn-salin-final { border:none !important; border-radius:10px !important; padding:9px 22px !important; font-weight:600 !important; font-size:13px !important; transition:all .25s !important; }
-    .btn-salin-final:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(37,99,235,.3); }
-
-    @media (max-width: 575.98px) {
-        .action-group-ms { display: inline-flex !important; gap: 4px !important; grid-template-columns: unset !important; }
-        .action-group-ms .btn { width: 28px !important; height: 28px !important; font-size: 11px !important; }
+    .jd-fab { display: none; }
+    @media (max-width: 991.98px) {
+        .jd-fab { display: inline-flex; }
     }
 </style>
 
-{{-- ===== HEADER ===== --}}
-<div class="card border-0 shadow-sm mb-4" style="border-radius: 16px;">
-    <div class="card-body p-4">
-        <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3">
-            <div class="d-flex align-items-center gap-3">
-                <div class="header-icon"><i class="fas fa-calendar-alt"></i></div>
-                <div>
-                    <h4 class="mb-1 fw-bold" style="color: var(--ms-text); font-size: 20px;">
-                        Jadwal Pelajaran
-                    </h4>
-                    <p class="mb-1" style="font-size:12px;color:#94a3b8;line-height:1.4;">
-                        Lihat dan kelola jadwal mengajar per jenjang, kelas, dan hari.
-                    </p>
-                    <div class="d-flex flex-wrap gap-2 mt-1">
-                        <span class="badge" style="background:rgba(86,179,74,.12);color:rgb(86,179,67);border-radius:8px;padding:5px 10px;font-size:11px;font-weight:600;">
-                            <i class="fas fa-list me-1"></i> {{ $jadwals->count() }} Total Jadwal
-                        </span>
-                    </div>
+<div class="jd-mod jd-page-jadwal">
+
+@php
+    $jamSlot = [
+        1 => ['label' => 'Jam 1', 'mulai' => '07:30', 'selesai' => '08:30'],
+        2 => ['label' => 'Jam 2', 'mulai' => '08:30', 'selesai' => '09:30'],
+        3 => ['label' => 'Jam 3', 'mulai' => '10:00', 'selesai' => '11:00'],
+        4 => ['label' => 'Jam 4', 'mulai' => '11:00', 'selesai' => '12:00'],
+    ];
+
+    $totalJadwal = $jadwals->count();
+    $kelasTerisi = $jadwals->pluck('kelas_id')->unique()->count();
+    $totalKelasAll = 0;
+    foreach ($kelasPerJenjang as $list) {
+        $totalKelasAll += $list->count();
+    }
+    $guruAktif = $jadwals->pluck('guru_id')->unique()->count();
+    $mapelTerjadwal = $jadwals->pluck('mata_pelajaran_id')->unique()->count();
+
+    $guruSlot = [];
+    $kelasSlot = [];
+    foreach ($jadwals as $jw) {
+        $gk = $jw->guru_id . '|' . $jw->hari . '|' . $jw->jam_ke;
+        $kk = $jw->kelas_id . '|' . $jw->hari . '|' . $jw->jam_ke;
+        $guruSlot[$gk] = ($guruSlot[$gk] ?? 0) + 1;
+        $kelasSlot[$kk] = ($kelasSlot[$kk] ?? 0) + 1;
+    }
+    $jumlahKonflik = 0;
+    $conflictIds = [];
+    foreach ($jadwals as $jw) {
+        $gk = $jw->guru_id . '|' . $jw->hari . '|' . $jw->jam_ke;
+        $kk = $jw->kelas_id . '|' . $jw->hari . '|' . $jw->jam_ke;
+        if (($guruSlot[$gk] ?? 0) > 1 || ($kelasSlot[$kk] ?? 0) > 1) {
+            $conflictIds[$jw->id] = true;
+            $jumlahKonflik++;
+        }
+    }
+
+    $jdPayload = [];
+    foreach ($jadwals as $jw) {
+        $kid = $jw->kelas_id;
+        $jid = $jw->jenjang_id;
+        $namaMapel = $jw->mapel->nama_mapel ?? '-';
+        $jdPayload[$jid][$kid][] = [
+            'id' => $jw->id,
+            'kelas_id' => $kid,
+            'guru_id' => $jw->guru_id,
+            'kelas' => $jw->kelas->nama_kelas ?? '-',
+            'mapel' => $namaMapel,
+            'guru' => $jw->guru->nama ?? '-',
+            'hari' => $jw->hari,
+            'jam_ke' => (int) $jw->jam_ke,
+            'jam_mulai' => substr((string) $jw->jam_mulai, 0, 5),
+            'jam_selesai' => substr((string) $jw->jam_selesai, 0, 5),
+            'mc' => jd_mapel_color_idx($namaMapel),
+            'conflict' => isset($conflictIds[$jw->id]),
+        ];
+    }
+
+    $kelasPayload = [];
+    foreach ($kelasPerJenjang as $jid => $list) {
+        $kelasPayload[$jid] = $list->map(function ($k) use ($jdPayload, $jid) {
+            return [
+                'id' => $k->id,
+                'nama' => $k->nama_kelas,
+                'count' => count($jdPayload[$jid][$k->id] ?? []),
+            ];
+        })->values();
+    }
+
+    $semuaKelas = [];
+    foreach ($kelasPerJenjang as $list) {
+        foreach ($list as $k) {
+            $semuaKelas[] = $k;
+        }
+    }
+    usort($semuaKelas, function ($a, $b) {
+        return strcmp($a->nama_kelas, $b->nama_kelas);
+    });
+
+    $filterAktif = request('kelas_id') || request('guru_id') || request('hari') || request('tahun_ajaran_id');
+
+    $jdHariJson = $hariList;
+    $jdJamJson = $jamSlot;
+    $jdJenjangJson = $jenjangs->map(function ($j) {
+        return ['id' => $j->id, 'nama' => $j->nama_jenjang];
+    })->values();
+    $jdKelasJson = $kelasPayload;
+    $jdDataJson = $jdPayload;
+    $jdKelasWizardJson = array_map(function ($k) {
+        return ['id' => $k->id, 'nama' => $k->nama_kelas];
+    }, $semuaKelas);
+    $jdPengampuJson = $pengampuMapels->map(function ($p) {
+        return [
+            'guru_id' => $p->guru_id,
+            'mata_pelajaran_id' => $p->mata_pelajaran_id,
+            'kelas_id' => $p->kelas_id,
+        ];
+    })->values();
+    $jdMapelJson = $mapels->map(function ($m) {
+        return ['id' => $m->id, 'nama' => $m->nama_mapel];
+    })->values();
+    $jdGuruJson = $gurus->map(function ($g) {
+        return ['id' => $g->id, 'nama' => $g->nama];
+    })->values();
+    $jdTahunJson = $tahunAjarans->map(function ($ta) {
+        return ['id' => $ta->id, 'tahun_ajaran' => $ta->tahun_ajaran];
+    })->values();
+    $jdTahunAktifJson = $tahunAjaranAktif
+        ? ['id' => $tahunAjaranAktif->id, 'tahun_ajaran' => $tahunAjaranAktif->tahun_ajaran]
+        : null;
+@endphp
+
+{{-- ===== HERO ===== --}}
+<div class="jd-hero">
+    <div class="jd-hero-grid">
+        <div class="jd-hero-left">
+            <div class="jd-hero-icon"><i class="fas fa-calendar-alt"></i></div>
+            <div>
+                <h1 class="jd-hero-title">Jadwal Pelajaran</h1>
+                <p class="jd-hero-sub">Kelola jadwal mengajar per jenjang, kelas, dan hari — dengan deteksi bentrok otomatis dan migrasi antar tahun ajaran.</p>
+                <div class="jd-hero-badges">
+                    <span class="jd-hero-badge"><i class="fas fa-calendar-day"></i> {{ now()->translatedFormat('l, d F Y') }}</span>
+                    <span class="jd-hero-badge"><i class="fas fa-graduation-cap"></i> {{ $tahunAjaranAktif->tahun_ajaran }}</span>
+                    @if($tahunAjaranAktif->semesterAktif)
+                    <span class="jd-hero-badge"><i class="fas fa-bookmark"></i> {{ $tahunAjaranAktif->semesterAktif->nama ?? '-' }}</span>
+                    @endif
+                    <span class="jd-hero-badge jd-hero-badge--ok"><i class="fas fa-check-circle"></i> {{ $totalJadwal }} Jadwal</span>
+                    @if($jumlahKonflik > 0)
+                    <span class="jd-hero-badge jd-hero-badge--warn"><i class="fas fa-exclamation-triangle"></i> {{ $jumlahKonflik }} Konflik</span>
+                    @endif
                 </div>
             </div>
-            <div class="d-flex flex-wrap align-items-center gap-2">
-                @if($sudahDisalin)
-                <button type="button" class="btn btn-header-ms btn-simpan-ms btn-compact"
-                    disabled title="Data tahun ajaran aktif sudah ada">
-                    <i class="fas fa-copy me-1"></i> Salin
-                </button>
-                @else
-                <button type="button" class="btn btn-header-ms btn-simpan-ms btn-compact"
-                    data-bs-toggle="modal" data-bs-target="#modalSalinJadwal">
-                    <i class="fas fa-copy me-1"></i> Salin
-                </button>
-                @endif
-
-                <a href="{{ route('jadwal-pelajaran.export-pdf', [
-                    'jenjang_id' => request('jenjang_id'),
-                    'kelas_id' => request('kelas_id'),
-                    'guru_id' => request('guru_id'),
-                    'tahun_ajaran_id' => request('tahun_ajaran_id')
-                ]) }}" class="btn btn-header-ms btn-simpan-ms btn-compact" style="background: linear-gradient(135deg, #dc2626, #ef4444); color: #fff; box-shadow: 0 2px 8px rgba(220,38,38,.25);">
-                    <i class="fas fa-file-pdf"></i> Export PDF
-                </a>
-
-                <button type="button" class="btn btn-header-ms btn-simpan-ms btn-compact"
-                    data-bs-toggle="modal" data-bs-target="#modalTambah">
-                    <i class="fas fa-plus me-1"></i> Tambah
-                </button>
-            </div>
+        </div>
+        <div class="jd-hero-right">
+            @if($sudahDisalin)
+            <span class="jd-btn jd-btn--light" style="opacity:.9;pointer-events:none;"><i class="fas fa-check"></i> Data sudah ada</span>
+            @else
+            <button type="button" class="jd-btn jd-btn--light" data-bs-toggle="modal" data-bs-target="#modalSalinJadwal"><i class="fas fa-copy"></i> Salin</button>
+            @endif
+            <button type="button" class="jd-btn jd-btn--light" data-bs-toggle="modal" data-bs-target="#modalExport"><i class="fas fa-file-export"></i> Export &amp; Cetak</button>
+            <button type="button" class="jd-btn jd-btn--light" data-bs-toggle="modal" data-bs-target="#modalTambah"><i class="fas fa-plus"></i> Tambah</button>
         </div>
     </div>
 </div>
-
-{{-- ===== ALERTS ===== --}}
-@if(session('success'))
-<div class="alert alert-success alert-dismissible fade show" style="border-radius:12px;">
-    <i class="fas fa-check-circle me-1"></i> {{ session('success') }}
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-</div>
-@endif
-
-@if(session('error'))
-<div class="alert alert-danger alert-dismissible fade show" style="border-radius:12px;">
-    <i class="fas fa-exclamation-triangle me-1"></i> {{ session('error') }}
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-</div>
-@endif
 
 @if($jenjangs->isEmpty())
-<div class="card border-0 shadow-sm" style="border-radius:16px;">
-    <div class="card-body">
-        <div class="empty-state">
-            <i class="fas fa-school"></i>
-            <p class="mb-0">Belum ada data jenjang.</p>
+
+<div class="jd-card">
+    <div class="jd-empty">
+        <div class="jd-empty-illus">
+            <div class="ring"></div>
+            <div class="core"><i class="fas fa-school"></i></div>
         </div>
+        <div class="jd-empty-title">Belum Ada Data Jenjang</div>
+        <div class="jd-empty-sub">Tambahkan data jenjang terlebih dahulu sebelum membuat jadwal pelajaran.</div>
+        <a href="{{ route('master-jenjang.index') }}" class="jd-btn jd-btn--solid"><i class="fas fa-plus"></i> Kelola Jenjang</a>
     </div>
 </div>
+
 @else
 
-{{-- ===== TAB JENJANG ===== --}}
-<ul class="nav nav-tabs nav-jenjang mb-0" id="jenjangTabs" role="tablist">
-    @foreach($jenjangs as $j)
-    <li class="nav-item" role="presentation">
-        <button class="nav-link {{ $loop->first ? 'active' : '' }}"
-            id="jenjang-{{ $j->id }}-tab"
-            data-bs-toggle="tab"
-            data-bs-target="#jenjang-{{ $j->id }}"
-            type="button" role="tab">
-            <i class="fas fa-school me-1"></i> {{ $j->nama_jenjang }}
-            <span class="badge bg-white text-success ms-1" style="font-size:10px;">{{ $jadwalPerJenjang[$j->id]->count() }}</span>
-        </button>
-    </li>
-    @endforeach
-</ul>
+@if($jumlahKonflik > 0)
+<div class="jd-alert jd-alert--err">
+    <i class="fas fa-exclamation-triangle"></i>
+    <div>
+        <b>{{ $jumlahKonflik }} jadwal terdeteksi bentrok</b>
+        <span> — guru atau kelas memiliki lebih dari satu jadwal pada hari dan jam yang sama. Slot bermasalah ditandai merah di grid.</span>
+    </div>
+</div>
+@endif
 
-<div class="card border-0 shadow-sm" style="border-radius: 0 16px 16px 16px;">
-    <div class="card-body p-3">
-        <div class="tab-content" id="jenjangTabContent">
-            @foreach($jenjangs as $j)
-            <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}"
-                id="jenjang-{{ $j->id }}" role="tabpanel">
+@if($filterAktif)
+<div class="jd-alert jd-alert--info">
+    <i class="fas fa-filter"></i>
+    <div>
+        <b>Filter aktif</b>
+        <span>
+            @if(request('kelas_id')) Kelas: <b>{{ $kelas->firstWhere('id', request('kelas_id'))->nama_kelas ?? request('kelas_id') }}</b> &middot; @endif
+            @if(request('guru_id')) Guru: <b>{{ $gurus->firstWhere('id', request('guru_id'))->nama ?? request('guru_id') }}</b> &middot; @endif
+            @if(request('hari')) Hari: <b>{{ request('hari') }}</b> &middot; @endif
+            @if(request('tahun_ajaran_id')) TA: <b>{{ $tahunAjarans->firstWhere('id', request('tahun_ajaran_id'))->tahun_ajaran ?? request('tahun_ajaran_id') }}</b> @endif
+        </span>
+    </div>
+    <a href="{{ route('jadwal-pelajaran.index') }}" class="jd-btn jd-btn--ghost jd-btn--xs" style="margin-left:auto;"><i class="fas fa-rotate-left"></i> Reset</a>
+</div>
+@endif
 
-                @if($jadwalPerJenjang[$j->id]->isEmpty())
-                <div class="empty-state">
-                    <i class="fas fa-calendar-times"></i>
-                    <p class="mb-0">Belum ada jadwal untuk jenjang {{ $j->nama_jenjang }}.</p>
-                </div>
-                @else
-
-                {{-- ===== TAB KELAS ===== --}}
-                <ul class="nav nav-tabs nav-kelas mb-3" role="tablist">
-                    @foreach($kelasPerJenjang[$j->id] as $k)
-                    @php $countKelas = $jadwalPerJenjang[$j->id]->where('kelas_id', $k->id)->count(); @endphp
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link {{ $loop->first ? 'active' : '' }}"
-                            id="kelas-{{ $j->id }}-{{ $k->id }}-tab"
-                            data-bs-toggle="tab"
-                            data-bs-target="#kelas-{{ $j->id }}-{{ $k->id }}"
-                            type="button" role="tab">
-                            {{ $k->nama_kelas }}
-                            <span class="badge {{ $countKelas > 0 ? 'bg-primary' : 'bg-secondary' }} ms-1 hari-count">{{ $countKelas }}</span>
-                        </button>
-                    </li>
-                    @endforeach
-                </ul>
-
-                <div class="tab-content">
-                    @foreach($kelasPerJenjang[$j->id] as $k)
-                    @php $jadwalKelas = $jadwalPerJenjang[$j->id]->where('kelas_id', $k->id); @endphp
-                    <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}"
-                        id="kelas-{{ $j->id }}-{{ $k->id }}" role="tabpanel">
-
-                        @if($jadwalKelas->isEmpty())
-                        <div class="text-center py-4" style="color:#94a3b8;">
-                            <i class="fas fa-calendar-times fa-2x mb-2"></i>
-                            <p class="mb-0" style="font-size:13px;">Belum ada jadwal untuk Kelas {{ $k->nama_kelas }}.</p>
-                        </div>
-                        @else
-
-                        <div class="table-responsive">
-                            <table class="jadwal-matrix">
-                                <thead>
-                                    <tr>
-                                        <th style="width:90px;">Jam</th>
-                                        @foreach($hariList as $hari)
-                                        <th>{{ $hari }}</th>
-                                        @endforeach
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach([1 => '07:30-08:30', 2 => '08:30-09:30', 3 => '10:00-11:00', 4 => '11:00-12:00'] as $jam => $waktu)
-                                    <tr>
-                                        <td class="jam-cell-matrix">
-                                            <span class="jam-label">Jam {{ $jam }}</span>
-                                            <span class="jam-waktu">{{ $waktu }}</span>
-                                        </td>
-                                        @foreach($hariList as $hari)
-                                        @php $jadwal = $jadwalKelas->where('hari', $hari)->where('jam_ke', $jam)->first(); @endphp
-                                         <td class="mapel-cell-matrix" style="{{ $jadwal ? '' : 'background:#fafafa;' }}"
-                                            @if($jadwal) data-bs-toggle="modal" data-bs-target="#detail{{ $jadwal->id }}" @endif>
-                                            @if($jadwal)
-                                            <span class="nama-mapel">{{ $jadwal->mapel->nama_mapel ?? '-' }}</span>
-                                            <span class="nama-guru">{{ $jadwal->guru->nama ?? '-' }}</span>
-                                            @else
-                                            <button type="button" class="add-cell-btn" title="Tambah Jadwal"
-                                                data-bs-toggle="modal" data-bs-target="#modalTambah"
-                                                data-prefill-kelas="{{ $k->id }}"
-                                                data-prefill-hari="{{ $hari }}"
-                                                data-prefill-jam="{{ $jam }}">+</button>
-                                            @endif
-                                        </td>
-                                        @endforeach
-                                    </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-
-                        @endif
-                    </div>
-                    @endforeach
-                </div>
-
-                @endif
-            </div>
+{{-- ===== TOOLBAR (STICKY FILTER) ===== --}}
+<form method="GET" action="{{ route('jadwal-pelajaran.index') }}" class="jd-toolbar" id="filterForm" autocomplete="off">
+    <div class="jd-filter">
+        <label><i class="fas fa-school me-1"></i> Kelas</label>
+        <select name="kelas_id" class="jd-select" id="filterKelas">
+            <option value="">Semua Kelas</option>
+            @foreach($kelas as $k)
+            <option value="{{ $k->id }}" {{ request('kelas_id') == $k->id ? 'selected' : '' }}>{{ $k->nama_kelas }} @if($k->jenjang)({{ $k->jenjang->nama_jenjang }})@endif</option>
             @endforeach
+        </select>
+    </div>
+    <div class="jd-filter">
+        <label><i class="fas fa-user-graduate me-1"></i> Guru</label>
+        <select name="guru_id" class="jd-select" id="filterGuru">
+            <option value="">Semua Guru</option>
+            @foreach($gurus as $g)
+            <option value="{{ $g->id }}" {{ request('guru_id') == $g->id ? 'selected' : '' }}>{{ $g->nama }}</option>
+            @endforeach
+        </select>
+    </div>
+    <div class="jd-filter">
+        <label><i class="fas fa-calendar-day me-1"></i> Hari</label>
+        <select name="hari" class="jd-select" id="filterHari">
+            <option value="">Semua Hari</option>
+            @foreach($hariList as $day)
+            <option value="{{ $day }}" {{ request('hari') == $day ? 'selected' : '' }}>{{ $day }}</option>
+            @endforeach
+        </select>
+    </div>
+    <div class="jd-filter">
+        <label><i class="fas fa-calendar-alt me-1"></i> Tahun Ajaran</label>
+        <select name="tahun_ajaran_id" class="jd-select" id="filterTA">
+            <option value="">Tahun Aktif</option>
+            @foreach($tahunAjarans as $ta)
+            <option value="{{ $ta->id }}" {{ request('tahun_ajaran_id') == $ta->id ? 'selected' : '' }}>{{ $ta->tahun_ajaran }}</option>
+            @endforeach
+        </select>
+    </div>
+    <div class="jd-search">
+        <i class="fas fa-search"></i>
+        <input type="text" class="jd-control" id="jdSearch" placeholder="Cari mata pelajaran atau guru..." aria-label="Cari jadwal">
+    </div>
+</form>
+
+{{-- ===== TABS JENJANG ===== --}}
+<div class="jd-tabs" id="jdJenjangTabs">
+    <div class="jd-tab-pill" id="jdJenjangPill"></div>
+</div>
+
+{{-- ===== TABS KELAS ===== --}}
+<div class="jd-tabs-kelas" id="jdKelasTabs" style="display:none;"></div>
+
+<div class="jd-alert jd-alert--info" id="jdKelasEmptyNote" style="display:none;margin-bottom:14px;">
+    <i class="fas fa-info-circle"></i>
+    <div><b>Belum ada jadwal</b> <span> — gunakan tombol <b>+</b> pada grid di bawah untuk mengisi jadwal kelas ini.</span></div>
+</div>
+
+{{-- ===== LEGEND ===== --}}
+<div class="jd-legend" id="jdLegend" style="margin-bottom:14px;"></div>
+
+{{-- ===== SCHEDULER GRID ===== --}}
+<div class="jd-scheduler-wrap">
+    <div class="jd-scheduler" id="jdSched"></div>
+</div>
+
+<div class="jd-card" id="jdJenjangEmpty" style="display:none;">
+    <div class="jd-empty">
+        <div class="jd-empty-illus">
+            <div class="ring"></div>
+            <div class="core"><i class="fas fa-calendar-times"></i></div>
         </div>
+        <div class="jd-empty-title">Belum Ada Kelas</div>
+        <div class="jd-empty-sub">Tidak ada kelas yang terdaftar pada jenjang ini. Tambahkan kelas terlebih dahulu.</div>
     </div>
 </div>
 
 @endif
 
-{{-- ===== MODALS ===== --}}
-@php $jamSlot = [1=>'07:30-08:30',2=>'08:30-09:30',3=>'10:00-11:00',4=>'11:00-12:00']; @endphp
-@foreach($jenjangs as $j)
-@foreach($jadwalPerJenjang[$j->id] as $jadwal)
+{{-- ===== FAB ===== --}}
+<button type="button" class="jd-fab" data-bs-toggle="modal" data-bs-target="#modalTambah" aria-label="Tambah jadwal"><i class="fas fa-plus"></i></button>
 
-{{-- Detail Modal --}}
-<div class="modal fade" id="detail{{ $jadwal->id }}" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0" style="border-radius:20px;overflow:hidden;box-shadow:0 25px 60px rgba(0,0,0,.15);">
-
-            {{-- Header --}}
-            <div class="position-relative" style="background:linear-gradient(135deg,#059669,#10b981);padding:28px 24px 48px;">
-                <button type="button" class="btn-close btn-close-white position-absolute" style="top:16px;right:16px;" data-bs-dismiss="modal"></button>
-                <div class="text-center text-white">
-                    <div style="width:64px;height:64px;border-radius:16px;background:rgba(255,255,255,.2);backdrop-filter:blur(10px);display:inline-flex;align-items:center;justify-content:center;margin-bottom:12px;">
-                        <i class="fas fa-book-open" style="font-size:26px;"></i>
-                    </div>
-                    <h5 class="fw-bold mb-1" style="font-size:20px;letter-spacing:-.3px;">{{ $jadwal->mapel->nama_mapel ?? '-' }}</h5>
-                    <span style="font-size:13px;opacity:.85;">{{ $jadwal->guru->nama ?? '-' }}</span>
-                </div>
-            </div>
-
-            {{-- Body --}}
-            <div class="px-4 pb-4" style="margin-top:-28px;">
-                <div class="bg-white rounded-4 shadow-sm p-3 mb-3" style="border-radius:16px !important;">
-                    <div class="row text-center g-3">
-                        <div class="col-4">
-                            <div style="width:36px;height:36px;border-radius:10px;background:#f0fdf4;display:inline-flex;align-items:center;justify-content:center;margin-bottom:6px;">
-                                <i class="fas fa-layer-group" style="font-size:13px;color:#16a34a;"></i>
-                            </div>
-                            <div style="font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;">Jenjang</div>
-                            <div class="fw-bold" style="font-size:13px;color:#1e293b;">{{ $jadwal->jenjang->kode ?? '-' }}</div>
-                        </div>
-                        <div class="col-4">
-                            <div style="width:36px;height:36px;border-radius:10px;background:#eff6ff;display:inline-flex;align-items:center;justify-content:center;margin-bottom:6px;">
-                                <i class="fas fa-school" style="font-size:13px;color:#2563eb;"></i>
-                            </div>
-                            <div style="font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;">Kelas</div>
-                            <div class="fw-bold" style="font-size:13px;color:#1e293b;">{{ $jadwal->kelas->nama_kelas ?? '-' }}</div>
-                        </div>
-                        <div class="col-4">
-                            <div style="width:36px;height:36px;border-radius:10px;background:#fefce8;display:inline-flex;align-items:center;justify-content:center;margin-bottom:6px;">
-                                <i class="fas fa-calendar-day" style="font-size:13px;color:#ca8a04;"></i>
-                            </div>
-                            <div style="font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;">Hari</div>
-                            <div class="fw-bold" style="font-size:13px;color:#1e293b;">{{ $jadwal->hari }}</div>
-                        </div>
-                        <div class="col-4">
-                            <div style="width:36px;height:36px;border-radius:10px;background:#fdf2f8;display:inline-flex;align-items:center;justify-content:center;margin-bottom:6px;">
-                                <i class="fas fa-clock" style="font-size:13px;color:#db2777;"></i>
-                            </div>
-                            <div style="font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;">Jam Ke</div>
-                            <div class="fw-bold" style="font-size:13px;color:#1e293b;">{{ $jadwal->jam_ke }}</div>
-                        </div>
-                        <div class="col-4">
-                            <div style="width:36px;height:36px;border-radius:10px;background:#f5f3ff;display:inline-flex;align-items:center;justify-content:center;margin-bottom:6px;">
-                                <i class="fas fa-hourglass-half" style="font-size:13px;color:#7c3aed;"></i>
-                            </div>
-                            <div style="font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;">Waktu</div>
-                            <div class="fw-bold" style="font-size:13px;color:#1e293b;">{{ substr($jadwal->jam_mulai,0,5) }} - {{ substr($jadwal->jam_selesai,0,5) }}</div>
-                        </div>
-                        <div class="col-4">
-                            <div style="width:36px;height:36px;border-radius:10px;background:#fff7ed;display:inline-flex;align-items:center;justify-content:center;margin-bottom:6px;">
-                                <i class="fas fa-calendar-alt" style="font-size:13px;color:#ea580c;"></i>
-                            </div>
-                            <div style="font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;">Tahun Ajaran</div>
-                            <div class="fw-bold" style="font-size:13px;color:#1e293b;">{{ $jadwal->tahunAjaran->tahun_ajaran ?? '-' }}</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="d-flex gap-2">
-                    <button type="button" class="btn btn-warning fw-bold flex-fill" style="border-radius:12px;height:44px;font-size:13px;"
-                        data-bs-toggle="modal" data-bs-target="#edit{{ $jadwal->id }}">
-                        <i class="fas fa-pen me-1"></i> Edit
-                    </button>
-                    <button type="button" class="btn btn-danger fw-bold flex-fill" style="border-radius:12px;height:44px;font-size:13px;"
-                        data-bs-toggle="modal" data-bs-target="#hapus{{ $jadwal->id }}">
-                        <i class="fas fa-trash me-1"></i> Hapus
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-{{-- Edit Modal --}}
-<div class="modal fade" id="edit{{ $jadwal->id }}">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <form action="{{ route('jadwal-pelajaran.update', $jadwal->id) }}" method="POST">
-            @csrf
-            @method('PUT')
-            <div class="modal-content border-0" style="border-radius:20px;overflow:hidden;box-shadow:0 25px 60px rgba(0,0,0,.15);">
-                <div class="position-relative" style="background:linear-gradient(135deg,#d97706,#f59e0b);padding:24px 24px 20px;">
-                    <button type="button" class="btn-close btn-close-white position-absolute" style="top:16px;right:16px;" data-bs-dismiss="modal"></button>
-                    <div class="d-flex align-items-center gap-3 text-white">
-                        <div style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.2);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;">
-                            <i class="fas fa-pen-to-square" style="font-size:18px;"></i>
-                        </div>
-                        <div>
-                            <h5 class="mb-0 fw-bold" style="font-size:17px;">Edit Jadwal</h5>
-                            <small style="opacity:.8;font-size:12px;">{{ $jadwal->kelas->nama_kelas ?? '' }} &middot; {{ $jadwal->hari }} Jam {{ $jadwal->jam_ke }}</small>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-body px-4 pt-4 pb-3">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold" style="font-size:12px;color:#64748b;">Kelas</label>
-                            <select name="kelas_id" class="form-select" required style="height:44px;border-radius:12px;border:1.5px solid #e2e8f0;font-size:13px;">
-                                @foreach($kelas as $item)
-                                <option value="{{ $item->id }}" {{ $jadwal->kelas_id == $item->id ? 'selected' : '' }}>
-                                    {{ $item->nama_kelas }} {{ $item->jenjang ? '('.$item->jenjang->nama_jenjang.')' : '' }}
-                                </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold" style="font-size:12px;color:#64748b;">Mata Pelajaran</label>
-                            <select name="mata_pelajaran_id" class="form-select" required style="height:44px;border-radius:12px;border:1.5px solid #e2e8f0;font-size:13px;">
-                                @foreach($mapels as $item)
-                                <option value="{{ $item->id }}" {{ $jadwal->mata_pelajaran_id == $item->id ? 'selected' : '' }}>
-                                    {{ $item->nama_mapel }}
-                                </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold" style="font-size:12px;color:#64748b;">Guru</label>
-                            <select name="guru_id" class="form-select" required style="height:44px;border-radius:12px;border:1.5px solid #e2e8f0;font-size:13px;">
-                                @foreach($gurus as $item)
-                                <option value="{{ $item->id }}" {{ $jadwal->guru_id == $item->id ? 'selected' : '' }}>
-                                    {{ $item->nama }}
-                                </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold" style="font-size:12px;color:#64748b;">Tahun Ajaran</label>
-                            <input type="text" class="form-control" readonly
-                                value="{{ $tahunAjaranAktif->tahun_ajaran }}"
-                                style="background:#f8fafc;border-radius:12px;height:44px;border:1.5px solid #e2e8f0;font-size:13px;color:#64748b;">
-                            <input type="hidden" name="tahun_ajaran_id" value="{{ $tahunAjaranAktif->id }}">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold" style="font-size:12px;color:#64748b;">Hari</label>
-                            <select name="hari" class="form-select" required style="height:44px;border-radius:12px;border:1.5px solid #e2e8f0;font-size:13px;">
-                                @foreach($hariList as $day)
-                                <option {{ $jadwal->hari == $day ? 'selected' : '' }}>{{ $day }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold" style="font-size:12px;color:#64748b;">Jam Pelajaran</label>
-                            <select name="jam_ke" class="form-select" required style="height:44px;border-radius:12px;border:1.5px solid #e2e8f0;font-size:13px;">
-                                @foreach($jamSlot as $jk => $jt)
-                                <option value="{{ $jk }}" {{ $jadwal->jam_ke == $jk ? 'selected' : '' }}>Jam {{ $jk }} ({{ $jt }})</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer border-0 px-4 pb-4 pt-0">
-                    <button type="button" class="btn btn-light fw-semibold" style="border-radius:12px;height:42px;font-size:13px;border:1.5px solid #e2e8f0;" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-warning fw-bold" style="border-radius:12px;height:42px;font-size:13px;box-shadow:0 4px 14px rgba(217,119,6,.3);">
-                        <i class="fas fa-save me-1"></i> Simpan Perubahan
-                    </button>
-                </div>
-            </div>
-        </form>
-    </div>
-</div>
-
-{{-- Hapus Modal --}}
-<div class="modal fade" id="hapus{{ $jadwal->id }}" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0" style="border-radius:20px;overflow:hidden;box-shadow:0 25px 60px rgba(0,0,0,.15);">
-            <div class="text-center px-4 pt-5 pb-4">
-                <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#fef2f2,#fee2e2);display:inline-flex;align-items:center;justify-content:center;margin-bottom:16px;">
-                    <i class="fas fa-triangle-exclamation" style="font-size:30px;color:#dc2626;"></i>
-                </div>
-                <h5 class="fw-bold mb-2" style="font-size:18px;color:#1e293b;">Hapus Jadwal?</h5>
-                <p class="text-muted mb-4" style="font-size:13px;line-height:1.6;">Data yang dihapus tidak dapat dikembalikan. Pastikan Anda yakin sebelum melanjutkan.</p>
-
-                <div class="bg-light rounded-3 p-3 mb-4 text-start" style="border:1px solid #f1f5f9;">
-                    <div class="d-flex align-items-center gap-3">
-                        <div style="width:40px;height:40px;border-radius:10px;background:#dbeafe;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                            <i class="fas fa-book" style="font-size:14px;color:#2563eb;"></i>
-                        </div>
-                        <div>
-                            <div class="fw-bold" style="font-size:14px;color:#1e293b;">{{ $jadwal->mapel->nama_mapel ?? '-' }}</div>
-                            <div style="font-size:12px;color:#64748b;">{{ $jadwal->kelas->nama_kelas ?? '-' }} &middot; {{ $jadwal->hari }} Jam {{ $jadwal->jam_ke }}</div>
-                        </div>
-                    </div>
-                </div>
-
-                <form action="{{ route('jadwal-pelajaran.destroy', $jadwal->id) }}" method="POST">
-                    @csrf
-                    @method('DELETE')
-                    <div class="d-flex gap-2">
-                        <button type="button" class="btn btn-light fw-semibold flex-fill" style="border-radius:12px;height:44px;font-size:13px;border:1.5px solid #e2e8f0;" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-danger fw-bold flex-fill" style="border-radius:12px;height:44px;font-size:13px;box-shadow:0 4px 14px rgba(220,38,38,.3);">
-                            <i class="fas fa-trash me-1"></i> Ya, Hapus
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-@endforeach
-@endforeach
-
-{{-- ===== MODAL TAMBAH ===== --}}
-<div class="modal fade" id="modalTambah" tabindex="-1">
+{{-- ===== MODAL TAMBAH (WIZARD) ===== --}}
+<div class="modal fade" id="modalTambah" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <form action="{{ route('jadwal-pelajaran.store') }}" method="POST" id="formTambahJadwal">
             @csrf
-            <div class="modal-content">
-                <div class="modal-header" style="background: linear-gradient(135deg, #16a34a, #22c55e);">
-                    <h5 class="modal-title text-white fw-bold">
-                        <i class="fas fa-plus me-1"></i> Tambah Jadwal Pelajaran
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <input type="hidden" name="tahun_ajaran_id" value="{{ $tahunAjaranAktif->id }}">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-semibold">Kelas</label>
-                            <select name="kelas_id" id="tambah_kelas" class="form-select" required style="height:42px;border-radius:10px;">
-                                <option value="">Pilih Kelas</option>
-                                @foreach($kelas as $item)
-                                <option value="{{ $item->id }}"
-                                    data-jenjang-id="{{ $item->jenjang_id }}"
-                                    data-jenjang-nama="{{ $item->jenjang->nama_jenjang ?? '-' }}">
-                                    {{ $item->nama_kelas }} — {{ $item->jenjang->nama_jenjang ?? '-' }}
-                                </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-semibold">Jenjang <small class="text-muted">(otomatis)</small></label>
-                            <input type="text" id="tambah_jenjang" class="form-control" readonly
-                                placeholder="Otomatis dari kelas"
-                                style="background:#f1f5f9;border-radius:10px;height:42px;">
-                            <input type="hidden" name="jenjang_id" id="tambah_jenjang_id">
-                        </div>
-                        <div class="col-md-6 mb-3 d-none" id="step2_mapel">
-                            <label class="form-label fw-semibold">Mata Pelajaran</label>
-                            <select name="mata_pelajaran_id" id="tambah_mapel" class="form-select" required style="height:42px;border-radius:10px;">
-                                <option value="">Pilih Mata Pelajaran</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3 d-none" id="step3_guru">
-                            <label class="form-label fw-semibold">Guru</label>
-                            <select name="guru_id" id="tambah_guru" class="form-select" required style="height:42px;border-radius:10px;">
-                                <option value="">Pilih Guru</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3 d-none" id="step4_hari">
-                            <label class="form-label fw-semibold">Hari</label>
-                            <select name="hari" id="tambah_hari" class="form-select" required style="height:42px;border-radius:10px;">
-                                <option value="">Pilih Hari</option>
-                                <option>Senin</option>
-                                <option>Selasa</option>
-                                <option>Rabu</option>
-                                <option>Kamis</option>
-                                <option>Sabtu</option>
-                                <option>Ahad</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3 d-none" id="step5_jam">
-                            <label class="form-label fw-semibold">Jam Pelajaran</label>
-                            <select name="jam_ke" id="tambah_jam" class="form-select" required style="height:42px;border-radius:10px;">
-                                <option value="">Pilih Jam</option>
-                                <option value="1">Jam 1 (07:30 - 08:30)</option>
-                                <option value="2">Jam 2 (08:30 - 09:30)</option>
-                                <option value="3">Jam 3 (10:00 - 11:00)</option>
-                                <option value="4">Jam 4 (11:00 - 12:00)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-12 mb-3">
-                            <label class="form-label fw-semibold">Tahun Ajaran <small class="text-muted">(otomatis)</small></label>
-                            @if($tahunAjaranAktif)
-                            <input type="text" class="form-control" readonly
-                                value="{{ $tahunAjaranAktif->tahun_ajaran }}"
-                                style="background:#f1f5f9;border-radius:10px;height:42px;">
-                            @else
-                            <div class="alert alert-danger mb-0" style="border-radius:10px;">Tidak ada tahun ajaran aktif.</div>
-                            @endif
+            <div class="modal-content jd-modal-card">
+                <div class="jd-modal-head" style="--mc:#2563eb;">
+                    <button type="button" class="btn-close btn-close-white position-absolute" style="top:16px;right:16px;" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="jd-hero-icon" style="width:48px;height:48px;font-size:20px;"><i class="fas fa-plus"></i></div>
+                        <div>
+                            <h5 class="fw-bold mb-0" style="font-size:17px;color:#fff;">Tambah Jadwal Pelajaran</h5>
+                            <div style="font-size:12px;opacity:.85;color:#fff;">Isi langkah demi langkah untuk menyusun jadwal baru</div>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-success" id="btnSimpanJadwal" disabled>
-                        <i class="fas fa-save me-1"></i> Simpan
-                    </button>
+                <div class="modal-body p-4">
+                    @if($tahunAjaranAktif)
+                    <input type="hidden" name="tahun_ajaran_id" value="{{ $tahunAjaranAktif->id }}">
+
+                    {{-- Stepper --}}
+                    <div class="jd-stepper" id="wizSteps">
+                        <div class="jd-step active" data-wstep="1"><div class="jd-step-dot">1</div><div class="jd-step-txt"><b>Kelas</b><span>Pilih kelas</span></div></div>
+                        <div class="jd-step-line"></div>
+                        <div class="jd-step" data-wstep="2"><div class="jd-step-dot">2</div><div class="jd-step-txt"><b>Mapel</b><span>Mata pelajaran</span></div></div>
+                        <div class="jd-step-line"></div>
+                        <div class="jd-step" data-wstep="3"><div class="jd-step-dot">3</div><div class="jd-step-txt"><b>Guru</b><span>Pengampu</span></div></div>
+                        <div class="jd-step-line"></div>
+                        <div class="jd-step" data-wstep="4"><div class="jd-step-dot">4</div><div class="jd-step-txt"><b>Hari</b><span>Hari mengajar</span></div></div>
+                        <div class="jd-step-line"></div>
+                        <div class="jd-step" data-wstep="5"><div class="jd-step-dot">5</div><div class="jd-step-txt"><b>Jam</b><span>Slot waktu</span></div></div>
+                    </div>
+
+                    {{-- Pane 1: Kelas --}}
+                    <div class="jd-wizard-pane is-show" data-pane="1">
+                        <label class="jd-filter" style="min-width:0;">
+                            <span style="font-size:12px;font-weight:700;color:var(--jd-text-2);margin-bottom:6px;"><i class="fas fa-school me-1" style="color:var(--jd-primary);"></i> Pilih Kelas</span>
+                            <select name="kelas_id" class="jd-select" id="tambah_kelas" required>
+                                <option value="">&mdash; Pilih Kelas &mdash;</option>
+                                @foreach($semuaKelas as $item)
+                                <option value="{{ $item->id }}" data-jenjang-id="{{ $item->jenjang_id }}" data-jenjang-nama="{{ $item->jenjang->nama_jenjang ?? '-' }}">
+                                    {{ $item->nama_kelas }} &mdash; {{ $item->jenjang->nama_jenjang ?? '-' }}
+                                </option>
+                                @endforeach
+                            </select>
+                        </label>
+                        <div class="jd-wizard-hint"><i class="fas fa-magic"></i> Jenjang terisi otomatis: <b id="tambah_jenjang" style="color:var(--jd-primary);margin-left:4px;">-</b></div>
+                    </div>
+
+                    {{-- Pane 2: Mapel --}}
+                    <div class="jd-wizard-pane" data-pane="2">
+                        <label class="jd-filter" style="min-width:0;">
+                            <span style="font-size:12px;font-weight:700;color:var(--jd-text-2);margin-bottom:6px;"><i class="fas fa-book-open me-1" style="color:var(--jd-primary);"></i> Mata Pelajaran</span>
+                            <select name="mata_pelajaran_id" class="jd-select" id="tambah_mapel" required>
+                                <option value="">&mdash; Pilih Mata Pelajaran &mdash;</option>
+                            </select>
+                        </label>
+                        <div class="jd-wizard-hint"><i class="fas fa-filter"></i> Ditampilkan sesuai pengampu mapel untuk kelas terpilih.</div>
+                    </div>
+
+                    {{-- Pane 3: Guru --}}
+                    <div class="jd-wizard-pane" data-pane="3">
+                        <label class="jd-filter" style="min-width:0;">
+                            <span style="font-size:12px;font-weight:700;color:var(--jd-text-2);margin-bottom:6px;"><i class="fas fa-user-graduate me-1" style="color:var(--jd-primary);"></i> Guru Pengampu</span>
+                            <select name="guru_id" class="jd-select" id="tambah_guru" required>
+                                <option value="">&mdash; Pilih Guru &mdash;</option>
+                            </select>
+                        </label>
+                        <div class="jd-wizard-hint"><i class="fas fa-filter"></i> Ditampilkan sesuai pengampu mata pelajaran terpilih.</div>
+                    </div>
+
+                    {{-- Pane 4: Hari --}}
+                    <div class="jd-wizard-pane" data-pane="4">
+                        <div style="font-size:12px;font-weight:700;color:var(--jd-text-2);margin-bottom:10px;"><i class="fas fa-calendar-day me-1" style="color:var(--jd-primary);"></i> Hari Mengajar</div>
+                        <div class="d-flex flex-wrap gap-2" id="wizHariWrap">
+                            @foreach($hariList as $day)
+                            <button type="button" class="jd-chip-select" data-hari="{{ $day }}"><i class="fas fa-calendar-day"></i> {{ $day }}</button>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    {{-- Pane 5: Jam + preview + conflict --}}
+                    <div class="jd-wizard-pane" data-pane="5">
+                        <div style="font-size:12px;font-weight:700;color:var(--jd-text-2);margin-bottom:10px;"><i class="fas fa-clock me-1" style="color:var(--jd-primary);"></i> Slot Jam Pelajaran</div>
+                        <div class="d-flex flex-wrap gap-2" id="wizJamWrap">
+                            @foreach($jamSlot as $jk => $jt)
+                            <button type="button" class="jd-chip-select" data-jam="{{ $jk }}"><i class="fas fa-clock"></i> {{ $jt['label'] }} <span style="opacity:.7;">{{ $jt['mulai'] }}-{{ $jt['selesai'] }}</span></button>
+                            @endforeach
+                        </div>
+
+                        <div id="wizPreviewWrap" style="display:none;margin-top:16px;"></div>
+
+                        <div class="jd-conflict" id="wizConflict">
+                            <div class="jd-conflict-title"><i class="fas fa-exclamation-triangle"></i> Bentrok Terdeteksi</div>
+                            <div id="wizConflictItems"></div>
+                        </div>
+                        <div class="jd-conflict-ok" id="wizOk">
+                            <i class="fas fa-check-circle"></i> Slot ini aman &mdash; tidak ada bentrok dengan jadwal lain.
+                        </div>
+                    </div>
+                    @else
+                    <div class="jd-alert jd-alert--err mb-0"><i class="fas fa-exclamation-triangle"></i> Tidak ada tahun ajaran aktif. Jadwal tidak dapat ditambahkan.</div>
+                    @endif
+                </div>
+                <div class="modal-footer border-0 px-4 pb-4 pt-0 d-flex justify-content-between">
+                    <button type="button" class="jd-btn" id="wizBack"><i class="fas fa-arrow-left"></i> Kembali</button>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="jd-btn jd-btn--ghost" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="jd-btn jd-btn--solid" id="btnSimpanJadwal" disabled><i class="fas fa-save"></i> Simpan Jadwal</button>
+                    </div>
                 </div>
             </div>
         </form>
@@ -628,36 +437,282 @@
 {{-- ===== MODAL SALIN ===== --}}
 <div class="modal fade" id="modalSalinJadwal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg" style="border-radius:16px;overflow:hidden;">
-            <div class="modal-header border-0 pb-0" style="padding:20px 24px 0;">
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body text-center px-4 pb-4">
-                <div class="mb-3">
-                    <div class="salin-icon-wrap">
-                        <i class="fas fa-copy"></i>
+        <div class="modal-content jd-modal-card">
+            <div class="jd-modal-head" style="--mc:#2563eb;">
+                <button type="button" class="btn-close btn-close-white position-absolute" style="top:16px;right:16px;" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                <div class="d-flex align-items-center gap-3">
+                    <div class="jd-hero-icon" style="width:48px;height:48px;font-size:20px;"><i class="fas fa-copy"></i></div>
+                    <div>
+                        <h5 class="fw-bold mb-0" style="font-size:17px;color:#fff;">Salin Jadwal Pelajaran</h5>
+                        <div style="font-size:12px;opacity:.85;color:#fff;">Migrasi jadwal antar tahun ajaran</div>
                     </div>
                 </div>
-                <h4 class="fw-bold mb-2" style="font-size:18px;">Salin Jadwal Pelajaran?</h4>
-                <p class="text-muted mb-4" style="font-size:13px;line-height:1.6;">
-                    Semua jadwal pelajaran dari tahun ajaran sebelumnya akan disalin ke tahun ajaran aktif.
-                    Jadwal yang sudah ada atau bentrok akan dilewati otomatis.
-                </p>
-                <div class="salin-info-box mb-3 text-start">
-                    <div class="salin-label">Dari Tahun Ajaran</div>
-                    <div class="salin-value" id="salinFromTA">-</div>
+            </div>
+            <div class="modal-body p-4">
+                <div class="jd-mig">
+                    <div class="jd-mig-step is-active" data-mig="1">
+                        <div class="jd-mig-step-icon"><i class="fas fa-database"></i></div>
+                        <div class="jd-mig-step-txt"><b>Membaca jadwal lama</b><span id="migFrom">Menyiapkan data tahun ajaran sebelumnya</span></div>
+                    </div>
+                    <div class="jd-mig-step" data-mig="2">
+                        <div class="jd-mig-step-icon"><i class="fas fa-copy"></i></div>
+                        <div class="jd-mig-step-txt"><b>Menyalin jadwal</b><span>Menyalin ke tahun ajaran aktif &middot; bentrok dilewati</span></div>
+                    </div>
+                    <div class="jd-mig-step" data-mig="3">
+                        <div class="jd-mig-step-icon"><i class="fas fa-flag-checkered"></i></div>
+                        <div class="jd-mig-step-txt"><b>Selesai</b><span>Jadwal siap digunakan</span></div>
+                    </div>
                 </div>
-                <div class="salin-info-box mb-4 text-start" style="border-left-color:#16a34a;">
-                    <div class="salin-label">Ke Tahun Ajaran Aktif</div>
-                    <div class="salin-value" id="salinToTA">-</div>
+
+                <div class="jd-mig-bar mt-2 mb-1"><div class="jd-mig-bar-fill" id="migBar"></div></div>
+
+                <div class="jd-mig-stats">
+                    <div class="jd-mig-stat berhasil"><b id="migBerhasil">+0</b><span>Jadwal Disalin</span></div>
+                    <div class="jd-mig-stat dilewati"><b id="migDilewati">0</b><span>Dilewati</span></div>
                 </div>
-                <form action="{{ route('jadwal-pelajaran.salin') }}" method="POST">
+
+                <div class="d-flex align-items-center gap-3 mt-3" style="border:1px solid var(--jd-border);border-radius:12px;padding:12px 14px;background:var(--jd-bg);">
+                    <i class="fas fa-arrow-right-arrow-left" style="color:var(--jd-primary);font-size:15px;"></i>
+                    <div style="flex:1;">
+                        <div style="font-size:10px;font-weight:700;color:var(--jd-text-3);text-transform:uppercase;letter-spacing:.4px;">Dari</div>
+                        <b id="salinFromTA" style="font-size:13px;">-</b>
+                    </div>
+                    <i class="fas fa-arrow-right" style="color:var(--jd-text-3);"></i>
+                    <div style="flex:1;text-align:right;">
+                        <div style="font-size:10px;font-weight:700;color:var(--jd-text-3);text-transform:uppercase;letter-spacing:.4px;">Ke (Aktif)</div>
+                        <b id="salinToTA" style="font-size:13px;">-</b>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 px-4 pb-4 pt-0">
+                <button type="button" class="jd-btn" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="jd-btn jd-btn--solid" id="btnSalinGo"><i class="fas fa-copy"></i> Ya, Salin Sekarang</button>
+            </div>
+        </div>
+    </div>
+</div>
+<form action="{{ route('jadwal-pelajaran.salin') }}" method="POST" id="formSalin">@csrf</form>
+
+{{-- ===== MODAL EXPORT & CETAK ===== --}}
+<div class="modal fade" id="modalExport" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content jd-modal-card">
+            <div class="jd-modal-head" style="--mc:#2563eb;">
+                <button type="button" class="btn-close btn-close-white position-absolute" style="top:16px;right:16px;" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                <div class="d-flex align-items-center gap-3">
+                    <div class="jd-hero-icon" style="width:48px;height:48px;font-size:20px;"><i class="fas fa-file-export"></i></div>
+                    <div>
+                        <h5 class="fw-bold mb-0" style="font-size:17px;color:#fff;">Export &amp; Cetak</h5>
+                        <div style="font-size:12px;opacity:.85;color:#fff;">Unduh atau cetak jadwal pelajaran</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-body p-4">
+                <div class="jd-export-preview mb-4">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <span class="jd-chip jd-chip--red"><i class="fas fa-file-pdf"></i> Export PDF</span>
+                        <span style="font-size:12px;color:var(--jd-text-3);">Folio &middot; portrait</span>
+                    </div>
+                    <form method="GET" action="{{ route('jadwal-pelajaran.export-pdf') }}" id="formExportPdf" target="_blank">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label" style="font-size:11px;font-weight:700;color:var(--jd-text-3);text-transform:uppercase;letter-spacing:.4px;">Jenjang</label>
+                                <select name="jenjang_id" class="jd-select" id="exportJenjang">
+                                    <option value="">Semua Jenjang</option>
+                                    @foreach($jenjangs as $j)
+                                    <option value="{{ $j->id }}">{{ $j->nama_jenjang }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" style="font-size:11px;font-weight:700;color:var(--jd-text-3);text-transform:uppercase;letter-spacing:.4px;">Kelas</label>
+                                <select name="kelas_id" class="jd-select" id="exportKelas">
+                                    <option value="">Semua Kelas</option>
+                                    @foreach($semuaKelas as $k)
+                                    <option value="{{ $k->id }}" data-jenjang="{{ $k->jenjang_id }}">{{ $k->nama_kelas }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" style="font-size:11px;font-weight:700;color:var(--jd-text-3);text-transform:uppercase;letter-spacing:.4px;">Guru</label>
+                                <select name="guru_id" class="jd-select">
+                                    <option value="">Semua Guru</option>
+                                    @foreach($gurus as $g)
+                                    <option value="{{ $g->id }}">{{ $g->nama }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" style="font-size:11px;font-weight:700;color:var(--jd-text-3);text-transform:uppercase;letter-spacing:.4px;">Tahun Ajaran</label>
+                                <select name="tahun_ajaran_id" class="jd-select">
+                                    <option value="">Tahun Aktif</option>
+                                    @foreach($tahunAjarans as $ta)
+                                    <option value="{{ $ta->id }}">{{ $ta->tahun_ajaran }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <button type="submit" class="jd-btn jd-btn--solid"><i class="fas fa-file-pdf"></i> Download PDF</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="jd-chip jd-chip--green"><i class="fas fa-print"></i> Cetak Jadwal Siswa</span>
+                    <span style="font-size:12px;color:var(--jd-text-3);">Versi matriks per jenjang untuk dibagikan ke siswa</span>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="{{ route('jadwal-pelajaran.cetak-siswa') }}" target="_blank" class="jd-btn jd-btn--soft"><i class="fas fa-print"></i> Semua Jenjang</a>
+                    @foreach($jenjangs as $j)
+                    <a href="{{ route('jadwal-pelajaran.cetak-siswa', $j->id) }}" target="_blank" class="jd-btn jd-btn--ghost"><i class="fas fa-print"></i> {{ $j->nama_jenjang }}</a>
+                    @endforeach
+                </div>
+            </div>
+            <div class="modal-footer border-0 px-4 pb-4 pt-0">
+                <button type="button" class="jd-btn jd-btn--ghost" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if(!$jenjangs->isEmpty())
+{{-- ===== MODAL DETAIL / EDIT / HAPUS (per jadwal) ===== --}}
+@foreach($jadwals as $jadwal)
+@php $mcIdx = jd_mapel_color_idx($jadwal->mapel->nama_mapel ?? ''); @endphp
+
+<div class="modal fade" id="detail{{ $jadwal->id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content jd-modal-card jd-mc-{{ $mcIdx }}">
+            <div class="jd-modal-head">
+                <button type="button" class="btn-close btn-close-white position-absolute" style="top:16px;right:16px;" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                <div class="d-flex align-items-center gap-3">
+                    <div style="width:54px;height:54px;border-radius:16px;background:rgba(255,255,255,.2);backdrop-filter:blur(8px);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <i class="fas fa-book-open" style="font-size:22px;"></i>
+                    </div>
+                    <div style="min-width:0;">
+                        <h5 class="fw-bold mb-1" style="font-size:18px;color:#fff;">{{ $jadwal->mapel->nama_mapel ?? '-' }}</h5>
+                        <div style="font-size:12.5px;opacity:.9;color:#fff;"><i class="fas fa-user-graduate me-1"></i>{{ $jadwal->guru->nama ?? '-' }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-body p-4">
+                <div class="jd-info-grid mb-3">
+                    <div class="jd-info-cell"><div class="lbl"><i class="fas fa-layer-group"></i> Jenjang</div><div class="val">{{ $jadwal->jenjang->nama_jenjang ?? $jadwal->jenjang->kode ?? '-' }}</div></div>
+                    <div class="jd-info-cell"><div class="lbl"><i class="fas fa-school"></i> Kelas</div><div class="val">{{ $jadwal->kelas->nama_kelas ?? '-' }}</div></div>
+                    <div class="jd-info-cell"><div class="lbl"><i class="fas fa-calendar-day"></i> Hari</div><div class="val">{{ $jadwal->hari }}</div></div>
+                    <div class="jd-info-cell"><div class="lbl"><i class="fas fa-clock"></i> Jam Ke</div><div class="val">Jam {{ $jadwal->jam_ke }}</div></div>
+                    <div class="jd-info-cell"><div class="lbl"><i class="fas fa-hourglass-half"></i> Waktu</div><div class="val">{{ substr((string) $jadwal->jam_mulai, 0, 5) }} - {{ substr((string) $jadwal->jam_selesai, 0, 5) }}</div></div>
+                    <div class="jd-info-cell"><div class="lbl"><i class="fas fa-calendar-alt"></i> Tahun Ajaran</div><div class="val">{{ $jadwal->tahunAjaran->tahun_ajaran ?? '-' }}</div></div>
+                </div>
+                @if(isset($conflictIds[$jadwal->id]))
+                <div class="jd-alert jd-alert--err" style="margin-bottom:14px;"><i class="fas fa-exclamation-triangle"></i> Terdeteksi bentrok &mdash; guru atau kelas sudah memiliki jadwal pada slot ini.</div>
+                @endif
+                <div class="d-flex gap-2">
+                    <button type="button" class="jd-btn jd-btn--soft flex-fill" data-close-before-target="#edit{{ $jadwal->id }}"><i class="fas fa-pen"></i> Edit</button>
+                    <button type="button" class="jd-btn jd-btn--danger flex-fill" data-close-before-target="#hapus{{ $jadwal->id }}"><i class="fas fa-trash"></i> Hapus</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="edit{{ $jadwal->id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <form action="{{ route('jadwal-pelajaran.update', $jadwal->id) }}" method="POST">
+            @csrf
+            @method('PUT')
+            <div class="modal-content jd-modal-card">
+                <div class="jd-modal-head" style="--mc:#d97706;">
+                    <button type="button" class="btn-close btn-close-white position-absolute" style="top:16px;right:16px;" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                    <div class="d-flex align-items-center gap-3">
+                        <div style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.2);backdrop-filter:blur(8px);display:inline-flex;align-items:center;justify-content:center;">
+                            <i class="fas fa-pen-to-square" style="font-size:17px;"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-0" style="font-size:17px;color:#fff;">Edit Jadwal</h5>
+                            <div style="font-size:12px;opacity:.85;color:#fff;">{{ $jadwal->kelas->nama_kelas ?? '' }} &middot; {{ $jadwal->hari }} Jam {{ $jadwal->jam_ke }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-size:11.5px;font-weight:700;color:var(--jd-text-2);">Kelas</label>
+                            <select name="kelas_id" class="jd-select" required>
+                                @foreach($semuaKelas as $item)
+                                <option value="{{ $item->id }}" {{ $jadwal->kelas_id == $item->id ? 'selected' : '' }}>{{ $item->nama_kelas }} ({{ $item->jenjang->nama_jenjang ?? '-' }})</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-size:11.5px;font-weight:700;color:var(--jd-text-2);">Mata Pelajaran</label>
+                            <select name="mata_pelajaran_id" class="jd-select" required>
+                                @foreach($mapels as $item)
+                                <option value="{{ $item->id }}" {{ $jadwal->mata_pelajaran_id == $item->id ? 'selected' : '' }}>{{ $item->nama_mapel }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-size:11.5px;font-weight:700;color:var(--jd-text-2);">Guru</label>
+                            <select name="guru_id" class="jd-select" required>
+                                @foreach($gurus as $item)
+                                <option value="{{ $item->id }}" {{ $jadwal->guru_id == $item->id ? 'selected' : '' }}>{{ $item->nama }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-size:11.5px;font-weight:700;color:var(--jd-text-2);">Tahun Ajaran</label>
+                            <input type="text" class="jd-control" readonly value="{{ $tahunAjaranAktif->tahun_ajaran }}" style="background:var(--jd-bg);">
+                            <input type="hidden" name="tahun_ajaran_id" value="{{ $tahunAjaranAktif->id }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-size:11.5px;font-weight:700;color:var(--jd-text-2);">Hari</label>
+                            <select name="hari" class="jd-select" required>
+                                @foreach($hariList as $day)
+                                <option value="{{ $day }}" {{ $jadwal->hari == $day ? 'selected' : '' }}>{{ $day }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-size:11.5px;font-weight:700;color:var(--jd-text-2);">Jam Pelajaran</label>
+                            <select name="jam_ke" class="jd-select" required>
+                                @foreach($jamSlot as $jk => $jt)
+                                <option value="{{ $jk }}" {{ $jadwal->jam_ke == $jk ? 'selected' : '' }}>Jam {{ $jk }} ({{ $jt['mulai'] }}-{{ $jt['selesai'] }})</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 px-4 pb-4 pt-0">
+                    <button type="button" class="jd-btn" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="jd-btn jd-btn--success"><i class="fas fa-save"></i> Simpan Perubahan</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" id="hapus{{ $jadwal->id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content jd-modal-card">
+            <div class="text-center px-4 pt-5 pb-4">
+                <div style="width:72px;height:72px;border-radius:50%;background:var(--jd-red-soft);display:inline-flex;align-items:center;justify-content:center;margin-bottom:16px;">
+                    <i class="fas fa-triangle-exclamation" style="font-size:30px;color:var(--jd-red);"></i>
+                </div>
+                <h5 class="fw-bold mb-2" style="font-size:18px;color:var(--jd-text);">Hapus Jadwal?</h5>
+                <p class="mb-4" style="font-size:13px;line-height:1.6;color:var(--jd-text-3);">Data yang dihapus tidak dapat dikembalikan. Pastikan Anda yakin sebelum melanjutkan.</p>
+                <div class="jd-info-grid mb-4">
+                    <div class="jd-info-cell"><div class="lbl"><i class="fas fa-book-open"></i> Mapel</div><div class="val">{{ $jadwal->mapel->nama_mapel ?? '-' }}</div></div>
+                    <div class="jd-info-cell"><div class="lbl"><i class="fas fa-school"></i> Kelas</div><div class="val">{{ $jadwal->kelas->nama_kelas ?? '-' }}</div></div>
+                    <div class="jd-info-cell"><div class="lbl"><i class="fas fa-calendar-day"></i> Slot</div><div class="val">{{ $jadwal->hari }} &middot; Jam {{ $jadwal->jam_ke }}</div></div>
+                </div>
+                <form action="{{ route('jadwal-pelajaran.destroy', $jadwal->id) }}" method="POST">
                     @csrf
-                    <div class="d-flex justify-content-center gap-2 mt-4">
-                        <button type="button" class="btn btn-light border" data-bs-dismiss="modal" style="border-radius:10px;padding:9px 22px;font-weight:600;font-size:13px;">Batal</button>
-                        <button type="submit" class="btn btn-primary btn-salin-final">
-                            <i class="fas fa-copy me-1"></i> Ya, Salin Sekarang
-                        </button>
+                    @method('DELETE')
+                    <div class="d-flex gap-2">
+                        <button type="button" class="jd-btn flex-fill" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="jd-btn jd-btn--danger flex-fill"><i class="fas fa-trash"></i> Ya, Hapus</button>
                     </div>
                 </form>
             </div>
@@ -665,181 +720,492 @@
     </div>
 </div>
 
+@endforeach
+@endif
+
 @endsection
 
 @push('scripts')
 <script>
-$(document).ready(function() {
-    var tahunAjarans = @json($tahunAjarans);
-    var tahunAktif = @json($tahunAjaranAktif);
+$(function() {
 
-    $('#modalSalinJadwal').on('show.bs.modal', function() {
-        if (tahunAktif) {
-            $('#salinToTA').text(tahunAktif.tahun_ajaran + ' (Aktif)');
-        }
-        var tahunSebelumnya = tahunAjarans
-            .filter(function(ta) { return ta.id != (tahunAktif ? tahunAktif.id : 0); })
-            .sort(function(a, b) { return b.tahun_ajaran.localeCompare(a.tahun_ajaran); })[0];
-        if (tahunSebelumnya) {
-            $('#salinFromTA').text(tahunSebelumnya.tahun_ajaran);
-        } else {
-            $('#salinFromTA').text('Tidak ada data');
-        }
+    function esc(s){ return $('<div>').text(s == null ? '' : String(s)).html(); }
+
+    {{-- ===== DATA ===== --}}
+    var JD = {
+        hari: @json($jdHariJson),
+        jam: @json($jdJamJson),
+        jenjang: @json($jdJenjangJson),
+        kelas: @json($jdKelasJson),
+        data: @json($jdDataJson),
+    };
+    JD.all = [];
+    Object.keys(JD.data).forEach(function (jid) {
+        Object.keys(JD.data[jid]).forEach(function (kid) {
+            JD.data[jid][kid].forEach(function (j) { JD.all.push(j); });
+        });
     });
 
-    const pengampuMapels = @json($pengampuMapels);
-    const allMapels = @json($mapels->map(function ($m) {
-        return ['id' => $m->id, 'nama_mapel' => $m->nama_mapel];
-    })->values());
-    const allGurus = @json($gurus->map(function ($g) {
-        return ['id' => $g->id, 'nama' => $g->nama];
-    })->values());
+    var WIZ_DATA = {
+        kelas: @json($jdKelasWizardJson),
+        pengampu: @json($jdPengampuJson),
+        mapels: @json($jdMapelJson),
+        gurus: @json($jdGuruJson),
+    };
 
-    // ===== STEP-BY-STEP TAMBAH JADWAL =====
-    function resetTambahForm() {
-        $('#tambah_kelas').val('');
-        $('#tambah_jenjang').val('');
-        $('#tambah_jenjang_id').val('');
-        $('#step2_mapel').addClass('d-none');
-        $('#step3_guru').addClass('d-none');
-        $('#step4_hari').addClass('d-none');
-        $('#step5_jam').addClass('d-none');
-        $('#tambah_mapel').html('<option value="">Pilih Mata Pelajaran</option>');
-        $('#tambah_guru').html('<option value="">Pilih Guru</option>');
-        $('#tambah_hari').val('');
-        $('#tambah_jam').val('');
-        $('#btnSimpanJadwal').prop('disabled', true);
+    {{-- ===== FLASH TOAST ===== --}}
+    @if(session('success'))
+    window.JD.toast('ok', 'Berhasil', @json(session('success')));
+    @endif
+    @if(session('error'))
+    window.JD.toast('err', 'Gagal', @json(session('error')));
+    @endif
+    @if($errors->any())
+    window.JD.toast('err', 'Periksa Kembali', @json($errors->first()));
+    @endif
+
+    {{-- ===== KPI COUNT-UP ===== --}}
+    function animateCount($el) {
+        var target = parseFloat($el.data('count')) || 0;
+        var dur = 700, start = null;
+        function tick(ts) {
+            if (!start) start = ts;
+            var p = Math.min((ts - start) / dur, 1);
+            $el.text(Math.round(target * (1 - Math.pow(1 - p, 3))));
+            if (p < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+    }
+    if ($('.jd-kpi-num[data-count]').length && 'IntersectionObserver' in window) {
+        var kpiIO = new IntersectionObserver(function (entries) {
+            entries.forEach(function (en) {
+                if (en.isIntersecting) { animateCount($(en.target)); kpiIO.unobserve(en.target); }
+            });
+        }, { threshold: .4 });
+        $('.jd-kpi-num[data-count]').each(function () { kpiIO.observe(this); });
+    } else {
+        $('.jd-kpi-num[data-count]').each(function () { $(this).text($(this).data('count')); });
     }
 
-    $('#modalTambah').on('show.bs.modal', function(e) {
-        resetTambahForm();
-        var $trigger = $(e.relatedTarget);
-        var prefillKelas = $trigger.data('prefill-kelas');
-        var prefillHari  = $trigger.data('prefill-hari');
-        var prefillJam   = $trigger.data('prefill-jam');
-        if (prefillKelas) {
-            $('#tambah_kelas').val(prefillKelas).trigger('change');
-            if (prefillHari) {
-                setTimeout(function() {
-                    $('#tambah_hari').val(prefillHari).trigger('change');
-                    if (prefillJam) {
-                        setTimeout(function() {
-                            $('#tambah_jam').val(String(prefillJam)).trigger('change');
-                        }, 150);
-                    }
-                }, 150);
-            }
-        }
+    {{-- ===== STICKY TOOLBAR ===== --}}
+    if ($('#filterForm').length) {
+        $(window).on('scroll', function () {
+            $('#filterForm').toggleClass('is-stuck', $(window).scrollTop() + 78 > $('#filterForm').offset().top);
+        });
+    }
+    $('#filterForm select').on('change', function () { this.form.submit(); });
+
+    {{-- ===== EXPORT: jenjang -> kelas ===== --}}
+    $('#exportJenjang').on('change', function () {
+        var jid = this.value;
+        $('#exportKelas option').each(function () {
+            var show = !jid || $(this).data('jenjang') == jid || $(this).val() === '';
+            $(this).prop('disabled', !show).toggle(show);
+        });
+        $('#exportKelas').val('');
     });
 
-    $('#tambah_kelas').on('change', function() {
-        var $opt = $(this).find(':selected');
-        var jenjangId = $opt.data('jenjang-id');
-        var jenjangNama = $opt.data('jenjang-nama');
-        var kelasId = $(this).val();
+    {{-- ===== MODAL CHAIN (detail -> edit/hapus) ===== --}}
+    $(document).on('click', '[data-close-before-target]', function () {
+        var target = $(this).data('close-before-target');
+        var $m = $(this).closest('.modal');
+        $m.one('hidden.bs.modal', function () { $(target).modal('show'); });
+        $m.modal('hide');
+    });
 
-        $('#tambah_jenjang').val(jenjangNama || '');
-        $('#tambah_jenjang_id').val(jenjangId || '');
-        $('#step3_guru').addClass('d-none');
-        $('#step4_hari').addClass('d-none');
-        $('#step5_jam').addClass('d-none');
-        $('#tambah_guru').html('<option value="">Pilih Guru</option>');
-        $('#tambah_hari').val('');
-        $('#tambah_jam').val('');
-        $('#btnSimpanJadwal').prop('disabled', true);
+    {{-- ===== SCHEDULER ===== --}}
+    var currentJenjang = null, currentKelas = null, searchTerm = '';
 
-        if (!kelasId) {
-            $('#step2_mapel').addClass('d-none');
-            $('#tambah_mapel').html('<option value="">Pilih Mata Pelajaran</option>');
-            return;
+    function skeletonHtml() {
+        var h = '<div class="jd-sched-row jd-sched-head"><div class="jd-sched-hcell">Jam</div>';
+        JD.hari.forEach(function (d) { h += '<div class="jd-sched-hcell">' + esc(d) + '</div>'; });
+        h += '</div>';
+        for (var r = 0; r < 5; r++) {
+            h += '<div class="jd-sched-row jd-sched-body-row"><div class="jd-sched-time"><span class="jd-skeleton" style="height:14px;width:46px;"></span></div>';
+            for (var c = 0; c < 6; c++) h += '<div class="jd-sched-cell"><div class="jd-skeleton" style="height:70px;"></div></div>';
+            h += '</div>';
         }
+        return h;
+    }
 
-        var mapelIds = [...new Set(
-            pengampuMapels
-                .filter(function(p) { return String(p.kelas_id) === String(kelasId); })
-                .map(function(p) { return String(p.mata_pelajaran_id); })
-        )];
+    function slotFor(jadwals, hari, jk) {
+        for (var i = 0; i < jadwals.length; i++) {
+            if (jadwals[i].hari === hari && String(jadwals[i].jam_ke) === String(jk)) return jadwals[i];
+        }
+        return null;
+    }
+    function matches(j, q) {
+        if (!q) return true;
+        q = q.toLowerCase();
+        return (j.mapel || '').toLowerCase().indexOf(q) !== -1 || (j.guru || '').toLowerCase().indexOf(q) !== -1;
+    }
+    function buildGrid(jid, kid, q) {
+        var list = (JD.data[jid] || {})[kid] || [];
+        var found = 0;
+        list.forEach(function (j) { if (matches(j, q)) found++; });
+        if (list.length && !found) {
+            return '<div class="jd-empty"><div class="jd-empty-illus"><div class="ring"></div><div class="core"><i class="fas fa-search"></i></div></div>'
+                + '<div class="jd-empty-title">Tidak Ditemukan</div><div class="jd-empty-sub">Tidak ada mata pelajaran atau guru yang cocok dengan pencarian &ldquo;' + esc(q) + '&rdquo; pada kelas ini.</div></div>';
+        }
+        var html = '<div class="jd-sched-row jd-sched-head"><div class="jd-sched-hcell">Jam</div>';
+        JD.hari.forEach(function (h) { html += '<div class="jd-sched-hcell">' + esc(h) + '</div>'; });
+        html += '</div>';
+        var rowIdx = 0;
+        [1, 2, 3, 4].forEach(function (jk) {
+            rowIdx++;
+            if (rowIdx === 3) html += '<div class="jd-sched-break"><i class="fas fa-mug-hot"></i> Istirahat</div>';
+            var s = JD.jam[jk];
+            html += '<div class="jd-sched-row jd-sched-body-row"><div class="jd-sched-time"><b>Jam ' + jk + '</b><span>' + s.mulai + ' - ' + s.selesai + '</span></div>';
+            JD.hari.forEach(function (h) {
+                var j = slotFor(list, h, jk);
+                if (j && matches(j, q)) {
+                    html += '<div class="jd-sched-cell"><button type="button" class="jd-slot jd-mc-' + j.mc + (j.conflict ? ' is-conflict' : '') + '" data-jd-id="' + j.id + '" title="' + esc(j.mapel) + ' &mdash; ' + esc(j.guru) + '">'
+                        + '<span class="jd-slot-top"><span class="jd-slot-name">' + esc(j.mapel) + '</span><span class="jd-slot-dot"></span></span>'
+                        + '<span class="jd-slot-guru"><i class="fas fa-user-graduate"></i> ' + esc(j.guru) + '</span>'
+                        + '<span class="jd-slot-time"><i class="fas fa-clock"></i> ' + esc(j.jam_mulai) + ' - ' + esc(j.jam_selesai) + '</span>'
+                        + (j.conflict ? '<span class="jd-conflict-tag"><i class="fas fa-exclamation"></i> Konflik</span>' : '')
+                        + '</button></div>';
+                } else if (j) {
+                    html += '<div class="jd-sched-cell jd-cell-masked"></div>';
+                } else {
+                    html += '<div class="jd-sched-cell"><button type="button" class="jd-add-cell" data-kelas="' + kid + '" data-hari="' + h + '" data-jam="' + jk + '" title="Tambah jadwal ' + h + ' jam ' + jk + '"><i class="fas fa-plus"></i></button></div>';
+                }
+            });
+            html += '</div>';
+        });
+        return html;
+    }
 
-        var $mapel = $('#tambah_mapel').html('<option value="">Pilih Mata Pelajaran</option>');
+    function renderLegend(kid) {
+        var map = {};
+        ((JD.data[currentJenjang] || {})[kid] || []).forEach(function (j) { map[j.mapel] = j.mc; });
+        var html = '';
+        Object.keys(map).forEach(function (name) {
+            html += '<span class="jd-legend-item"><span class="jd-mapel-dot jd-mc-' + map[name] + '" style="background:var(--mc);"></span> ' + esc(name) + '</span>';
+        });
+        $('#jdLegend').html(html || '<span class="jd-legend-item" style="color:var(--jd-text-3);">Belum ada mata pelajaran terjadwal pada kelas ini</span>');
+    }
+
+    function renderScheduler(kid, q) {
+        var $body = $('#jdSched');
+        $body.html(skeletonHtml());
+        setTimeout(function () {
+            $body.html(buildGrid(currentJenjang, kid, q));
+            $body.find('.jd-slot').on('click', function () {
+                $('#detail' + $(this).data('jd-id')).modal('show');
+            });
+            $body.find('.jd-add-cell').on('click', function () {
+                openWizard($(this).data('kelas'), $(this).data('hari'), $(this).data('jam'));
+            });
+            renderLegend(kid);
+        }, 240);
+    }
+
+    function renderJenjangTabs(activeId) {
+        $('#jdJenjangTabs .jd-tab').remove();
+        var html = '';
+        JD.jenjang.forEach(function (j) {
+            var total = 0;
+            (JD.kelas[j.id] || []).forEach(function (k) { total += k.count; });
+            html += '<button type="button" class="jd-tab' + (String(activeId) === String(j.id) ? ' active' : '') + '" data-jd-j="' + j.id + '"><i class="fas fa-layer-group"></i> ' + esc(j.nama) + '<span class="jd-count">' + total + '</span></button>';
+        });
+        $('#jdJenjangTabs').append(html);
+        movePill();
+    }
+    function movePill() {
+        var $act = $('#jdJenjangTabs .jd-tab.active');
+        var $pill = $('#jdJenjangPill');
+        if (!$act.length) { $pill.css('opacity', 0); return; }
+        $pill.css({ left: $act.position().left, width: $act.outerWidth(), opacity: 1 });
+    }
+    function renderKelasTabs(jid, aid) {
+        var list = JD.kelas[jid] || [];
+        var html = '';
+        list.forEach(function (k) {
+            html += '<button type="button" class="jd-tab-kelas' + (String(aid) === String(k.id) ? ' active' : '') + (k.count === 0 ? ' is-empty' : '') + '" data-jd-k="' + k.id + '"><i class="fas fa-school"></i> ' + esc(k.nama) + '<span class="jd-count">' + k.count + '</span></button>';
+        });
+        $('#jdKelasTabs').html(html).toggle(!!list.length);
+    }
+    function setJenjang(jid) {
+        currentJenjang = jid;
+        renderJenjangTabs(jid);
+        var list = JD.kelas[jid] || [];
+        if (list.length) {
+            $('#jdJenjangEmpty').hide();
+            $('#jdSched').show();
+            currentKelas = list[0].id;
+            renderKelasTabs(jid, currentKelas);
+            setKelas(currentKelas);
+        } else {
+            currentKelas = null;
+            renderKelasTabs(jid, null);
+            $('#jdKelasEmptyNote').hide();
+            $('#jdLegend').html('');
+            $('#jdSched').hide();
+            $('#jdJenjangEmpty').show();
+        }
+    }
+    function setKelas(kid) {
+        currentKelas = kid;
+        $('#jdKelasTabs .jd-tab-kelas').removeClass('active');
+        $('#jdKelasTabs .jd-tab-kelas[data-jd-k="' + kid + '"]').addClass('active');
+        var list = (JD.data[currentJenjang] || {})[kid] || [];
+        $('#jdKelasEmptyNote').toggle(list.length === 0);
+        renderScheduler(kid, searchTerm);
+    }
+    $('#jdJenjangTabs').on('click', '.jd-tab', function () { setJenjang($(this).data('jd-j')); });
+    $('#jdKelasTabs').on('click', '.jd-tab-kelas', function () { setKelas($(this).data('jd-k')); });
+
+    var searchTimer;
+    $('#jdSearch').on('input', function () {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(function () {
+            searchTerm = $('#jdSearch').val();
+            if (currentKelas) renderScheduler(currentKelas, searchTerm);
+        }, 250);
+    });
+
+    if (JD.jenjang.length) {
+        var activeJenjang = @json(request('jenjang_id') ? (int) request('jenjang_id') : null);
+        var useJenjang = JD.jenjang[0].id;
+        JD.jenjang.forEach(function (j) {
+            if (String(j.id) === String(activeJenjang)) useJenjang = j.id;
+        });
+        setJenjang(useJenjang);
+    }
+
+    {{-- ===== WIZARD TAMBAH ===== --}}
+    var WIZ = { step: 1, kelas: '', mapel: '', guru: '', hari: '', jam: '', prefill: false };
+
+    function wizReset() {
+        WIZ = { step: 1, kelas: '', mapel: '', guru: '', hari: '', jam: '', prefill: false };
+        $('#tambah_kelas').val('');
+        $('#tambah_mapel').html('<option value="">&mdash; Pilih Mata Pelajaran &mdash;</option>');
+        $('#tambah_guru').html('<option value="">&mdash; Pilih Guru &mdash;</option>');
+        $('#tambah_jenjang').text('-');
+        $('#wizHariWrap .jd-chip-select').removeClass('active');
+        $('#wizJamWrap .jd-chip-select').removeClass('active');
+        $('#wizPreviewWrap').hide().html('');
+        $('#wizConflict').removeClass('is-show');
+        $('#wizOk').removeClass('is-show');
+        $('#btnSimpanJadwal').prop('disabled', true);
+        wizGo(1);
+    }
+    function wizGo(step) {
+        WIZ.step = step;
+        $('#wizSteps .jd-step').each(function () {
+            var s = parseInt($(this).data('wstep'), 10);
+            $(this).toggleClass('active', s === step).toggleClass('done', s < step);
+        });
+        $('#wizSteps .jd-step-line').each(function (i) {
+            $(this).toggleClass('done', i < step - 1);
+        });
+        $('.jd-wizard-pane').each(function () {
+            $(this).toggleClass('is-show', String($(this).data('pane')) === String(step));
+        });
+        $('#wizBack').toggle(step > 1);
+        wizRefreshSubmit();
+    }
+    function wizRefreshSubmit() {
+        var ready = !!(WIZ.kelas && WIZ.mapel && WIZ.guru && WIZ.hari && WIZ.jam);
+        $('#btnSimpanJadwal').prop('disabled', !ready || $('#wizConflict').hasClass('is-show'));
+    }
+    function wizSelName(kind, id) {
+        var arr = kind === 'mapel' ? WIZ_DATA.mapels : WIZ_DATA.gurus;
+        for (var i = 0; i < arr.length; i++) if (String(arr[i].id) === String(id)) return arr[i].nama;
+        return '';
+    }
+    function wizSelKelasName(id) {
+        for (var i = 0; i < WIZ_DATA.kelas.length; i++) if (String(WIZ_DATA.kelas[i].id) === String(id)) return WIZ_DATA.kelas[i].nama;
+        return '';
+    }
+    function wizUpdatePreview() {
+        if (!(WIZ.kelas && WIZ.mapel && WIZ.guru && WIZ.hari && WIZ.jam)) return;
+        var mapelName = wizSelName('mapel', WIZ.mapel);
+        var guruName = wizSelName('guru', WIZ.guru);
+        var kelasName = wizSelKelasName(WIZ.kelas);
+        var mc = window.JD.mapelColorIdx(mapelName);
+        var jam = JD.jam[WIZ.jam];
+        var html = '<div class="jd-preview jd-mc-' + mc + '"><div class="jd-preview-icon"><i class="fas fa-book-open"></i></div>'
+            + '<div style="flex:1;min-width:0;"><div class="jd-preview-name">' + esc(mapelName) + '</div>'
+            + '<div class="jd-preview-meta">'
+            + '<span><i class="fas fa-user-graduate"></i> ' + esc(guruName) + '</span>'
+            + '<span><i class="fas fa-school"></i> ' + esc(kelasName) + '</span>'
+            + '<span><i class="fas fa-calendar-day"></i> ' + esc(WIZ.hari) + '</span>'
+            + '<span><i class="fas fa-clock"></i> Jam ' + WIZ.jam + ' (' + jam.mulai + '-' + jam.selesai + ')</span>'
+            + '</div></div></div>';
+        $('#wizPreviewWrap').html(html).show();
+
+        var items = [];
+        JD.all.forEach(function (j) {
+            if (String(j.kelas_id) === String(WIZ.kelas) && j.hari === WIZ.hari && String(j.jam_ke) === WIZ.jam) {
+                items.push('<div class="jd-conflict-item"><i class="fas fa-school"></i> Kelas <b>' + esc(j.kelas) + '</b> sudah terisi <b>' + esc(j.mapel) + '</b> pada slot ini.</div>');
+            }
+            if (String(j.guru_id) === String(WIZ.guru) && j.hari === WIZ.hari && String(j.jam_ke) === WIZ.jam) {
+                items.push('<div class="jd-conflict-item"><i class="fas fa-user-graduate"></i> Guru <b>' + esc(j.guru) + '</b> sudah mengajar <b>' + esc(j.mapel) + '</b> pada slot ini.</div>');
+            }
+        });
+        var has = items.length > 0;
+        $('#wizConflictItems').html(items.join(''));
+        $('#wizConflict').toggleClass('is-show', has);
+        $('#wizOk').toggleClass('is-show', !has);
+        wizRefreshSubmit();
+    }
+
+    function openWizard(kelasId, hari, jam) {
+        $('#modalTambah').modal('show');
+        wizReset();
+        if (kelasId) {
+            $('#tambah_kelas').val(kelasId).trigger('change');
+            WIZ.prefill = true;
+            if (hari) {
+                WIZ.hari = hari;
+                $('#wizHariWrap .jd-chip-select[data-hari="' + hari + '"]').addClass('active');
+            }
+            if (jam) {
+                WIZ.jam = String(jam);
+                $('#wizJamWrap .jd-chip-select[data-jam="' + jam + '"]').addClass('active');
+            }
+        }
+    }
+    $('#modalTambah').on('show.bs.modal', function (e) {
+        var $t = $(e.relatedTarget);
+        var kelas = $t.data('prefill-kelas');
+        var hari = $t.data('prefill-hari');
+        var jam = $t.data('prefill-jam');
+        if (kelas) openWizard(kelas, hari, jam);
+        else wizReset();
+    });
+
+    $('#tambah_kelas').on('change', function () {
+        var val = this.value;
+        var $opt = $(this).find(':selected');
+        WIZ.kelas = val;
+        WIZ.mapel = ''; WIZ.guru = ''; WIZ.hari = ''; WIZ.jam = ''; WIZ.prefill = false;
+        $('#tambah_jenjang').text($opt.data('jenjang-nama') || '-');
+        $('#tambah_guru').html('<option value="">&mdash; Pilih Guru &mdash;</option>');
+        $('#wizHariWrap .jd-chip-select').removeClass('active');
+        $('#wizJamWrap .jd-chip-select').removeClass('active');
+        $('#wizPreviewWrap').hide().html('');
+        $('#wizConflict').removeClass('is-show');
+        $('#wizOk').removeClass('is-show');
+        $('#btnSimpanJadwal').prop('disabled', true);
+        if (!val) { wizGo(1); return; }
+
+        var mapelIds = [];
+        WIZ_DATA.pengampu.forEach(function (p) {
+            if (String(p.kelas_id) === String(val) && mapelIds.indexOf(String(p.mata_pelajaran_id)) === -1) {
+                mapelIds.push(String(p.mata_pelajaran_id));
+            }
+        });
+        var $mapel = $('#tambah_mapel').html('<option value="">&mdash; Pilih Mata Pelajaran &mdash;</option>');
         if (!mapelIds.length) {
             $mapel.append('<option value="" disabled>Tidak ada mata pelajaran untuk kelas ini</option>');
-            $('#step2_mapel').removeClass('d-none');
+            wizGo(2);
             return;
         }
-        allMapels.forEach(function(m) {
-            if (mapelIds.includes(String(m.id))) {
-                $mapel.append('<option value="' + m.id + '">' + m.nama_mapel + '</option>');
-            }
+        WIZ_DATA.mapels.forEach(function (m) {
+            if (mapelIds.indexOf(String(m.id)) !== -1) $mapel.append('<option value="' + m.id + '">' + esc(m.nama) + '</option>');
         });
-        $('#step2_mapel').removeClass('d-none');
+        wizGo(2);
     });
 
-    $('#tambah_mapel').on('change', function() {
-        var kelasId = $('#tambah_kelas').val();
-        var mapelId = $(this).val();
-        $('#step4_hari').addClass('d-none');
-        $('#step5_jam').addClass('d-none');
-        $('#tambah_hari').val('');
-        $('#tambah_jam').val('');
-        $('#btnSimpanJadwal').prop('disabled', true);
-
-        if (!mapelId || !kelasId) {
-            $('#step3_guru').addClass('d-none');
-            $('#tambah_guru').html('<option value="">Pilih Guru</option>');
-            return;
+    $('#tambah_mapel').on('change', function () {
+        var val = this.value;
+        WIZ.mapel = val;
+        WIZ.guru = '';
+        $('#tambah_guru').html('<option value="">&mdash; Pilih Guru &mdash;</option>');
+        if (!WIZ.prefill) {
+            WIZ.hari = ''; WIZ.jam = '';
+            $('#wizHariWrap .jd-chip-select').removeClass('active');
+            $('#wizJamWrap .jd-chip-select').removeClass('active');
+            $('#wizPreviewWrap').hide().html('');
+            $('#wizConflict').removeClass('is-show');
+            $('#wizOk').removeClass('is-show');
+            $('#btnSimpanJadwal').prop('disabled', true);
         }
+        if (!val) { wizGo(2); return; }
 
-        var guruIds = [...new Set(
-            pengampuMapels
-                .filter(function(p) { return String(p.kelas_id) === String(kelasId) && String(p.mata_pelajaran_id) === String(mapelId); })
-                .map(function(p) { return String(p.guru_id); })
-        )];
-
-        var $guru = $('#tambah_guru').html('<option value="">Pilih Guru</option>');
+        var guruIds = [];
+        WIZ_DATA.pengampu.forEach(function (p) {
+            if (String(p.kelas_id) === String(WIZ.kelas) && String(p.mata_pelajaran_id) === String(val) && guruIds.indexOf(String(p.guru_id)) === -1) {
+                guruIds.push(String(p.guru_id));
+            }
+        });
+        var $guru = $('#tambah_guru').html('<option value="">&mdash; Pilih Guru &mdash;</option>');
         if (!guruIds.length) {
             $guru.append('<option value="" disabled>Tidak ada guru untuk mapel ini</option>');
-            $('#step3_guru').removeClass('d-none');
+            wizGo(3);
             return;
         }
-        allGurus.forEach(function(g) {
-            if (guruIds.includes(String(g.id))) {
-                $guru.append('<option value="' + g.id + '">' + g.nama + '</option>');
-            }
+        WIZ_DATA.gurus.forEach(function (g) {
+            if (guruIds.indexOf(String(g.id)) !== -1) $guru.append('<option value="' + g.id + '">' + esc(g.nama) + '</option>');
         });
-        $('#step3_guru').removeClass('d-none');
+        wizGo(3);
     });
 
-    $('#tambah_guru').on('change', function() {
-        if ($(this).val()) {
-            $('#step4_hari').removeClass('d-none');
-        } else {
-            $('#step4_hari').addClass('d-none');
-            $('#step5_jam').addClass('d-none');
-        }
-        $('#tambah_hari').val('');
-        $('#tambah_jam').val('');
-        $('#btnSimpanJadwal').prop('disabled', true);
+    $('#tambah_guru').on('change', function () {
+        WIZ.guru = this.value;
+        if (!this.value) { wizGo(3); return; }
+        if (WIZ.hari) { wizGo(5); wizUpdatePreview(); }
+        else { wizGo(4); }
     });
 
-    $('#tambah_hari').on('change', function() {
-        if ($(this).val()) {
-            $('#step5_jam').removeClass('d-none');
-        } else {
-            $('#step5_jam').addClass('d-none');
-        }
-        $('#tambah_jam').val('');
-        $('#btnSimpanJadwal').prop('disabled', true);
+    $('#wizHariWrap').on('click', '.jd-chip-select', function () {
+        WIZ.prefill = false;
+        $('#wizHariWrap .jd-chip-select').removeClass('active');
+        $(this).addClass('active');
+        WIZ.hari = $(this).data('hari');
+        wizGo(5);
     });
 
-    $('#tambah_jam').on('change', function() {
-        var ready = $('#tambah_kelas').val() && $('#tambah_mapel').val() && $('#tambah_guru').val() && $('#tambah_hari').val() && $(this).val();
-        $('#btnSimpanJadwal').prop('disabled', !ready);
+    $('#wizJamWrap').on('click', '.jd-chip-select', function () {
+        WIZ.prefill = false;
+        $('#wizJamWrap .jd-chip-select').removeClass('active');
+        $(this).addClass('active');
+        WIZ.jam = String($(this).data('jam'));
+        wizUpdatePreview();
     });
 
-    // Tab click propagation fix
-    document.querySelectorAll('.nav-kelas .nav-link').forEach(function(tab) {
-        tab.addEventListener('click', function(e) { e.stopPropagation(); });
+    $('#wizBack').on('click', function () {
+        if (WIZ.step > 1) wizGo(WIZ.step - 1);
     });
+
+    $('#formTambahJadwal').on('submit', function () {
+        $('#btnSimpanJadwal').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Menyimpan...');
+    });
+
+    {{-- ===== SALIN ===== --}}
+    var tahunAjarans = @json($jdTahunJson);
+    var tahunAktif = @json($jdTahunAktifJson);
+
+    $('#modalSalinJadwal').on('show.bs.modal', function () {
+        if (tahunAktif) $('#salinToTA').text(tahunAktif.tahun_ajaran + ' (Aktif)');
+        var prev = tahunAjarans.filter(function (ta) { return ta.id != (tahunAktif ? tahunAktif.id : 0); })
+            .sort(function (a, b) { return String(b.tahun_ajaran).localeCompare(String(a.tahun_ajaran)); })[0];
+        $('#salinFromTA').text(prev ? prev.tahun_ajaran : 'Tidak ada data');
+        $('#migFrom').text(prev ? 'Data tahun ' + prev.tahun_ajaran : 'Tidak ada data untuk disalin');
+        $('#migBar').css('width', '0%');
+        $('.jd-mig-step').removeClass('is-active is-done').first().addClass('is-active');
+        $('#btnSalinGo').prop('disabled', false).html('<i class="fas fa-copy"></i> Ya, Salin Sekarang');
+    });
+
+    $('#btnSalinGo').on('click', function () {
+        var $btn = $(this);
+        $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Menyalin...');
+        $('.jd-mig-step[data-mig="1"]').addClass('is-done');
+        $('.jd-mig-step[data-mig="2"]').addClass('is-active');
+        $('#migBar').css('width', '45%');
+        setTimeout(function () {
+            $('.jd-mig-step[data-mig="2"]').addClass('is-done').removeClass('is-active');
+            $('.jd-mig-step[data-mig="3"]').addClass('is-active');
+            $('#migBar').css('width', '100%');
+            setTimeout(function () { $('#formSalin').submit(); }, 450);
+        }, 800);
+    });
+
+    {{-- ===== RESIZE: pill position ===== --}}
+    $(window).on('resize', function () { movePill(); });
 });
 </script>
 @endpush

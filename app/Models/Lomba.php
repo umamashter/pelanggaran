@@ -23,11 +23,6 @@ class Lomba extends Model
         return $this->belongsTo(SesiLomba::class);
     }
 
-    public function kategori()
-    {
-        return $this->belongsTo(KategoriLomba::class, 'kategori_lomba_id');
-    }
-
     public function peserta()
     {
         return $this->hasMany(PesertaLomba::class);

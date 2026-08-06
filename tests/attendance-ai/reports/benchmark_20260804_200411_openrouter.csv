@@ -1,0 +1,27 @@
+schema_version,1.0
+correlation_id,IMP-20260804-053349
+timestamp,2026-08-04T20:04:11+07:00
+provider,openrouter
+parse_mode,ai
+pipeline_status,WARNING
+decision_category,RECOVERABLE_WARNING
+decision_code,DENOISE_RECOMMENDED
+decision_message,"Image can be improved automatically before provider execution."
+template_matched,0
+template_name,mi_nurul_ulum
+template_confidence,0.4964
+layout_confidence,0.3783
+alignment_score,0.6539
+template_fallback_used,1
+brightness,8
+contrast,4
+blur,82
+noise,30
+total_duration_ms,45809
+provider_duration_ms,22776
+memory_usage_bytes,29360128
+student_count,13
+status_count,20
+warning_count,0
+error_count,0
+average_confidence,0.92

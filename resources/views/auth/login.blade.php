@@ -2,717 +2,907 @@
 @section('title', 'Login')
 
 @section('datas')
-
 <style>
     :root {
-        --primary: #16a34a;
-        --primary-dark: #15803d;
-        --primary-light: #22c55e;
-        --radius: 16px;
-        --radius-sm: 10px;
-        --transition: .3s cubic-bezier(.4, 0, .2, 1);
+        --lg-primary: #2563eb;
+        --lg-primary-2: #3b82f6;
+        --lg-primary-dark: #1d4ed8;
+        --lg-primary-soft: rgba(37, 99, 235, .10);
+        --lg-ink: #0f172a;
+        --lg-ink-2: #475569;
+        --lg-ink-3: #94a3b8;
+        --lg-line: #e2e8f0;
+        --lg-bg: #f8fafc;
+        --lg-white: #ffffff;
+        --lg-radius: 16px;
+        --lg-t: .25s cubic-bezier(.22, .61, .36, 1);
     }
 
-    body {
-        overflow-x: hidden !important;
-        min-height: 100vh !important;
-        font-family: 'Poppins', sans-serif !important;
+    html, body {
         margin: 0 !important;
         padding: 0 !important;
+        min-height: 100%;
     }
 
-    /* ===== LIGHT THEME (default) ===== */
     body {
-        background: #f0fdf4 !important;
+        min-height: 100vh !important;
+        overflow-x: hidden !important;
+        font-family: 'Poppins', system-ui, sans-serif !important;
+        color: var(--lg-ink);
+        background: var(--lg-bg) !important;
     }
 
-    .login-page {
-        display: flex;
+    .lg-page {
         min-height: 100vh;
-        position: relative;
-        font-family: 'Poppins', sans-serif;
+        display: flex;
+        align-items: stretch;
     }
 
-    .login-left {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
+    /* ============================================================
+       KIRI — Foto sekolah (50% layar di PC)
+       ============================================================ */
+    .lg-visual {
         position: relative;
+        flex: 1.1 1 0;
+        min-width: 0;
         overflow: hidden;
-        background: url("{{ asset('img/bg1.jpg.jpeg') }}") center / cover no-repeat;
-        padding: 0;
+        isolation: isolate;
     }
 
-
-
-    .login-left .hero-section {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 60px 40px 40px;
-        position: relative;
-        z-index: 1;
-    }
-
-
-
-    .login-left .hero-school-name {
-        font-size: 28px;
-        font-weight: 800;
-        color: #fff;
-        text-shadow: 0 2px 12px rgba(0, 0, 0, .5);
-        letter-spacing: -.5px;
-        margin-bottom: 8px;
-        animation: fadeInDown .8s ease .3s both;
-    }
-
-    .login-left .hero-decoration {
-        position: absolute;
-        width: 400px;
-        height: 400px;
-        border-radius: 50%;
-        background: radial-gradient(circle, rgba(22, 163, 74, .08) 0%, transparent 70%);
-        top: -100px;
-        right: -100px;
-        pointer-events: none;
-        animation: floatShape 8s ease-in-out infinite;
-    }
-
-    .login-left .hero-decoration-2 {
-        position: absolute;
-        width: 300px;
-        height: 300px;
-        border-radius: 50%;
-        background: radial-gradient(circle, rgba(34, 197, 94, .05) 0%, transparent 70%);
-        bottom: -80px;
-        left: -80px;
-        pointer-events: none;
-        animation: floatShape 10s ease-in-out infinite reverse;
-    }
-
-    .login-left .hero-decoration-3 {
-        position: absolute;
-        width: 200px;
-        height: 200px;
-        border-radius: 50%;
-        background: radial-gradient(circle, rgba(22, 163, 74, .06) 0%, transparent 70%);
-        top: 40%;
-        left: 10%;
-        pointer-events: none;
-        animation: floatShape 12s ease-in-out infinite 2s;
-    }
-
-    @keyframes floatShape {
-
-        0%,
-        100% {
-            transform: translate(0, 0) scale(1);
-        }
-
-        50% {
-            transform: translate(30px, -30px) scale(1.05);
-        }
-    }
-
-    .login-left .pattern-overlay {
+    .lg-visual > img {
         position: absolute;
         inset: 0;
-        background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2316a34a' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-        pointer-events: none;
-        z-index: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+        animation: lgZoom 1.8s cubic-bezier(.16, 1, .3, 1) both;
     }
 
-    /* ===== RIGHT PANEL (Light) ===== */
-    .login-right {
-        flex: 1;
+    .lg-visual-scrim {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        background:
+            linear-gradient(180deg, rgba(2, 6, 23, .62) 0%, rgba(2, 6, 23, .12) 38%, rgba(2, 6, 23, .08) 60%, rgba(2, 6, 23, .82) 100%);
+        animation: lgFadeIn .9s ease backwards;
+        animation-delay: .1s;
+    }
+
+    .lg-visual-scrim::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(120% 90% at 50% 115%, rgba(37, 99, 235, .28), transparent 55%);
+    }
+
+    .lg-visual-top,
+    .lg-visual-bottom {
+        position: absolute;
+        left: 0;
+        right: 0;
+        z-index: 2;
+        padding: 34px 40px;
+    }
+
+    .lg-visual-top {
+        top: 0;
         display: flex;
-        flex-direction: column;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .lg-brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 16px 10px 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, .10);
+        border: 1px solid rgba(255, 255, 255, .16);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+    }
+
+    .lg-brand-logo {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, .92);
+        display: inline-flex;
         align-items: center;
         justify-content: center;
-        padding: 40px;
-        background: #fff;
-        position: relative;
+        overflow: hidden;
     }
 
-    .login-right .login-container {
-        width: 100%;
-        max-width: 300px;
-        animation: fadeInUp .8s ease .3s both;
-    }
-
-    .login-right .brand-section {
-        text-align: center;
-        margin-bottom: 32px;
-    }
-
-    .login-right .brand-section img {
-        width: 110px;
+    .lg-brand-logo img {
+        width: 30px;
         height: auto;
-        margin-bottom: 14px;
+        object-fit: contain;
     }
 
-    .login-right .brand-section .app-name {
-        font-size: 22px;
-        font-weight: 800;
-        color: #0f172a;
-        letter-spacing: -.3px;
-        margin-bottom: 4px;
+    .lg-brand-meta strong {
+        display: block;
+        font-size: 13.5px;
+        font-weight: 700;
+        color: #fff;
+        line-height: 1.2;
     }
 
-    .login-right .brand-section .app-subtitle {
-        font-size: 13px;
-        color: #64748b;
-        font-weight: 400;
-        margin-bottom: 0;
+    .lg-brand-meta span {
+        display: block;
+        font-size: 10.5px;
+        font-weight: 500;
+        color: rgba(255, 255, 255, .72);
+        margin-top: 2px;
+        letter-spacing: .02em;
     }
 
-    .login-right .form-label {
-        font-size: 13px;
+    .lg-year-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        border-radius: 999px;
+        background: rgba(2, 6, 23, .38);
+        border: 1px solid rgba(255, 255, 255, .18);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        color: #e2e8f0;
+        font-size: 12px;
         font-weight: 600;
-        color: #0f172a;
-        margin-bottom: 6px;
+        white-space: nowrap;
     }
 
-    .login-right .input-group-custom {
+    .lg-year-pill i {
+        color: #93c5fd;
+    }
+
+    .lg-visual-bottom {
+        bottom: 0;
+        display: grid;
+        gap: 10px;
+    }
+
+    .lg-visual-bottom h1 {
+        margin: 0;
+        font-size: clamp(26px, 3.2vw, 42px);
+        font-weight: 800;
+        line-height: 1.08;
+        letter-spacing: -.03em;
+        color: #fff;
+        max-width: 640px;
+    }
+
+    .lg-visual-bottom p {
+        margin: 0;
+        font-size: 14px;
+        line-height: 1.6;
+        color: rgba(255, 255, 255, .82);
+        max-width: 560px;
+    }
+
+    /* ============================================================
+       KANAN — Form login
+       ============================================================ */
+    .lg-form {
+        flex: 1 1 0;
+        min-width: 0;
         position: relative;
-        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        background:
+            radial-gradient(720px 520px at 88% -6%, rgba(37, 99, 235, .10), transparent 60%),
+            radial-gradient(640px 460px at -8% 108%, rgba(96, 165, 250, .10), transparent 60%),
+            var(--lg-bg);
     }
 
-    .login-right .input-group-custom .input-icon {
+    .lg-form::before {
+        content: '';
         position: absolute;
-        left: 16px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #94a3b8;
-        font-size: 16px;
+        inset: 0;
         pointer-events: none;
-        z-index: 2;
-        transition: color .2s;
+        background-image:
+            linear-gradient(var(--lg-line) 1px, transparent 1px),
+            linear-gradient(90deg, var(--lg-line) 1px, transparent 1px);
+        background-size: 34px 34px;
+        mask-image: radial-gradient(circle at 62% 46%, rgba(0, 0, 0, .35), transparent 78%);
+        -webkit-mask-image: radial-gradient(circle at 62% 46%, rgba(0, 0, 0, .35), transparent 78%);
+        opacity: .6;
     }
 
-    .login-right .input-group-custom .form-control {
+    .lg-card {
+        position: relative;
         width: 100%;
-        height: 42px !important;
-        background: #f8fafc !important;
-        border: 1.5px solid #e2e8f0 !important;
-        border-radius: var(--radius-sm) !important;
-        padding: 0 42px !important;
-        color: #0f172a !important;
-        font-size: 14px !important;
-        font-family: 'Poppins', sans-serif !important;
-        transition: all .25s;
-        outline: none;
-        box-shadow: none !important;
+        max-width: 360px;
     }
 
-    .login-right .input-group-custom .form-control::placeholder {
-        color: #cbd5e1 !important;
+    .lg-card-head {
+        text-align: center;
+        margin-bottom: 16px;
     }
 
-    .login-right .input-group-custom .form-control:focus {
-        border-color: var(--primary) !important;
-        box-shadow: 0 0 0 3px rgba(22, 163, 74, .1) !important;
-        background: #fff !important;
+    .lg-logo {
+        width: 84px;
+        height: 84px;
+        margin: 0 auto 12px;
+        border-radius: 22px;
+        background: var(--lg-white);
+        border: 1px solid var(--lg-line);
+        box-shadow: 0 18px 40px -18px rgba(37, 99, 235, .28);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
     }
 
-    .login-right .input-group-custom .form-control:focus~.input-icon {
-        color: var(--primary);
+    .lg-logo img {
+        width: 54px;
+        height: auto;
+        object-fit: contain;
     }
 
-    .login-right .input-group-custom .password-toggle {
+    .lg-title {
+        margin: 0;
+        font-size: 23px;
+        font-weight: 800;
+        letter-spacing: -.03em;
+        color: var(--lg-ink);
+    }
+
+    .lg-subtitle {
+        margin: 4px 0 0;
+        font-size: 12.5px;
+        line-height: 1.5;
+        color: var(--lg-ink-2);
+    }
+
+    .lg-field {
+        margin-bottom: 12px;
+    }
+
+    .lg-field > label {
+        display: block;
+        margin-bottom: 5px;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: var(--lg-ink);
+    }
+
+    .lg-control {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .lg-control > i {
         position: absolute;
-        right: 16px;
+        left: 14px;
         top: 50%;
         transform: translateY(-50%);
-        cursor: pointer;
-        color: #94a3b8;
-        font-size: 16px;
-        z-index: 3;
-        transition: color .2s;
-        background: none;
+        color: var(--lg-ink-3);
+        font-size: 15px;
+        pointer-events: none;
+        transition: color var(--lg-t);
+    }
+
+    .lg-control input {
+        width: 100%;
+        height: 42px;
+        padding: 0 46px 0 40px;
+        border-radius: 11px;
+        border: 1.5px solid var(--lg-line);
+        background: var(--lg-white);
+        color: var(--lg-ink);
+        font-size: 13.5px;
+        font-family: inherit;
+        outline: none;
+        transition: border-color var(--lg-t), box-shadow var(--lg-t), background var(--lg-t);
+    }
+
+    .lg-control input::placeholder {
+        color: var(--lg-ink-3);
+    }
+
+    .lg-control input:hover {
+        border-color: #cbd5e1;
+    }
+
+    .lg-control input:focus {
+        border-color: var(--lg-primary);
+        box-shadow: 0 0 0 4px var(--lg-primary-soft);
+    }
+
+    .lg-control input:focus ~ i,
+    .lg-control:focus-within > i {
+        color: var(--lg-primary);
+    }
+
+    .lg-control.has-eye input {
+        padding-right: 48px;
+    }
+
+    .lg-eye {
+        position: absolute;
+        right: 5px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 36px;
+        height: 36px;
         border: none;
-        padding: 0;
-        line-height: 1;
+        border-radius: 10px;
+        background: transparent;
+        color: var(--lg-ink-3);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+        cursor: pointer;
+        transition: background var(--lg-t), color var(--lg-t);
     }
 
-    .login-right .input-group-custom .password-toggle:hover {
-        color: var(--primary);
+    .lg-eye:hover,
+    .lg-eye:focus-visible {
+        background: var(--lg-primary-soft);
+        color: var(--lg-primary);
+        outline: none;
     }
 
-    .login-right .form-options {
+    .lg-helper {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 22px;
+        gap: 12px;
+        margin-top: 6px;
+        min-height: 18px;
+        flex-wrap: wrap;
     }
 
-    .login-right .form-options .remember-label {
-        font-size: 13px;
-        color: #64748b;
-        cursor: pointer;
-        display: flex;
+    .lg-caps {
+        display: none;
         align-items: center;
-        gap: 8px;
-        user-select: none;
+        gap: 7px;
+        font-size: 11.5px;
+        font-weight: 600;
+        color: #c2410c;
     }
 
-    .login-right .form-options .remember-label input[type="checkbox"] {
-        width: 16px;
-        height: 16px;
-        accent-color: var(--primary);
-        cursor: pointer;
+    .lg-caps.show {
+        display: inline-flex;
     }
 
-    .login-right .form-options .forgot-link {
-        font-size: 13px;
-        color: var(--primary);
+    .lg-forgot {
+        margin-left: auto;
+        color: var(--lg-primary);
         text-decoration: none;
-        font-weight: 500;
-        transition: color .2s;
+        font-size: 12.5px;
+        font-weight: 600;
+        transition: color var(--lg-t);
     }
 
-    .login-right .form-options .forgot-link:hover {
-        color: #0f172a;
+    .lg-forgot:hover {
+        color: var(--lg-primary-dark);
         text-decoration: underline;
     }
 
-    .btn-login-custom {
+    .lg-options {
+        display: flex;
+        align-items: center;
+        margin: 0 0 12px;
+    }
+
+    .lg-remember {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--lg-ink-2);
+        user-select: none;
+    }
+
+    .lg-remember input[type="checkbox"] {
+        width: 17px;
+        height: 17px;
+        accent-color: var(--lg-primary);
+        cursor: pointer;
+        margin: 0;
+    }
+
+    .lg-alert {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 14px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #b91c1c;
+        font-size: 13px;
+        font-weight: 500;
+        animation: lgFadeUp .35s cubic-bezier(.16, 1, .3, 1) backwards, lgShake .4s ease both;
+        animation-delay: .56s, .64s;
+    }
+
+    .lg-alert i {
+        flex-shrink: 0;
+        margin-top: 1px;
+    }
+
+    .lg-submit {
+        position: relative;
         width: 100%;
         height: 42px;
-        border: none !important;
-        border-radius: var(--radius-sm) !important;
-        background: linear-gradient(135deg, var(--primary), var(--primary-light)) !important;
-        color: #fff !important;
-        font-size: 15px;
+        border: none;
+        border-radius: 11px;
+        background: linear-gradient(135deg, var(--lg-primary), var(--lg-primary-2));
+        color: #fff;
+        font-size: 14px;
         font-weight: 700;
-        font-family: 'Poppins', sans-serif;
-        cursor: pointer;
-        transition: all var(--transition);
-        box-shadow: 0 4px 20px rgba(22, 163, 74, .35) !important;
+        font-family: inherit;
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 10px;
-        letter-spacing: .3px;
-        padding: 0 24px;
-        position: relative;
+        cursor: pointer;
         overflow: hidden;
+        box-shadow: 0 18px 34px -16px rgba(37, 99, 235, .55);
+        transition: transform var(--lg-t), box-shadow var(--lg-t), filter var(--lg-t);
     }
 
-    .btn-login-custom:hover {
+    .lg-submit:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 30px rgba(22, 163, 74, .45) !important;
-        background: linear-gradient(135deg, var(--primary-dark), var(--primary)) !important;
-        color: #fff !important;
+        box-shadow: 0 24px 44px -18px rgba(37, 99, 235, .6);
+        filter: saturate(1.05);
     }
 
-    .btn-login-custom:active {
+    .lg-submit:active {
         transform: translateY(0);
     }
 
-    .ripple-effect {
+    .lg-submit:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, .18), 0 18px 34px -16px rgba(37, 99, 235, .55);
+    }
+
+    .lg-submit:disabled {
+        cursor: wait;
+        transform: none;
+        opacity: .88;
+    }
+
+    .lg-submit .spinner-border {
+        width: 17px;
+        height: 17px;
+        border-width: 2px;
+    }
+
+    .lg-progress {
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        height: 3px;
+        width: 0;
+        background: linear-gradient(90deg, rgba(255,255,255,.15), rgba(255,255,255,.9), rgba(255,255,255,.15));
+        opacity: 0;
+        transition: opacity var(--lg-t);
+    }
+
+    .lg-submit.is-loading .lg-progress {
+        width: 100%;
+        opacity: 1;
+        animation: lgProgress 1.2s linear infinite;
+    }
+
+    .lg-ripple {
         position: absolute;
         border-radius: 50%;
-        background: rgba(255, 255, 255, .35);
+        background: rgba(255, 255, 255, .32);
         transform: scale(0);
-        animation: rippleAnim .6s ease-out;
+        animation: lgRipple .6s ease-out;
         pointer-events: none;
     }
 
-    @keyframes rippleAnim {
-        to {
-            transform: scale(4);
-            opacity: 0;
-        }
-    }
-
-    .alert-custom {
-        background: #fef2f2 !important;
-        border: 1px solid #fecaca !important;
-        border-radius: var(--radius-sm) !important;
-        padding: 12px 16px !important;
-        font-size: 13px !important;
-        color: #dc2626 !important;
-        margin-bottom: 18px !important;
-        display: flex !important;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .login-right .login-footer {
+    .lg-foot {
+        margin-top: 14px;
         text-align: center;
-        margin-top: 32px;
-        padding-top: 20px;
-        border-top: 1px solid #e2e8f0;
     }
 
-    .login-right .login-footer a {
-        color: #64748b !important;
-        font-size: 13px;
+    .lg-foot > a {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--lg-ink-2);
         text-decoration: none;
-        transition: color .2s;
-        display: inline-flex;
-        align-items: center;
+        font-size: 13px;
+        font-weight: 600;
+        transition: color var(--lg-t);
     }
 
-    .login-right .login-footer a:hover {
-        color: var(--primary) !important;
+    .lg-foot > a:hover {
+        color: var(--lg-primary);
     }
 
-    .login-right .login-footer .footer-info {
+    .lg-foot p {
+        margin: 8px 0 0;
         display: flex;
+        align-items: center;
         justify-content: center;
-        align-items: center;
-        gap: 6px;
         flex-wrap: wrap;
-        margin-top: 8px;
-        font-size: 10px;
-        color: #94a3b8;
+        gap: 8px;
+        font-size: 11px;
+        color: var(--lg-ink-3);
     }
 
-    .login-right .login-footer .footer-info span {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-    }
-
-    .login-right .login-footer .footer-info .divider-dot {
-        width: 3px;
-        height: 3px;
+    .lg-dot {
+        width: 4px;
+        height: 4px;
         border-radius: 50%;
-        background: #d1d5db;
+        background: #cbd5e1;
     }
 
-    .login-right .login-footer .footer-info a {
-        font-size: 10px;
-    }
-
-    .login-right .input-group-custom .form-control:-webkit-autofill,
-    .login-right .input-group-custom .form-control:-webkit-autofill:hover,
-    .login-right .input-group-custom .form-control:-webkit-autofill:focus {
-        -webkit-text-fill-color: #0f172a !important;
-        -webkit-box-shadow: 0 0 0 1000px #fff inset !important;
+    /* Autofill */
+    .lg-control input:-webkit-autofill,
+    .lg-control input:-webkit-autofill:hover,
+    .lg-control input:-webkit-autofill:focus {
+        -webkit-text-fill-color: var(--lg-ink);
+        -webkit-box-shadow: 0 0 0 1000px #fff inset;
         transition: background-color 99999s ease-in-out 0s;
-        caret-color: #0f172a;
+        caret-color: var(--lg-ink);
     }
 
-    /* Animations */
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(30px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+    /* ============================================================
+       ANIMASI
+       ============================================================ */
+    @keyframes lgCardIn {
+        from { opacity: 0; transform: translateY(18px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 
-    @keyframes fadeInDown {
-        from {
-            opacity: 0;
-            transform: translateY(-20px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+    @keyframes lgFadeUp {
+        from { opacity: 0; transform: translateY(14px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 
-    /* ===== DARK THEME (via html.dark-mode from existing system) ===== */
+    @keyframes lgFadeDown {
+        from { opacity: 0; transform: translateY(-14px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes lgFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @keyframes lgPop {
+        from { opacity: 0; transform: scale(.6); }
+        to { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes lgPopIcon {
+        from { opacity: 0; transform: translateY(-50%) scale(.6); }
+        to { opacity: 1; transform: translateY(-50%) scale(1); }
+    }
+
+    @keyframes lgZoom {
+        from { transform: scale(1.08); }
+        to { transform: scale(1); }
+    }
+
+    @keyframes lgGridIn {
+        from { opacity: 0; }
+        to { opacity: .6; }
+    }
+
+    @keyframes lgShake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-4px); }
+        75% { transform: translateX(4px); }
+    }
+
+    @keyframes lgRipple {
+        to { transform: scale(4); opacity: 0; }
+    }
+
+    @keyframes lgProgress {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+
+    /* ============================================================
+       ENTRANCE ANIMATIONS — animasi berurutan untuk tiap elemen
+       (fill `backwards`: selama delay tampil frame awal, setelah
+       selesai kembali ke state natural agar hover tetap berfungsi)
+       ============================================================ */
+    .lg-form::before          { animation: lgGridIn .9s ease backwards; animation-delay: .15s; }
+
+    .lg-brand                 { animation: lgFadeDown .6s cubic-bezier(.16, 1, .3, 1) backwards; animation-delay: .05s; }
+    .lg-year-pill             { animation: lgFadeIn .5s ease backwards; animation-delay: .18s; }
+    .lg-visual-bottom h1      { animation: lgFadeUp .6s cubic-bezier(.16, 1, .3, 1) backwards; animation-delay: .24s; }
+    .lg-visual-bottom p       { animation: lgFadeIn .6s ease backwards; animation-delay: .34s; }
+
+    .lg-logo                  { animation: lgPop .55s cubic-bezier(.34, 1.56, .64, 1) backwards; animation-delay: .06s; }
+    .lg-title                 { animation: lgFadeUp .5s cubic-bezier(.16, 1, .3, 1) backwards; animation-delay: .14s; }
+    .lg-subtitle              { animation: lgFadeIn .5s ease backwards; animation-delay: .21s; }
+
+    .lg-field:nth-of-type(1)                { animation: lgFadeUp .5s cubic-bezier(.16, 1, .3, 1) backwards; animation-delay: .29s; }
+    .lg-field:nth-of-type(1) .lg-control > i { animation: lgPopIcon .4s cubic-bezier(.34, 1.56, .64, 1) backwards; animation-delay: .35s; }
+    .lg-field:nth-of-type(2)                { animation: lgFadeUp .5s cubic-bezier(.16, 1, .3, 1) backwards; animation-delay: .38s; }
+    .lg-field:nth-of-type(2) .lg-control > i { animation: lgPopIcon .4s cubic-bezier(.34, 1.56, .64, 1) backwards; animation-delay: .44s; }
+    .lg-eye                   { animation: lgFadeIn .4s ease backwards; animation-delay: .47s; }
+    .lg-helper                { animation: lgFadeIn .45s ease backwards; animation-delay: .52s; }
+
+    .lg-options               { animation: lgFadeIn .5s ease backwards; animation-delay: .56s; }
+    .lg-submit                { animation: lgFadeUp .5s cubic-bezier(.16, 1, .3, 1) backwards; animation-delay: .66s; }
+    .lg-foot                  { animation: lgFadeIn .5s ease backwards; animation-delay: .76s; }
+    .lg-foot p                { animation: lgFadeIn .5s ease backwards; animation-delay: .84s; }
+
+    /* ============================================================
+       DARK MODE
+       ============================================================ */
     html.dark-mode body {
-        background: #0f172a !important;
+        background: #0b1220 !important;
     }
 
-    html.dark-mode .login-left .hero-school-name {
-        color: #f1f5f9;
+    html.dark-mode .lg-form {
+        background:
+            radial-gradient(720px 520px at 88% -6%, rgba(37, 99, 235, .16), transparent 60%),
+            radial-gradient(640px 460px at -8% 108%, rgba(59, 130, 246, .12), transparent 60%),
+            #0b1220;
     }
 
-
-    html.dark-mode .login-left .pattern-overlay {
-        background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2322c55e' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    html.dark-mode .lg-form::before {
+        --lg-line: rgba(148, 163, 184, .10);
     }
 
-    html.dark-mode .login-right {
-        background: linear-gradient(135deg, #0f172a 0%, #1a2e35 50%, #1e293b 100%);
+    html.dark-mode .lg-control input {
+        background: rgba(255, 255, 255, .05);
+        border-color: rgba(255, 255, 255, .10);
+        color: #f8fafc;
     }
 
-    html.dark-mode .login-right .brand-section .app-name {
-        color: #f1f5f9;
+    html.dark-mode .lg-control input:hover {
+        border-color: rgba(255, 255, 255, .18);
     }
 
-    html.dark-mode .login-right .brand-section .app-subtitle {
-        color: #94a3b8;
+    html.dark-mode .lg-control input:focus {
+        border-color: rgba(59, 130, 246, .5);
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, .16);
     }
 
-    html.dark-mode .login-right .form-label {
-        color: #e2e8f0;
+    html.dark-mode .lg-control input:-webkit-autofill,
+    html.dark-mode .lg-control input:-webkit-autofill:hover,
+    html.dark-mode .lg-control input:-webkit-autofill:focus {
+        -webkit-text-fill-color: #f8fafc;
+        -webkit-box-shadow: 0 0 0 1000px rgba(15, 23, 42, .94) inset;
     }
 
-    html.dark-mode .login-right .input-group-custom .form-control {
-        background: rgba(255, 255, 255, .06) !important;
-        border: 1.5px solid rgba(255, 255, 255, .12) !important;
-        color: #f1f5f9 !important;
+    html.dark-mode .lg-logo {
+        background: rgba(255, 255, 255, .05);
+        border-color: rgba(255, 255, 255, .10);
     }
 
-    html.dark-mode .login-right .input-group-custom .form-control:hover {
-        border-color: var(--primary) !important;
-        box-shadow: 0 0 0 3px rgba(22, 163, 74, .2) !important;
-        background: rgba(255, 255, 255, .08) !important;
+    html.dark-mode .lg-title { color: #f8fafc; }
+    html.dark-mode .lg-subtitle,
+    html.dark-mode .lg-remember,
+    html.dark-mode .lg-foot > a,
+    html.dark-mode .lg-field > label { color: #94a3b8; }
+    html.dark-mode .lg-foot p { color: #64748b; }
+    html.dark-mode .lg-remember { color: #cbd5e1; }
+    html.dark-mode .lg-dot { background: rgba(255, 255, 255, .18); }
+    html.dark-mode .lg-control > i { color: #64748b; }
+    html.dark-mode .lg-eye { color: #64748b; }
+
+    html.dark-mode .lg-alert {
+        background: rgba(127, 29, 29, .30);
+        border-color: rgba(239, 68, 68, .24);
+        color: #fecaca;
     }
 
-    html.dark-mode .login-right .input-group-custom .form-control:hover~.input-icon {
-        color: #22c55e;
-    }
-
-    html.dark-mode .login-right .input-group-custom .form-control::placeholder {
-        color: rgba(255, 255, 255, .3) !important;
-    }
-
-    html.dark-mode .login-right .input-group-custom .form-control:focus {
-        border-color: var(--primary) !important;
-        box-shadow: 0 0 0 3px rgba(22, 163, 74, .3) !important;
-        background: rgba(255, 255, 255, .08) !important;
-    }
-
-    html.dark-mode .login-right .input-group-custom .form-control:focus~.input-icon {
-        color: #22c55e;
-    }
-
-    html.dark-mode .login-right .input-group-custom .input-icon {
-        color: rgba(255, 255, 255, .35);
-    }
-
-    html.dark-mode .login-right .input-group-custom .password-toggle {
-        color: rgba(255, 255, 255, .35);
-    }
-
-    html.dark-mode .login-right .input-group-custom .password-toggle:hover {
-        color: #22c55e;
-    }
-
-    html.dark-mode .login-right .form-options .remember-label {
-        color: #94a3b8;
-    }
-
-    html.dark-mode .login-right .form-options .forgot-link {
-        color: #22c55e;
-    }
-
-    html.dark-mode .login-right .form-options .forgot-link:hover {
-        color: #f1f5f9;
-    }
-
-    html.dark-mode .login-right .login-footer {
-        border-top-color: rgba(255, 255, 255, .08);
-    }
-
-    html.dark-mode .login-right .login-footer a {
-        color: #94a3b8 !important;
-    }
-
-    html.dark-mode .login-right .login-footer a:hover {
-        color: #f1f5f9 !important;
-    }
-
-    html.dark-mode .login-right .login-footer .footer-info {
-        color: #64748b;
-    }
-
-    html.dark-mode .login-right .login-footer .footer-info a {
-        color: #94a3b8 !important;
-    }
-
-    html.dark-mode .login-right .login-footer .footer-info .divider-dot {
-        background: rgba(255, 255, 255, .2);
-    }
-
-    html.dark-mode .alert-custom {
-        background: rgba(239, 68, 68, .12) !important;
-        border-color: rgba(239, 68, 68, .2) !important;
-        color: #fca5a5 !important;
-    }
-
-    html.dark-mode .login-right .input-group-custom .form-control:-webkit-autofill,
-    html.dark-mode .login-right .input-group-custom .form-control:-webkit-autofill:hover,
-    html.dark-mode .login-right .input-group-custom .form-control:-webkit-autofill:focus {
-        -webkit-text-fill-color: #fff !important;
-        -webkit-box-shadow: 0 0 0 1000px rgba(30, 41, 59, .9) inset !important;
-    }
-
-    /* ===== RESPONSIVE ===== */
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
     @media (max-width: 992px) {
-        .login-right {
-            padding: 32px;
-        }
-    }
-
-    @media (max-width: 768px) {
-        .login-page {
+        .lg-page {
             flex-direction: column;
         }
 
-        .login-left {
+        .lg-visual {
+            flex: none;
+            height: 260px;
+        }
+
+        .lg-visual-top {
+            padding: 20px 22px;
+        }
+
+        .lg-visual-bottom {
+            padding: 18px 22px;
+        }
+
+        .lg-visual-bottom h1 {
+            font-size: 24px;
+        }
+
+        .lg-visual-bottom p {
             display: none;
         }
 
-        .login-right {
-            padding: 24px 20px;
-        }
-
-        .login-right .brand-section {
-            margin-bottom: 24px;
-        }
-
-        .login-right .brand-section img {
-            width: 80px;
-        }
-
-        .login-right .brand-section .app-name {
-            font-size: 18px;
-        }
-
-        .login-right .input-group-custom .form-control {
-            height: 40px !important;
-            font-size: 13px !important;
-        }
-
-        .btn-login-custom {
-            height: 40px;
-            font-size: 14px;
+        .lg-form {
+            padding: 34px 22px 44px;
         }
     }
 
     @media (max-width: 480px) {
-        .login-right {
-            padding: 20px 16px;
+        .lg-visual {
+            height: 200px;
         }
 
-        .login-right .login-footer .footer-info {
-            font-size: 9px;
+        .lg-year-pill {
+            display: none;
+        }
+
+        .lg-form {
+            padding: 28px 18px 40px;
+        }
+
+        .lg-title {
+            font-size: 23px;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+            animation: none !important;
+            transition: none !important;
+            scroll-behavior: auto !important;
         }
     }
 </style>
 
-<div class="login-page">
+@php
+    $namaMadrasah = $profil ? $profil->nama : 'MIS Nurul Ulum';
+    $tahunAjaranAktif = isset($tahun_ajaran) && $tahun_ajaran ? $tahun_ajaran->tahun_ajaran : ((isset($tahunAktif) && $tahunAktif) ? $tahunAktif->tahun_ajaran : date('Y') . '/' . (date('Y') + 1));
+@endphp
 
-    {{-- ===== LEFT PANEL ===== --}}
-    <div class="login-left">
+<div class="lg-page">
 
+    {{-- KIRI: foto sekolah --}}
+    <section class="lg-visual" aria-label="Gambar gedung madrasah">
+        <img src="{{ asset('img/bg1.jpg.jpeg') }}" alt="Gedung {{ $namaMadrasah }}">
+        <div class="lg-visual-scrim"></div>
 
-        <div class="hero-section">
-            <h1 class="hero-school-name">{{ $profil ? $profil->nama : 'MIS Nurul Ulum' }}</h1>
+        <div class="lg-visual-top">
+            <div class="lg-brand">
+                <span class="lg-brand-logo"><img src="{{ asset('img/logo2.png') }}" alt="Logo {{ $namaMadrasah }}"></span>
+                <span class="lg-brand-meta">
+                    <strong>{{ $namaMadrasah }}</strong>
+                    <span>Sistem Informasi Madrasah</span>
+                </span>
+            </div>
+            <span class="lg-year-pill"><i class="bi bi-mortarboard-fill"></i> TA {{ $tahunAjaranAktif }}</span>
         </div>
 
-    </div>
+        <div class="lg-visual-bottom">
+            <h1>{{ $namaMadrasah }}</h1>
+            <p>Selamat datang di layanan digital madrasah. Masuk untuk mengelola akademik, absensi, dan administrasi dengan cepat dan aman.</p>
+        </div>
+    </section>
 
-    {{-- ===== RIGHT PANEL ===== --}}
-    <div class="login-right">
-        <div class="login-container">
-
-            <div class="brand-section">
-                <img src="{{ asset('img/logo2.png') }}" alt="MIS Nurul Ulum">
-                <h1 class="app-name">MIS Nurul Ulum</h1>
-                <p class="app-subtitle">Sistem Informasi Akademik</p>
+    {{-- KANAN: form login --}}
+    <section class="lg-form" aria-label="Form login">
+        <div class="lg-card">
+            <div class="lg-card-head">
+                <span class="lg-logo"><img src="{{ asset('img/logo2.png') }}" alt="Logo {{ $namaMadrasah }}"></span>
+                <h2 class="lg-title">Masuk</h2>
+                <p class="lg-subtitle">Silakan masuk dengan akun Anda untuk mengakses dashboard.</p>
             </div>
 
-            <form method="POST" action="{{ route('login') }}">
+            <form method="POST" action="{{ route('login') }}" id="loginForm" novalidate>
                 @csrf
 
-                <div class="input-group-custom">
-                    <label class="form-label">Username atau Email</label>
-                    <div style="position: relative;">
-                        <input type="text" name="username" value="{{ old('username') }}"
-                            class="form-control" placeholder="Masukkan username atau email"
-                            required autocomplete="username">
-                        <i class="fas fa-user input-icon"></i>
+                <div class="lg-field">
+                    <label for="username">Username / Email</label>
+                    <div class="lg-control">
+                        <input type="text" id="username" name="username" value="{{ old('username') }}"
+                               placeholder="Masukkan username atau email" required autocomplete="username"
+                               aria-label="Username atau Email">
+                        <i class="bi bi-person"></i>
                     </div>
                 </div>
 
-                <div class="input-group-custom">
-                    <label class="form-label">Kata Sandi</label>
-                    <div style="position: relative;">
-                        <input type="password" name="password" id="password"
-                            class="form-control" placeholder="Masukkan password"
-                            required>
-                        <i class="fas fa-lock input-icon"></i>
-                        <button type="button" class="password-toggle" onclick="togglePassword()">
-                            <i class="fas fa-eye" id="toggleIcon"></i>
+                <div class="lg-field">
+                    <label for="password">Password</label>
+                    <div class="lg-control has-eye">
+                        <input type="password" id="password" name="password"
+                               placeholder="Masukkan password" required aria-label="Password">
+                        <i class="bi bi-lock"></i>
+                        <button type="button" class="lg-eye" id="togglePasswordBtn" aria-label="Tampilkan atau sembunyikan password">
+                            <i class="bi bi-eye" id="toggleIcon"></i>
                         </button>
                     </div>
+                    <div class="lg-helper">
+                        <span class="lg-caps" id="capsLockHint"><i class="bi bi-exclamation-triangle"></i> Caps Lock aktif</span>
+                        <a href="#" class="lg-forgot" onclick="event.preventDefault();alert('Fitur lupa password belum tersedia. Silakan hubungi admin.')">Lupa password?</a>
+                    </div>
                 </div>
 
-                <div class="form-options">
-                    <label class="remember-label">
-                        <input type="checkbox" name="remember" id="remember">
-                        Ingat Saya
+                <div class="lg-options">
+                    <label class="lg-remember">
+                        <input type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
+                        <span>Ingat saya</span>
                     </label>
-                    <a href="#" class="forgot-link" onclick="event.preventDefault();alert('Fitur lupa password belum tersedia. Silakan hubungi admin.')">Lupa Password?</a>
                 </div>
 
                 @if (session()->has('error'))
-                <div class="alert-custom">
-                    <i class="fas fa-exclamation-circle" style="flex-shrink:0;"></i>
+                <div class="lg-alert">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
                     <span>{{ session('error') }}</span>
                 </div>
                 @endif
 
-                <button type="submit" class="btn-login-custom" id="loginBtn">
-                    <i class="fas fa-sign-in-alt"></i>
-                    Masuk
+                <button type="submit" class="lg-submit" id="loginBtn">
+                    <i class="bi bi-box-arrow-in-right" id="loginBtnIcon"></i>
+                    <span id="loginBtnText">Masuk</span>
+                    <span class="lg-progress" aria-hidden="true"></span>
                 </button>
-
             </form>
 
-            <div class="login-footer">
-                <a href="/">
-                    <i class="fas fa-arrow-left"></i>
-                    Kembali ke Beranda
-                </a>
-                <div class="footer-info">
-                    <span>&copy; {{ date('Y') }} MIS Nurul Ulum</span>
-                    <span class="divider-dot"></span>
+            <div class="lg-foot">
+                <a href="/"><i class="bi bi-arrow-left"></i> Kembali ke beranda</a>
+                <p>
+                    <span>&copy; {{ date('Y') }} {{ $namaMadrasah }}</span>
+                    <span class="lg-dot"></span>
                     <span>v1.0.0</span>
-                    <span class="divider-dot"></span>
-                    <span>Developed by <a href="#">Nurul Ulum Team</a></span>
-                </div>
+                </p>
             </div>
-
         </div>
-    </div>
-
+    </section>
 </div>
 
 <script>
-    function togglePassword() {
+    document.getElementById('togglePasswordBtn')?.addEventListener('click', function () {
         const input = document.getElementById('password');
         const icon = document.getElementById('toggleIcon');
-        if (input.type === 'password') {
-            input.type = 'text';
-            icon.classList.remove('fa-eye');
-            icon.classList.add('fa-eye-slash');
-        } else {
-            input.type = 'password';
-            icon.classList.remove('fa-eye-slash');
-            icon.classList.add('fa-eye');
-        }
-    }
+        if (!input || !icon) return;
+        const show = input.type === 'password';
+        input.type = show ? 'text' : 'password';
+        icon.className = show ? 'bi bi-eye-slash' : 'bi bi-eye';
+        input.focus();
+    });
 
-    document.getElementById('loginBtn')?.addEventListener('click', function(e) {
+    document.getElementById('password')?.addEventListener('keyup', function (e) {
+        const hint = document.getElementById('capsLockHint');
+        if (hint) hint.classList.toggle('show', e.getModifierState('CapsLock'));
+    });
+
+    document.getElementById('loginBtn')?.addEventListener('click', function (e) {
         const rect = this.getBoundingClientRect();
         const ripple = document.createElement('span');
-        ripple.className = 'ripple-effect';
+        ripple.className = 'lg-ripple';
         const size = Math.max(rect.width, rect.height);
         ripple.style.width = ripple.style.height = size + 'px';
         ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
         ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
         this.appendChild(ripple);
-        setTimeout(() => ripple.remove(), 600);
+        setTimeout(function () { ripple.remove(); }, 600);
+    });
+
+    document.getElementById('loginForm')?.addEventListener('submit', function () {
+        const btn = document.getElementById('loginBtn');
+        const icon = document.getElementById('loginBtnIcon');
+        const text = document.getElementById('loginBtnText');
+        if (!btn) return;
+        btn.disabled = true;
+        btn.classList.add('is-loading');
+        if (icon) icon.className = 'spinner-border spinner-border-sm';
+        if (text) text.textContent = 'Memverifikasi...';
     });
 </script>
-
 @endsection

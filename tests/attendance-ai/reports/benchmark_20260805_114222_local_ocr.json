@@ -1,0 +1,98 @@
+{
+    "schema_version": "1.0",
+    "correlation_id": "IMP-20260805-861599",
+    "timestamp": "2026-08-05T11:42:22+07:00",
+    "provider": "local_ocr",
+    "parse_mode": "ai",
+    "pipeline_status": "WARNING",
+    "decision": {
+        "category": "RECOVERABLE_WARNING",
+        "code": "DENOISE_RECOMMENDED",
+        "message": "Image can be improved automatically before provider execution."
+    },
+    "template": {
+        "matched": false,
+        "template_name": "mi_nurul_ulum",
+        "template_confidence": 0.527,
+        "layout_confidence": 0.4932,
+        "alignment_score": 0.6586,
+        "fallback_used": true
+    },
+    "table": {
+        "table_detected": false,
+        "table_confidence": 0.4972,
+        "table_area": 0.504,
+        "fallback_used": true,
+        "overlay_path": null
+    },
+    "grid": {
+        "grid_detected": true,
+        "grid_confidence": 0.5134,
+        "estimated_rows": 10,
+        "estimated_columns": 16,
+        "intersection_count": 160,
+        "grid_quality": "FAIR",
+        "fallback_used": false
+    },
+    "cell_map": {
+        "cell_count": 160,
+        "student_row_count": 9,
+        "date_column_count": 13,
+        "recap_column_count": 3,
+        "cell_mapping_confidence": 0.6067,
+        "fallback_used": false
+    },
+    "coordinate_map": {
+        "coordinate_mapping_enabled": true,
+        "mapped_cells": 160,
+        "mapping_confidence": 0.7,
+        "attendance_cells": 117,
+        "recap_cells": 27,
+        "header_cells": 16,
+        "fallback_used": false
+    },
+    "ocr": {
+        "ocr_provider": "local",
+        "cells_processed": 64,
+        "cells_success": 22,
+        "cells_failed": 42,
+        "average_confidence": 85,
+        "duration_ms": 81610,
+        "fallback_used": true
+    },
+    "student_mapping": {
+        "rows_processed": 9,
+        "rows_matched": 3,
+        "rows_unmatched": 6,
+        "average_confidence": 49.25,
+        "average_quality": 36.89,
+        "fallback_used": false
+    },
+    "image_quality": {
+        "brightness": 8,
+        "contrast": 4,
+        "blur": 12,
+        "noise": 30
+    },
+    "pipeline": {
+        "total_duration_ms": 124743,
+        "provider_duration_ms": null,
+        "memory_usage_bytes": 27262976
+    },
+    "result": {
+        "student_count": 0,
+        "status_count": 0,
+        "warning_count": 0,
+        "error_count": 0,
+        "average_confidence": null
+    },
+    "validation": {
+        "expected_students": null,
+        "parsed_students": 0,
+        "expected_statuses": null,
+        "parsed_statuses": 0,
+        "expected_dates": null,
+        "parsed_dates": null,
+        "accuracy": null
+    }
+}

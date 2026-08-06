@@ -131,6 +131,7 @@ class AbsensiImportService
             $statuses = [];
             $sources  = [];
             $warnings = [];
+            $review_reasons = [];
 
             // Collect AI warnings about uncertain dates into per-day warnings
             $uncertainStatuses = [];
@@ -159,12 +160,17 @@ class AbsensiImportService
 
                 // AI found a status for this day
                 $aiStatus = $aiByDay[$day] ?? null;
-                if ($aiStatus) {
+                if ($aiStatus && in_array($aiStatus, ['H', 'I', 'S', 'A'], true)) {
                     $statuses[$dayStr] = $aiStatus;
                     $sources[$dayStr]  = 'AI';
+                } elseif ($aiStatus === 'UNKNOWN') {
+                    $statuses[$dayStr] = 'UNKNOWN';
+                    $sources[$dayStr]  = 'REVIEW';
+                    $review_reasons[$dayStr] = 'Status pada foto tidak terbaca dengan yakin.';
                 } else {
-                    $statuses[$dayStr] = 'H';
-                    $sources[$dayStr]  = 'DEFAULT';
+                    $statuses[$dayStr] = 'UNKNOWN';
+                    $sources[$dayStr]  = 'REVIEW';
+                    $review_reasons[$dayStr] = 'Tidak ada status yang berhasil dibaca dari foto.';
                 }
             }
 
@@ -185,15 +191,16 @@ class AbsensiImportService
             }
 
             $result[] = [
-                'student_id'   => $studentId,
-                'nama'         => $student ? $student->nama : ($namaOcr ?: 'Baris ' . $no . ' tidak dikenal'),
-                'nisn'         => $nisnDb ?: ($nisn ?: '-'),
-                'nama_ocr'     => $namaOcr,
-                'no'           => $no,
-                'match_type'   => $matchType,
-                'statuses'     => $statuses,
-                'sources'      => $sources,
-                'warnings'     => $warnings,
+                'student_id'      => $studentId,
+                'nama'            => $student ? $student->nama : ($namaOcr ?: 'Baris ' . $no . ' tidak dikenal'),
+                'nisn'            => $nisnDb ?: ($nisn ?: '-'),
+                'nama_ocr'        => $namaOcr,
+                'no'              => $no,
+                'match_type'      => $matchType,
+                'statuses'        => $statuses,
+                'sources'         => $sources,
+                'warnings'        => $warnings,
+                'review_reasons'  => $review_reasons,
             ];
         }
 
@@ -214,21 +221,30 @@ class AbsensiImportService
                         $statuses[$dayStr] = 'LIBUR';
                         $sources[$dayStr]  = 'SYSTEM';
                     } else {
-                        $statuses[$dayStr] = 'H';
-                        $sources[$dayStr]  = 'DEFAULT';
+                        $statuses[$dayStr] = 'UNKNOWN';
+                        $sources[$dayStr]  = 'REVIEW';
+                    }
+                }
+
+                $reviewReasons = [];
+                foreach ($actualDates as $day) {
+                    $dayStr = (string) $day;
+                    if (($sources[$dayStr] ?? null) === 'REVIEW') {
+                        $reviewReasons[$dayStr] = 'Siswa tidak muncul pada hasil foto, perlu ditinjau manual.';
                     }
                 }
 
                 $result[] = [
-                    'student_id'   => $s->id,
-                    'nama'         => $s->nama,
-                    'nisn'         => $s->nisn ?? '-',
-                    'nama_ocr'     => '',
-                    'no'           => 0,
-                    'match_type'   => 'UNMATCHED_DB',
-                    'statuses'     => $statuses,
-                    'sources'      => $sources,
-                    'warnings'     => ['Siswa di database tidak ada di hasil OCR.'],
+                    'student_id'      => $s->id,
+                    'nama'            => $s->nama,
+                    'nisn'            => $s->nisn ?? '-',
+                    'nama_ocr'        => '',
+                    'no'              => 0,
+                    'match_type'      => 'UNMATCHED_DB',
+                    'statuses'        => $statuses,
+                    'sources'         => $sources,
+                    'warnings'        => ['Siswa di database tidak ada di hasil OCR.'],
+                    'review_reasons'  => $reviewReasons,
                 ];
             }
         }
@@ -275,12 +291,13 @@ class AbsensiImportService
             'I'             => 0,
             'S'             => 0,
             'A'             => 0,
+            'UNKNOWN'       => 0,
             'libur_jumat'   => 0,
             'belum_terjadi' => 0,
             'review'        => 0,
             'warning'       => 0,
             'source_ai'     => 0,
-            'source_default'=> 0,
+            'source_review' => 0,
             'source_system' => 0,
             'source_manual' => 0,
         ];
@@ -304,8 +321,8 @@ class AbsensiImportService
 
             foreach ($actualDates as $day) {
                 $dayStr = (string) $day;
-                $status = $row['statuses'][$dayStr] ?? 'H';
-                $source = $row['sources'][$dayStr] ?? 'DEFAULT';
+                $status = $row['statuses'][$dayStr] ?? 'UNKNOWN';
+                $source = $row['sources'][$dayStr] ?? 'REVIEW';
                 $date = $monthStart->copy()->day($day);
                 if ($date->month !== $monthStart->month) continue;
                 if ($date->isFriday() || $date->gt($today)) continue;
@@ -317,9 +334,11 @@ class AbsensiImportService
             }
         }
 
+        $errors = [];
+
         return [
             'valid'  => empty($errors),
-            'errors' => $errors ?? [],
+            'errors' => $errors,
             'stats'  => $stats,
         ];
     }
@@ -391,14 +410,18 @@ class AbsensiImportService
                 foreach ($matchedData as $row) {
                     if (!$row['student_id']) continue;
 
-                    $status = $row['statuses'][(string) $day] ?? 'H';
-                    $source = $row['sources'][(string) $day] ?? 'DEFAULT';
+                    $status = $row['statuses'][(string) $day] ?? 'UNKNOWN';
+                    $source = $row['sources'][(string) $day] ?? 'REVIEW';
 
                     if ($status === 'LIBUR') continue;
+                    if (in_array($status, ['UNKNOWN', 'REVIEW'], true) || $source === 'REVIEW') {
+                        $errors[] = 'Masih ada hasil import yang perlu ditinjau sebelum disimpan.';
+                        continue 2;
+                    }
 
                     $keteranganMap = [
                         'AI'      => 'Import foto - AI OCR',
-                        'DEFAULT' => 'Import foto - Default H',
+                        'REVIEW'  => 'Import foto - Perlu Tinjauan',
                         'SYSTEM'  => 'Import foto - Sistem',
                         'MANUAL'  => 'Import foto - Manual Koreksi',
                     ];
@@ -452,8 +475,8 @@ class AbsensiImportService
     public function getDayName(Carbon $date): string
     {
         $days = [
-            1 => 'Senin', 2 => 'Selasa', 3 => 'Rabu', 4 => 'Kamis',
-            5 => 'Jumat', 6 => 'Sabtu', 7 => 'Minggu',
+            0 => 'Minggu', 1 => 'Senin', 2 => 'Selasa', 3 => 'Rabu',
+            4 => 'Kamis', 5 => 'Jumat', 6 => 'Sabtu',
         ];
         return $days[$date->dayOfWeek] ?? '';
     }

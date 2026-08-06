@@ -3,248 +3,202 @@
 @section('title', 'Jadwal Kelas ' . $kelas->nama_kelas)
 
 @section('content')
-
-@push('css')
+@include('component.admin.jadwal-module')
 <style>
-    .jadwal-header {
-        background: linear-gradient(135deg, #16a34a, #22c55e);
-        color: #fff;
-        border-radius: 16px;
-    }
-    .jadwal-table {
-        border-collapse: separate;
-        border-spacing: 0;
-        width: 100%;
-        font-size: 13px;
-    }
-    .jadwal-table thead th {
-        background: #16a34a;
-        color: #fff;
-        text-align: center;
-        vertical-align: middle;
-        padding: 12px 8px;
-        font-weight: 600;
-        border: none;
-        font-size: 13px;
-    }
-    .jadwal-table thead th:first-child {
-        border-radius: 12px 0 0 0;
-    }
-    .jadwal-table thead th:last-child {
-        border-radius: 0 12px 0 0;
-    }
-    .jadwal-table tbody td {
-        padding: 10px 8px;
-        vertical-align: middle;
-        border: 1px solid #e5e7eb;
-        height: 70px;
-    }
-    .jadwal-table tbody tr:last-child td:first-child {
-        border-radius: 0 0 0 12px;
-    }
-    .jadwal-table tbody tr:last-child td:last-child {
-        border-radius: 0 0 12px 0;
-    }
-    .jam-cell {
-        background: #f0fdf4;
-        text-align: center;
-        font-weight: 700;
-        color: #166534;
-        white-space: nowrap;
-    }
-    .jam-cell .jam-label {
-        font-size: 14px;
-        display: block;
-    }
-    .jam-cell .jam-waktu {
-        font-size: 11px;
-        color: #6b7280;
-        font-weight: 400;
-    }
-    .mapel-cell {
-        text-align: center;
-        background: #fff;
-        transition: all 0.2s;
-    }
-    .mapel-cell:hover {
-        background: #f0fdf4;
-    }
-    .mapel-cell .nama-mapel {
-        font-weight: 700;
-        color: #166534;
-        font-size: 13px;
-        display: block;
-        margin-bottom: 2px;
-    }
-    .mapel-cell .nama-guru {
-        font-size: 11px;
-        color: #6b7280;
-    }
-    .mapel-cell .jam-detail {
-        font-size: 10px;
-        color: #9ca3af;
-        margin-top: 2px;
-    }
-    .kosong {
-        text-align: center;
-        color: #d1d5db;
-        font-size: 18px;
-    }
-    .info-badge {
-        background: rgba(255,255,255,0.2);
-        border-radius: 8px;
-        padding: 4px 12px;
-        font-size: 12px;
-        font-weight: 500;
-    }
-    .stat-card {
-        background: #fff;
-        border-radius: 12px;
-        padding: 16px;
-        text-align: center;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-    }
-    .stat-card .stat-number {
-        font-size: 28px;
-        font-weight: 800;
-        color: #16a34a;
-    }
-    .stat-card .stat-label {
-        font-size: 12px;
-        color: #6b7280;
-        margin-top: 4px;
-    }
-    .legend-item {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 12px;
-        color: #6b7280;
-        margin-right: 16px;
-    }
-    .legend-dot {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        display: inline-block;
+    .page-title-content { display: none !important; }
+
+    .jd-cell-empty { display: flex; align-items: center; justify-content: center; height: 100%; min-height: 76px;
+        color: var(--jd-text-3); opacity: .45; font-size: 14px; font-weight: 700; letter-spacing: .3px; }
+
+    .jd-day-stats { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 16px; }
+    .jd-day-stat { flex: 1; min-width: 120px; text-align: center; padding: 14px 10px; border-radius: 14px;
+        background: var(--jd-bg); border: 1px solid var(--jd-border); }
+    .jd-day-stat b { display: block; font-size: 20px; color: var(--jd-text); font-variant-numeric: tabular-nums; }
+    .jd-day-stat span { font-size: 10.5px; font-weight: 700; color: var(--jd-text-3); text-transform: uppercase; letter-spacing: .4px; }
+
+    .jd-subtitle { display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 700; color: var(--jd-text);
+        margin: 0 0 12px; }
+    .jd-subtitle i { color: var(--jd-primary); }
+    .jd-subtitle .jd-count { margin-left: auto; font-size: 11.5px; color: var(--jd-text-3); font-weight: 600; }
+
+    @media (max-width: 767.98px) {
+        .jd-day-stats { gap: 8px; }
     }
 </style>
-@endpush
 
-{{-- Header --}}
-<div class="card border-0 shadow-sm mb-4" style="border-radius:16px;">
-    <div class="card-body p-4 jadwal-header">
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-            <div class="d-flex align-items-center gap-3">
-                <div style="width:52px;height:52px;background:rgba(255,255,255,0.2);border-radius:14px;display:flex;align-items:center;justify-content:center;">
-                    <i class="fas fa-calendar-week" style="font-size:24px;"></i>
-                </div>
+@php
+    $namaMapels = [];
+    foreach ($jadwals as $jw) {
+        $namaMapels[$jw->mapel->nama_mapel ?? '-'] = jd_mapel_color_idx($jw->mapel->nama_mapel ?? '-');
+    }
+    $tahunAktif = $jadwals->first()?->tahunAjaran?->tahun_ajaran;
+@endphp
+
+<div class="jd-mod jd-page-perkelas">
+
+    <a href="{{ route('jadwal-pelajaran.daftar-kelas') }}" class="jd-back mb-3"><i class="fas fa-arrow-left"></i> Daftar Kelas</a>
+
+    {{-- ===== HERO ===== --}}
+    <div class="jd-detail-hero">
+        <div class="jd-detail-hero-grid">
+            <div class="jd-hero-left">
+                <div class="jd-hero-icon"><i class="fas fa-calendar-week"></i></div>
                 <div>
-                    <h4 class="mb-0 fw-bold" style="font-size:18px;">
-                        Jadwal Pelajaran
-                    </h4>
-                    <span style="font-size:13px;opacity:0.85;">
-                        {{ $kelas->nama_kelas }}{{ $kelas->jenjang ? ' — ' . $kelas->jenjang->nama_jenjang : '' }}
-                    </span>
+                    <h2 class="jd-hero-title">{{ $kelas->nama_kelas }}</h2>
+                    <p class="jd-hero-sub">{{ $kelas->jenjang->nama_jenjang ?? 'Jenjang' }} &middot; Jadwal pelajaran mingguan kelas ini</p>
+                    <div class="jd-hero-badges">
+                        <span class="jd-hero-badge"><i class="fas fa-book"></i> {{ $jadwals->count() }} Jadwal</span>
+                        <span class="jd-hero-badge"><i class="fas fa-calendar-day"></i> {{ $jadwals->pluck('hari')->unique()->count() }} Hari Aktif</span>
+                        <span class="jd-hero-badge jd-hero-badge--ok"><i class="fas fa-user-graduate"></i> {{ $jadwals->pluck('guru_id')->unique()->count() }} Guru</span>
+                        @if($tahunAktif)
+                        <span class="jd-hero-badge"><i class="fas fa-calendar-alt"></i> TA {{ $tahunAktif }}</span>
+                        @endif
+                    </div>
                 </div>
             </div>
-            <div class="d-flex flex-wrap gap-2 align-items-center">
-                <span class="info-badge">
-                    <i class="fas fa-book me-1"></i> {{ $jadwals->count() }} Jadwal
-                </span>
-                <a href="{{ route('jadwal-pelajaran.cetak', $kelas->id) }}" target="_blank"
-                    class="btn btn-sm" style="background:rgba(255,255,255,0.9);color:#16a34a;border-radius:8px;font-weight:600;">
-                    <i class="fas fa-print me-1"></i> Cetak
-                </a>
-                <a href="{{ route('jadwal-pelajaran.daftar-kelas') }}"
-                    class="btn btn-sm" style="background:rgba(255,255,255,0.2);color:#fff;border-radius:8px;border:1px solid rgba(255,255,255,0.3);">
-                    <i class="fas fa-arrow-left me-1"></i> Kembali
-                </a>
+            <div class="jd-hero-right">
+                <a href="{{ route('jadwal-pelajaran.cetak', $kelas->id) }}" target="_blank" class="jd-btn jd-btn--light"><i class="fas fa-print"></i> Cetak Jadwal</a>
             </div>
         </div>
     </div>
-</div>
 
-{{-- Statistik --}}
-<div class="row mb-4">
-    <div class="col-6 col-md-3 mb-3">
-        <div class="stat-card">
-            <div class="stat-number">{{ $jadwals->count() }}</div>
-            <div class="stat-label">Total Jadwal</div>
+    @if($jadwals->isEmpty())
+    {{-- ===== EMPTY ===== --}}
+    <div class="jd-card">
+        <div class="jd-empty">
+            <div class="jd-empty-illus">
+                <div class="ring"></div>
+                <div class="core"><i class="fas fa-calendar-times"></i></div>
+            </div>
+            <div class="jd-empty-title">Belum Ada Jadwal</div>
+            <div class="jd-empty-sub">Kelas ini belum memiliki jadwal pelajaran untuk tahun ajaran aktif. Silakan tambahkan jadwal melalui menu Jadwal Pelajaran.</div>
+            <a href="{{ route('jadwal-pelajaran.index') }}" class="jd-btn jd-btn--soft"><i class="fas fa-plus"></i> Atur Jadwal</a>
         </div>
     </div>
-    <div class="col-6 col-md-3 mb-3">
-        <div class="stat-card">
-            <div class="stat-number">{{ $jadwals->pluck('hari')->unique()->count() }}</div>
-            <div class="stat-label">Hari Aktif</div>
+    @else
+    {{-- ===== STATISTIK ===== --}}
+    <div class="jd-kpi-grid">
+        <div class="jd-kpi">
+            <div class="jd-kpi-icon blue"><i class="fas fa-book-open"></i></div>
+            <div>
+                <div class="jd-kpi-num">{{ $jadwals->count() }}</div>
+                <div class="jd-kpi-label">Total Jadwal</div>
+                <div class="jd-kpi-sub">Seluruh slot terisi</div>
+            </div>
+            <div class="jd-kpi-watermark"><i class="fas fa-book-open"></i></div>
+        </div>
+        <div class="jd-kpi">
+            <div class="jd-kpi-icon green"><i class="fas fa-calendar-day"></i></div>
+            <div>
+                <div class="jd-kpi-num">{{ $jadwals->pluck('hari')->unique()->count() }}</div>
+                <div class="jd-kpi-label">Hari Aktif</div>
+                <div class="jd-kpi-sub">Dari {{ count($hariList) }} hari efektif</div>
+            </div>
+            <div class="jd-kpi-watermark"><i class="fas fa-calendar-day"></i></div>
+        </div>
+        <div class="jd-kpi">
+            <div class="jd-kpi-icon amber"><i class="fas fa-user-graduate"></i></div>
+            <div>
+                <div class="jd-kpi-num">{{ $jadwals->pluck('guru_id')->unique()->count() }}</div>
+                <div class="jd-kpi-label">Guru Mengajar</div>
+                <div class="jd-kpi-sub">Guru pengampu</div>
+            </div>
+            <div class="jd-kpi-watermark"><i class="fas fa-user-graduate"></i></div>
+        </div>
+        <div class="jd-kpi">
+            <div class="jd-kpi-icon violet"><i class="fas fa-layer-group"></i></div>
+            <div>
+                <div class="jd-kpi-num">{{ $jadwals->pluck('mata_pelajaran_id')->unique()->count() }}</div>
+                <div class="jd-kpi-label">Mata Pelajaran</div>
+                <div class="jd-kpi-sub">Mapel terjadwal</div>
+            </div>
+            <div class="jd-kpi-watermark"><i class="fas fa-layer-group"></i></div>
         </div>
     </div>
-    <div class="col-6 col-md-3 mb-3">
-        <div class="stat-card">
-            <div class="stat-number">{{ $jadwals->pluck('guru_id')->unique()->count() }}</div>
-            <div class="stat-label">Guru Mengajar</div>
-        </div>
-    </div>
-    <div class="col-6 col-md-3 mb-3">
-        <div class="stat-card">
-            <div class="stat-number">{{ $jadwals->pluck('mata_pelajaran_id')->unique()->count() }}</div>
-            <div class="stat-label">Mata Pelajaran</div>
-        </div>
-    </div>
-</div>
 
-{{-- Tabel Jadwal --}}
-<div class="card border-0 shadow-sm" style="border-radius:16px;">
-    <div class="card-body p-3">
-        <div class="table-responsive">
-            <table class="jadwal-table">
-                <thead>
-                    <tr>
-                        <th style="width:100px;">Jam</th>
-                        @foreach($hariList as $hari)
-                        <th>{{ $hari }}</th>
-                        @endforeach
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($jamList as $jamKe => $jamWaktu)
-                    <tr>
-                        <td class="jam-cell">
-                            <span class="jam-label">Jam {{ $jamKe }}</span>
-                            <span class="jam-waktu">{{ $jamWaktu['mulai'] }} - {{ $jamWaktu['selesai'] }}</span>
-                        </td>
-                        @foreach($hariList as $hari)
+    {{-- ===== JAM PER HARI ===== --}}
+    <div class="jd-day-stats">
+        @foreach($hariList as $day)
+        <div class="jd-day-stat">
+            <b>{{ $jadwals->where('hari', $day)->count() }}</b>
+            <span>{{ $day }}</span>
+        </div>
+        @endforeach
+    </div>
+
+    {{-- ===== GRID JADWAL ===== --}}
+    <div style="margin-top:20px;">
+        <h3 class="jd-subtitle">
+            <i class="fas fa-th-large"></i> Peta Jadwal
+            <span class="jd-count">{{ $jadwals->count() }} slot terisi</span>
+        </h3>
+        <div class="jd-scheduler-wrap">
+            <div class="jd-scheduler">
+                <div class="jd-sched-row jd-sched-head">
+                    <div class="jd-sched-hcell">Jam</div>
+                    @foreach($hariList as $day)
+                    <div class="jd-sched-hcell">{{ $day }}</div>
+                    @endforeach
+                </div>
+                @foreach($jamList as $jamKe => $jamWaktu)
+                    @if($loop->index === 2)
+                    <div class="jd-sched-break"><i class="fas fa-mug-hot"></i> Istirahat</div>
+                    @endif
+                    <div class="jd-sched-row jd-sched-body-row">
+                        <div class="jd-sched-time">
+                            <b>Jam {{ $jamKe }}</b>
+                            <span>{{ $jamWaktu['mulai'] }} - {{ $jamWaktu['selesai'] }}</span>
+                        </div>
+                        @foreach($hariList as $day)
                             @php
-                                $jadwal = $jadwals->first(function($j) use ($hari, $jamKe) {
-                                    return $j->hari === $hari && $j->jam_ke == $jamKe;
+                                $jadwal = $jadwals->first(function ($j) use ($day, $jamKe) {
+                                    return $j->hari === $day && (int) $j->jam_ke === (int) $jamKe;
                                 });
                             @endphp
-                            <td class="mapel-cell">
+                            <div class="jd-sched-cell">
                                 @if($jadwal)
-                                    <span class="nama-mapel">{{ $jadwal->mapel->nama_mapel ?? '-' }}</span>
-                                    <span class="nama-guru">{{ $jadwal->guru->nama ?? '-' }}</span>
-                                    <div class="jam-detail">{{ substr($jadwal->jam_mulai, 0, 5) }} - {{ substr($jadwal->jam_selesai, 0, 5) }}</div>
+                                    @php $mc = jd_mapel_color_idx($jadwal->mapel->nama_mapel ?? ''); @endphp
+                                    <div class="jd-slot jd-mc-{{ $mc }}">
+                                        <span class="jd-slot-top">
+                                            <span class="jd-slot-name">{{ $jadwal->mapel->nama_mapel ?? '-' }}</span>
+                                            <span class="jd-slot-dot"></span>
+                                        </span>
+                                        <span class="jd-slot-guru"><i class="fas fa-user-graduate"></i> {{ $jadwal->guru->nama ?? '-' }}</span>
+                                        <span class="jd-slot-time"><i class="fas fa-clock"></i> {{ substr($jadwal->jam_mulai, 0, 5) }} - {{ substr($jadwal->jam_selesai, 0, 5) }}</span>
+                                    </div>
                                 @else
-                                    <span class="kosong">—</span>
+                                    <span class="jd-cell-empty">&mdash;</span>
                                 @endif
-                            </td>
+                            </div>
                         @endforeach
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
+                    </div>
+                @endforeach
+            </div>
         </div>
     </div>
-</div>
 
-{{-- Keterangan --}}
-<div class="mt-3" style="font-size:12px;">
-    <span class="legend-item">
-        <span class="legend-dot" style="background:#16a34a;"></span> Mata Pelajaran & Guru
-    </span>
-    <span class="legend-item">
-        <span class="legend-dot" style="background:#d1d5db;"></span> Kosong / Istirahat
-    </span>
-</div>
+    {{-- ===== LEGEND ===== --}}
+    @if(count($namaMapels))
+    <div class="jd-legend" style="margin-top:16px;">
+        @foreach($namaMapels as $nama => $mc)
+        <span class="jd-legend-item"><span class="jd-mapel-dot jd-mc-{{ $mc }}" style="background:var(--mc);"></span> {{ $nama }}</span>
+        @endforeach
+    </div>
+    @endif
+    @endif
 
+</div>
 @endsection
+
+@push('scripts')
+<script>
+$(function() {
+    @if(session('success'))
+    window.JD.toast('ok', 'Berhasil', @json(session('success')));
+    @endif
+    @if(session('error'))
+    window.JD.toast('err', 'Gagal', @json(session('error')));
+    @endif
+});
+</script>
+@endpush

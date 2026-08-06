@@ -1,375 +1,389 @@
 @extends('layouts.main')
 @section('title', 'Hasil Lomba')
-@section('content')
-@include('component.admin.ms-style')
+
+@push('css')
 <style>
-    .filter-lomba-wrap { position: relative; }
-    .filter-lomba-wrap .form-select {
-        height: 34px; border-radius: 18px; border: 1.5px solid #e2e8f0;
-        font-size: 12px; padding: 0 30px 0 34px; background-color: #f8fafc;
-        color: #475569; min-width: 150px; cursor: pointer; transition: all .25s;
-        appearance: none; -webkit-appearance: none;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
-        background-repeat: no-repeat; background-position: right 14px center; background-size: 12px;
-    }
-    .filter-lomba-wrap .form-select:focus { border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,.1); background-color: #fff; }
-    .filter-lomba-wrap .filter-icon-prepend { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 12px; pointer-events: none; z-index: 1; }
-    .filter-lomba-wrap .form-select:hover { border-color: #cbd5e1; background-color: #fff; }
-    .search-pill {
-        height: 34px; border: 1.5px solid #e2e8f0; border-radius: 18px;
-        font-size: 12px; padding: 0 16px 0 34px; background-color: #f8fafc;
-        color: #475569; min-width: 200px; transition: all .25s; outline: none;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E");
-        background-repeat: no-repeat; background-position: left 12px center; background-size: 14px;
-    }
-    .search-pill:focus { border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,.1); background-color: #fff; }
-    .search-pill::placeholder { color: #94a3b8; font-size: 12px; }
-    .btn-header-ms.btn-tambah-ms.btn-compact { height: 34px; padding: 0 14px; font-size: 12px; border-radius: 8px; }
-
-    /* ---- Tab Navigation ---- */
-    .hasil-tab-nav {
-        display: flex; gap: 0; margin: 16px 20px 0; border-bottom: 2px solid #e2e8f0;
-    }
-    .hasil-tab-nav a {
-        display: inline-flex; align-items: center; gap: 7px;
-        padding: 10px 20px; font-size: 13px; font-weight: 600;
-        color: #94a3b8; text-decoration: none; border-bottom: 2px solid transparent;
-        margin-bottom: -2px; transition: all .2s; border-radius: 8px 8px 0 0;
-    }
-    .hasil-tab-nav a:hover { color: #475569; background: #f8fafc; }
-    .hasil-tab-nav a.active {
-        color: #16a34a; border-bottom-color: #16a34a;
-        background: rgba(22,163,74,.04);
-    }
-    .hasil-tab-nav a .tab-count {
-        display: inline-flex; align-items: center; justify-content: center;
-        min-width: 22px; height: 20px; padding: 0 6px;
-        border-radius: 10px; font-size: 11px; font-weight: 700;
-        background: #f1f5f9; color: #64748b;
-    }
-    .hasil-tab-nav a.active .tab-count {
-        background: #dcfce7; color: #16a34a;
-    }
-    @media (max-width: 576px) {
-        .hasil-tab-nav { margin: 12px 14px 0; }
-        .hasil-tab-nav a { padding: 8px 14px; font-size: 12px; }
-    }
-
-    /* ============================================================
-       MODAL HAPUS
-       ============================================================ */
-    .modal-header-custom { padding:18px 24px; border-bottom:none; }
-    .modal-body-custom { padding:16px 24px 20px; }
-
-    html:not(.dark-mode) .modal-content {
-        border:none; border-radius:20px;
-        box-shadow:0 24px 80px rgba(0,0,0,.15); overflow:hidden;
-    }
-    html.dark-mode .modal-content {
-        background:#0d2f38 !important;
-        border:2px solid #175265 !important;
-        border-radius:24px !important;
-        box-shadow:0 30px 70px -16px rgba(0,0,0,.7) !important;
-        backdrop-filter:none !important;
-        -webkit-backdrop-filter:none !important;
-    }
-    html.dark-mode .table-card { border:2px solid #175265 !important; }
-
-    html:not(.dark-mode) .modal.fade .modal-dialog {
-        transform:scale(0.92) translateY(16px);
-        transition:transform .3s cubic-bezier(.2,.8,.2,1);
-    }
-    html:not(.dark-mode) .modal.show .modal-dialog { transform:scale(1) translateY(0); }
-
-    .delete-icon-wrap { width:80px; height:80px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; margin-bottom:4px; }
-    html:not(.dark-mode) .delete-icon-wrap { background:linear-gradient(135deg,#fef2f2,#fee2e2); animation:deletePulse 2s ease-in-out infinite; }
-    html.dark-mode .delete-icon-wrap { background:rgba(220,38,38,.15); box-shadow:0 0 20px rgba(220,38,38,.1); }
-    .delete-icon-wrap i { font-size:32px; color:#dc2626; }
-    html:not(.dark-mode) .delete-icon-wrap i { animation:deleteShake 3s ease-in-out infinite; }
-    @keyframes deletePulse { 0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,.15)} 50%{box-shadow:0 0 0 12px rgba(220,38,38,0)} }
-    @keyframes deleteShake { 0%,100%{transform:rotate(0)} 2%{transform:rotate(8deg)} 4%{transform:rotate(-6deg)} 6%{transform:rotate(4deg)} 8%{transform:rotate(0)} }
-
-    .delete-info-box { border-left:4px solid #dc2626; border-radius:12px; padding:14px 18px; }
-    html:not(.dark-mode) .delete-info-box { background:linear-gradient(135deg,#f8fafc,#f1f5f9); border:1px solid #e2e8f0; }
-    html.dark-mode .delete-info-box { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); }
-    .delete-info-box .delete-label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; color:#94a3b8; margin-bottom:2px; }
-    .delete-info-box .delete-value { font-weight:700; font-size:16px; }
-    html:not(.dark-mode) .delete-info-box .delete-value { color:var(--ms-text); }
-    html.dark-mode .delete-info-box .delete-value { color:var(--text-primary); }
-
-    .btn-delete-final { border:none !important; border-radius:10px !important; padding:9px 22px !important; font-weight:600 !important; font-size:13px !important; transition:all .25s !important; }
-    html:not(.dark-mode) .btn-delete-final { background:linear-gradient(135deg,#dc2626,#b91c1c) !important; color:#fff !important; box-shadow:0 4px 14px rgba(220,38,38,.3) !important; }
-    html.dark-mode .btn-delete-final { background:linear-gradient(135deg,#dc2626,#b91c1c) !important; color:#fff !important; box-shadow:0 4px 14px rgba(220,38,38,.4) !important; }
-    .btn-delete-final:hover { transform:translateY(-2px) !important; }
-    html:not(.dark-mode) .btn-delete-final:hover { box-shadow:0 8px 24px rgba(220,38,38,.4) !important; }
-    html.dark-mode .btn-delete-final:hover { box-shadow:0 8px 24px rgba(220,38,38,.5) !important; }
-    .btn-delete-final:active { transform:translateY(0) !important; }
-
-    .btn-cancel-modal { border:none !important; border-radius:10px !important; padding:9px 22px !important; font-weight:600 !important; font-size:13px !important; transition:all .25s !important; }
-    html:not(.dark-mode) .btn-cancel-modal { background:#f1f5f9 !important; color:#475569 !important; }
-    html:not(.dark-mode) .btn-cancel-modal:hover { background:#e2e8f0 !important; color:#1e293b !important; }
-    html.dark-mode .btn-cancel-modal { background:rgba(255,255,255,.08) !important; color:var(--text-secondary) !important; }
-    html.dark-mode .btn-cancel-modal:hover { background:rgba(255,255,255,.14) !important; color:var(--text-primary) !important; }
-    .btn-cancel-modal:hover { transform:translateY(-1px); }
-
-    @media (max-width: 768px) {
-        .card.border-0.shadow-sm.mb-4 .btn-compact {
-            width: fit-content;
-            align-self: flex-start;
-        }
-
-        #hasilFilter {
-            display: grid !important;
-            grid-template-columns: 1fr 1fr;
-            gap: 6px;
-            align-items: center;
-        }
-
-        #hasilFilter > div {
-            min-width: 0 !important;
-        }
-
-        #hasilFilter .filter-icon-prepend {
-            display: none;
-        }
-
-        #hasilFilter .form-select,
-        #hasilFilter .search-pill {
-            height: 28px !important;
-            font-size: 10px !important;
-            padding: 0 16px 0 8px !important;
-            box-sizing: border-box !important;
-        }
-
-        #hasilFilter .form-select {
-            width: 100% !important;
-            min-width: 0 !important;
-        }
-
-        #hasilFilter .search-pill {
-            width: 100% !important;
-            min-width: 0 !important;
-        }
-
-        #hasilFilter .d-flex.align-items-center.gap-1 span {
-            font-size: 10px;
-        }
-
-        #hasilFilter .d-flex.align-items-center.gap-1 .filter-lomba-wrap .form-select {
-            width: 44px !important;
-        }
-    }
+    .page-title-content { display: none !important; }
+    .hl-mod { --hl-radius: 16px; }
+    .hl-toolbar { top: 78px; }
+    .hl-progress { background: var(--lw-card); border: 1px solid var(--lw-border); border-radius: 16px; padding: 22px 24px; box-shadow: var(--lw-shadow); margin-bottom: 20px; }
+    .hl-progress-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
+    .hl-progress-top h2 { margin: 0; font-size: 16px; font-weight: 800; color: var(--lw-text); display: inline-flex; align-items: center; gap: 8px; }
+    .hl-progress-top h2 i { color: var(--lw-primary); }
+    .hl-progress-sub { font-size: 11.5px; color: var(--lw-text-3); margin-top: 2px; }
+    .hl-progress-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: var(--lw-primary-soft); color: var(--lw-primary); font-size: 11.5px; font-weight: 700; }
+    .hl-progress-grid { display: grid; grid-template-columns: 1.35fr 1fr; gap: 20px; align-items: stretch; }
+    .hl-metric-big { font-size: clamp(36px, 4vw, 52px); font-weight: 800; line-height: 1; letter-spacing: -1.5px; color: var(--lw-text); font-variant-numeric: tabular-nums; }
+    .hl-metric-label { margin-top: 6px; font-size: 11px; color: var(--lw-text-3); text-transform: uppercase; letter-spacing: .5px; font-weight: 700; }
+    .hl-metric-sub { margin-top: 4px; font-size: 11.5px; color: var(--lw-text-2); }
+    .hl-stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 16px; }
+    .hl-stat { padding: 11px 12px; border-radius: 14px; background: var(--lw-bg); border: 1px solid var(--lw-border); }
+    .hl-stat .n { font-size: 17px; font-weight: 800; color: var(--lw-text); }
+    .hl-stat .l { font-size: 10px; color: var(--lw-text-3); text-transform: uppercase; letter-spacing: .5px; margin-top: 2px; }
+    .hl-status-board { background: linear-gradient(180deg, rgba(255,255,255,.82), rgba(255,255,255,.64)); border: 1px solid var(--lw-border); border-radius: 16px; padding: 18px; backdrop-filter: blur(10px); }
+    html.dark-mode .hl-status-board { background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.03)); }
+    .hl-status-title { font-size: 12px; font-weight: 700; color: var(--lw-text); display: inline-flex; align-items: center; gap: 7px; }
+    .hl-status-title i { color: var(--lw-primary); }
+    .hl-status-bar { margin-top: 14px; height: 12px; border-radius: 999px; background: var(--lw-bg); overflow: hidden; display: flex; }
+    .hl-status-bar span { transition: width .8s cubic-bezier(.22,.61,.36,1); }
+    .hl-status-legend { display: grid; gap: 10px; margin-top: 14px; }
+    .hl-status-item { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 11.5px; color: var(--lw-text-2); }
+    .hl-status-item strong { color: var(--lw-text); font-variant-numeric: tabular-nums; }
+    .hl-status-item .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 7px; }
+    .hl-kpis { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 22px; }
+    .hl-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .hl-card { position: relative; overflow: hidden; background: linear-gradient(180deg, rgba(255,255,255,.88), rgba(255,255,255,.7)); border: 1px solid var(--lw-border); border-radius: 18px; box-shadow: var(--lw-shadow); padding: 18px; display: flex; flex-direction: column; gap: 14px; transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease; }
+    html.dark-mode .hl-card { background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.04)); }
+    .hl-card:hover { transform: translateY(-4px); box-shadow: var(--lw-shadow-lg); border-color: var(--lw-primary-border); }
+    .hl-card::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 4px; background: var(--lw-grad); opacity: 0; transition: opacity .2s ease; }
+    .hl-card:hover::before { opacity: 1; }
+    .hl-card.locked { opacity: .76; }
+    .hl-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .hl-avatar { width: 48px; height: 48px; border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800; color: #fff; flex-shrink: 0; }
+    .hl-avatar.c0 { background: linear-gradient(135deg,#2563eb,#60a5fa); }
+    .hl-avatar.c1 { background: linear-gradient(135deg,#16a34a,#4ade80); }
+    .hl-avatar.c2 { background: linear-gradient(135deg,#d97706,#fbbf24); }
+    .hl-avatar.c3 { background: linear-gradient(135deg,#7c3aed,#a78bfa); }
+    .hl-avatar.c4 { background: linear-gradient(135deg,#db2777,#f472b6); }
+    .hl-name { font-size: 15px; font-weight: 800; color: var(--lw-text); margin: 0; line-height: 1.35; }
+    .hl-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+    .hl-ranking { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .hl-podium { min-width: 92px; padding: 12px; border-radius: 16px; text-align: center; border: 1px solid var(--lw-border); background: var(--lw-bg); }
+    .hl-podium .icon { font-size: 22px; line-height: 1; }
+    .hl-podium .rank { margin-top: 6px; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--lw-text-3); font-weight: 700; }
+    .hl-podium .val { margin-top: 3px; font-size: 18px; font-weight: 800; color: var(--lw-text); }
+    .hl-podium.gold { background: linear-gradient(180deg, #fff8db, #fef3c7); border-color: rgba(217,119,6,.28); }
+    .hl-podium.silver { background: linear-gradient(180deg, #f8fafc, #e2e8f0); border-color: rgba(148,163,184,.28); }
+    .hl-podium.bronze { background: linear-gradient(180deg, #ffedd5, #fed7aa); border-color: rgba(194,120,59,.28); }
+    .hl-rank-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 40px; height: 40px; padding: 0 12px; border-radius: 14px; background: var(--lw-bg); border: 1px solid var(--lw-border); font-size: 14px; font-weight: 800; color: var(--lw-text); }
+    .hl-score-panel { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .hl-score-box { padding: 12px; border-radius: 14px; background: var(--lw-bg); border: 1px solid var(--lw-border); }
+    .hl-score-box .k { font-size: 10px; text-transform: uppercase; letter-spacing: .5px; color: var(--lw-text-3); font-weight: 700; }
+    .hl-score-box .v { margin-top: 4px; font-size: 17px; font-weight: 800; color: var(--lw-text); font-variant-numeric: tabular-nums; }
+    .hl-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 12px; border-top: 1px solid var(--lw-border); }
+    .hl-actions-left { display: flex; gap: 7px; }
+    .hl-btn-icon { width: 38px; height: 38px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--lw-border); background: var(--lw-card); color: var(--lw-text-2); transition: all .2s ease; position: relative; overflow: hidden; }
+    .hl-btn-icon:hover { transform: translateY(-1px); border-color: var(--lw-primary-border); color: var(--lw-primary); box-shadow: var(--lw-shadow); }
+    .hl-btn-icon.warn:hover { color: var(--lw-amber); border-color: var(--lw-amber-border); }
+    .hl-btn-icon.danger:hover { color: var(--lw-red); border-color: var(--lw-red-border); }
+    .hl-btn-icon.off { opacity: .45; cursor: not-allowed; }
+    .hl-btn-icon.off:hover { transform: none; box-shadow: none; color: var(--lw-text-2); border-color: var(--lw-border); }
+    .hl-pager { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
+    .hl-pager-info { font-size: 12px; color: var(--lw-text-3); }
+    .hl-pager-info b { color: var(--lw-text); }
+    .hl-pager-wrap .pagination { margin: 0; }
+    @media (max-width: 1399.98px) { .hl-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 1199.98px) { .hl-kpis { grid-template-columns: repeat(3, 1fr); } .hl-progress-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 767.98px) { .hl-grid, .hl-kpis, .hl-stats, .hl-score-panel { grid-template-columns: 1fr; } .hl-progress, .lw-hero { padding-left: 16px; padding-right: 16px; } .hl-ranking { flex-direction: column; align-items: stretch; } .hl-podium { width: 100%; } }
 </style>
-<div class="master-siswa-page">
-    <div class="card border-0 shadow-sm mb-4" style="border-radius: 16px;">
-        <div class="card-body p-4">
-            <div class="d-flex flex-column flex-xl-row justify-content-between align-items-xl-center gap-3">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="header-icon"><i class="fas fa-medal"></i></div>
-                    <div><h4 class="mb-0 fw-bold" style="color: var(--ms-text); font-size: 20px;">Hasil Lomba</h4></div>
+@endpush
+
+@section('content')
+@include('component.admin.lomba-workspace')
+
+@php
+    $today = \Carbon\Carbon::now()->translatedFormat('l, d F Y');
+    $activeHaflah = \App\Models\HaflatulImtihan::find(session('haflah_id'));
+    $allResults = $hasilLombas->getCollection();
+
+    $cards = $allResults->map(function ($hasil) {
+        $pl = $hasil->pesertaLomba;
+        $isIndividu = $pl->isIndividu();
+        $nama = $isIndividu
+            ? ($pl->student->user->name ?? $pl->student->nama ?? '-')
+            : ($pl->kelompokLomba->nama_kelompok ?? '-');
+        $peringkat = (int) ($hasil->peringkat ?? 0);
+        $juara = trim((string) ($hasil->juara ?? ''));
+        $locked = (bool) $hasil->is_haflah_selesai;
+        $finalGap = (float) ($hasil->total_nilai ?? 0) - (float) ($hasil->total_dari_penilaian ?? 0);
+        if ($locked) {
+            $status = ['label' => 'Terkunci', 'cls' => 'red', 'ic' => 'bi-lock-fill'];
+        } elseif ($finalGap === 0.0 && $hasil->total_nilai > 0) {
+            $status = ['label' => 'Sudah Final', 'cls' => 'navy', 'ic' => 'bi-patch-check-fill'];
+        } elseif (($hasil->total_nilai ?? 0) > 0) {
+            $status = ['label' => 'Siap Diumumkan', 'cls' => 'green', 'ic' => 'bi-megaphone-fill'];
+        } else {
+            $status = ['label' => 'Belum Sinkron', 'cls' => 'slate', 'ic' => 'bi-hourglass-split'];
+        }
+
+        if (stripos($juara, 'Juara 1') !== false || $peringkat === 1) {
+            $podium = ['cls' => 'gold', 'icon' => 'bi-trophy-fill', 'label' => 'Juara 1'];
+        } elseif (stripos($juara, 'Juara 2') !== false || $peringkat === 2) {
+            $podium = ['cls' => 'silver', 'icon' => 'bi-award-fill', 'label' => 'Juara 2'];
+        } elseif (stripos($juara, 'Juara 3') !== false || $peringkat === 3) {
+            $podium = ['cls' => 'bronze', 'icon' => 'bi-award', 'label' => 'Juara 3'];
+        } else {
+            $podium = null;
+        }
+
+        return [
+            'id' => $hasil->id,
+            'isIndividu' => $isIndividu,
+            'nama' => $nama,
+            'inisial' => mb_strtoupper(mb_substr(trim($nama), 0, 1)),
+            'avaIdx' => (mb_ord(mb_substr(trim($nama), 0, 1)) ?? 0) % 5,
+            'lomba' => $hasil->lomba->nama ?? '-',
+            'nilaiPenilaian' => (float) ($hasil->total_dari_penilaian ?? 0),
+            'totalNilai' => (float) ($hasil->total_nilai ?? 0),
+            'peringkat' => $peringkat,
+            'juara' => $juara ?: 'Finalis',
+            'status' => $status,
+            'podium' => $podium,
+            'locked' => $locked,
+            'query' => mb_strtolower($nama . ' ' . ($hasil->lomba->nama ?? '') . ' ' . $juara),
+        ];
+    });
+
+    $totalHasil = $cards->count();
+    $individuCount = $cards->where('isIndividu', true)->count();
+    $kelompokCount = $cards->where('isIndividu', false)->count();
+    $juara1Count = $cards->filter(fn($c) => $c['peringkat'] === 1)->count();
+    $juara2Count = $cards->filter(fn($c) => $c['peringkat'] === 2)->count();
+    $juara3Count = $cards->filter(fn($c) => $c['peringkat'] === 3)->count();
+    $finalisCount = $cards->filter(fn($c) => $c['peringkat'] > 3)->count();
+    $lockedCount = $cards->filter(fn($c) => $c['locked'])->count();
+    $finalCount = $cards->filter(fn($c) => $c['status']['label'] === 'Sudah Final')->count();
+    $readyCount = $cards->filter(fn($c) => $c['status']['label'] === 'Siap Diumumkan')->count();
+    $syncCount = $cards->filter(fn($c) => $c['status']['label'] === 'Belum Sinkron')->count();
+    $uniqueLomba = $cards->pluck('lomba')->filter()->unique()->count();
+    $progress = $totalHasil > 0 ? round((($finalCount + $readyCount) / $totalHasil) * 100) : 0;
+@endphp
+
+<div class="lw-mod hl-mod">
+    <div class="lw-hero">
+        <div class="lw-hero-grid">
+            <div class="lw-hero-left">
+                <span class="lw-hero-icon"><i class="bi bi-trophy-fill"></i></span>
+                <div>
+                    <h1 class="lw-hero-title">Hasil Lomba</h1>
+                    <p class="lw-hero-sub">Competition Results Dashboard — verifikasi ranking, sinkronisasi hasil, dan tetapkan juara akhir Haflatul Imtihan dengan cepat.</p>
+                    <div class="lw-hero-badges">
+                        <span class="lw-hero-badge"><i class="bi bi-diagram-3"></i> Haflah {{ optional($activeHaflah)->nama_acara ?: 'belum dipilih' }}</span>
+                        <span class="lw-hero-badge"><i class="bi bi-calendar-event"></i>{{ $today }}</span>
+                        <span class="lw-hero-badge"><i class="bi bi-bar-chart"></i>{{ $uniqueLomba }} lomba final</span>
+                    </div>
                 </div>
-                <div><a href="{{ route('hasil-lomba.create') }}" class="btn btn-header-ms btn-tambah-ms btn-compact"><i class="fas fa-plus"></i> Tambah</a></div>
+            </div>
+            <div class="lw-hero-right">
+                <a href="{{ route('hasil-lomba.create') }}" class="lw-btn lw-btn--solid"><i class="bi bi-stars"></i> Generate Hasil</a>
+                <a href="{{ route('hasil-lomba.index', request()->query()) }}" class="lw-btn lw-btn--light"><i class="bi bi-arrow-clockwise"></i> Refresh</a>
             </div>
         </div>
     </div>
+
     @if(session('success'))
-    <div class="alert alert-modern-ms alert-success alert-dismissible fade show">
-        <i class="fas fa-check-circle me-1"></i> {{ session('success') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
+        <div class="lw-alert lw-alert--ok"><i class="bi bi-check-circle-fill"></i> {{ session('success') }}</div>
     @endif
-    <div class="card table-card">
-        <div class="card-body">
-            @php
-                $tabParams = request()->except('tab');
-                $tabIndividuUrl = route('hasil-lomba.index', array_merge($tabParams, ['tab' => 'individu']));
-                $tabKelompokUrl = route('hasil-lomba.index', array_merge($tabParams, ['tab' => 'kelompok']));
-            @endphp
-            <nav class="hasil-tab-nav">
-                <a href="{{ $tabIndividuUrl }}" class="{{ $tab === 'individu' ? 'active' : '' }}">
-                    <i class="fas fa-user"></i> Individu
-                </a>
-                <a href="{{ $tabKelompokUrl }}" class="{{ $tab === 'kelompok' ? 'active' : '' }}">
-                    <i class="fas fa-users"></i> Kelompok
-                </a>
-            </nav>
-            <form id="hasilFilter" method="GET" autocomplete="off" class="d-flex align-items-center gap-2 flex-wrap" style="margin:16px 0;">
-                <input type="hidden" name="tab" value="{{ $tab }}">
-                <div class="d-flex align-items-center gap-1 flex-shrink-0">
-                    <span style="font-size:12px;">Show</span>
-                    <div class="filter-lomba-wrap" style="min-width:50px;">
-                        <i class="fas fa-list-ol filter-icon-prepend"></i>
-                        <select name="per_page" class="form-select" style="min-width:50px;font-size:11px;">
-                            @foreach ([10, 15, 25, 50, 100] as $opt)
-                                <option value="{{ $opt }}" {{ $perPage === $opt ? 'selected' : '' }}>{{ $opt }}</option>
-                            @endforeach
-                        </select>
+
+    <div class="hl-progress">
+        <div class="hl-progress-top">
+            <div>
+                <h2><i class="bi bi-graph-up-arrow"></i> Progress Penentuan Juara</h2>
+                <div class="hl-progress-sub">Pantau kesiapan hasil final sebelum diumumkan ke publik.</div>
+            </div>
+            <span class="hl-progress-chip"><i class="bi bi-clipboard-data"></i> Progress <b data-count="{{ $progress }}">{{ $progress }}</b>%</span>
+        </div>
+        <div class="hl-progress-grid">
+            <div>
+                <div class="hl-metric-big" data-count="{{ $totalHasil }}">{{ $totalHasil }}</div>
+                <div class="hl-metric-label">Total Hasil Final</div>
+                <div class="hl-metric-sub">{{ $uniqueLomba }} lomba • {{ $juara1Count }} juara utama • {{ $lockedCount }} hasil terkunci</div>
+                <div class="hl-stats">
+                    <div class="hl-stat"><div class="n" data-count="{{ $uniqueLomba }}">{{ $uniqueLomba }}</div><div class="l">Total Lomba</div></div>
+                    <div class="hl-stat"><div class="n" data-count="{{ $juara1Count + $juara2Count + $juara3Count }}">{{ $juara1Count + $juara2Count + $juara3Count }}</div><div class="l">Total Juara</div></div>
+                    <div class="hl-stat"><div class="n" data-count="{{ $individuCount }}">{{ $individuCount }}</div><div class="l">Individu</div></div>
+                    <div class="hl-stat"><div class="n" data-count="{{ $kelompokCount }}">{{ $kelompokCount }}</div><div class="l">Kelompok</div></div>
+                    <div class="hl-stat"><div class="n" data-count="{{ $finalCount + $readyCount }}">{{ $finalCount + $readyCount }}</div><div class="l">Siap Final</div></div>
+                </div>
+            </div>
+            <div class="hl-status-board">
+                <div class="hl-status-title"><i class="bi bi-broadcast-pin"></i> Status Hasil</div>
+                <div class="hl-status-bar" id="hlStatusBar">
+                    <span style="width:0;background:var(--lw-green);" data-w="{{ $totalHasil ? ($readyCount / $totalHasil) * 100 : 0 }}"></span>
+                    <span style="width:0;background:var(--lw-primary);" data-w="{{ $totalHasil ? ($finalCount / $totalHasil) * 100 : 0 }}"></span>
+                    <span style="width:0;background:var(--lw-violet);" data-w="{{ $totalHasil ? ($lockedCount / $totalHasil) * 100 : 0 }}"></span>
+                    <span style="width:0;background:var(--lw-text-3);" data-w="{{ $totalHasil ? ($syncCount / $totalHasil) * 100 : 0 }}"></span>
+                </div>
+                <div class="hl-status-legend">
+                    <div class="hl-status-item"><span><i class="dot" style="background:var(--lw-green);"></i>Siap Diumumkan</span><strong data-count="{{ $readyCount }}">{{ $readyCount }}</strong></div>
+                    <div class="hl-status-item"><span><i class="dot" style="background:var(--lw-primary);"></i>Sudah Final</span><strong data-count="{{ $finalCount }}">{{ $finalCount }}</strong></div>
+                    <div class="hl-status-item"><span><i class="dot" style="background:var(--lw-violet);"></i>Haflah Selesai</span><strong data-count="{{ $lockedCount }}">{{ $lockedCount }}</strong></div>
+                    <div class="hl-status-item"><span><i class="dot" style="background:var(--lw-text-3);"></i>Belum Sinkron</span><strong data-count="{{ $syncCount }}">{{ $syncCount }}</strong></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @php
+        $tabParams = request()->except('tab');
+        $tabIndividuUrl = route('hasil-lomba.index', array_merge($tabParams, ['tab' => 'individu']));
+        $tabKelompokUrl = route('hasil-lomba.index', array_merge($tabParams, ['tab' => 'kelompok']));
+    @endphp
+    <div class="lw-tabs lw-tab-pill" id="hlTabs">
+        <a href="{{ $tabIndividuUrl }}" class="lw-tab {{ $tab === 'individu' ? 'active' : '' }}"><i class="bi bi-person"></i> Individu <span class="lw-badge-count">{{ $individuCount }}</span></a>
+        <a href="{{ $tabKelompokUrl }}" class="lw-tab {{ $tab === 'kelompok' ? 'active' : '' }}"><i class="bi bi-people"></i> Kelompok <span class="lw-badge-count">{{ $kelompokCount }}</span></a>
+    </div>
+
+    <form id="hasilFilter" method="GET" autocomplete="off" class="lw-toolbar hl-toolbar">
+        <input type="hidden" name="tab" value="{{ $tab }}">
+        <div class="lw-filter lw-filter--perpage"><label>Per Page</label>
+            <select name="per_page" class="lw-select">
+                @foreach ([10, 15, 25, 50, 100] as $opt)
+                    <option value="{{ $opt }}" {{ $perPage === $opt ? 'selected' : '' }}>{{ $opt }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="lw-filter"><label>Filter Lomba</label>
+            <select name="lomba_id" class="lw-select">
+                <option value="">Semua Lomba</option>
+                @foreach($lombas as $l)
+                <option value="{{ $l->id }}" {{ request('lomba_id')==$l->id ? 'selected' : '' }}>{{ $l->nama }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="lw-filter"><label>Filter Juara</label>
+            <select name="juara" class="lw-select">
+                <option value="">Semua Juara</option>
+                @foreach($juaraList as $j)
+                <option value="{{ $j }}" {{ request('juara')==$j ? 'selected' : '' }}>{{ $j }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="lw-search"><i class="bi bi-search"></i>
+            <input type="search" name="nama" value="{{ request('nama') }}" class="lw-control" placeholder="Cari lomba, peserta, kelompok..." aria-label="Cari hasil lomba">
+        </div>
+        <div class="lw-toolbar-actions">
+            <a href="{{ route('hasil-lomba.index', ['tab' => $tab]) }}" class="lw-btn lw-btn--ghost"><i class="bi bi-arrow-counterclockwise"></i> Reset Filter</a>
+            <a href="{{ route('hasil-lomba.index', request()->query()) }}" class="lw-btn lw-btn--soft"><i class="bi bi-arrow-clockwise"></i> Refresh</a>
+        </div>
+    </form>
+
+    @if($totalHasil === 0)
+        <div class="lw-empty">
+            <div class="lw-empty-illus"><div class="ring"></div><div class="ring-2"></div><div class="core"><i class="bi bi-trophy"></i></div></div>
+            <div class="lw-empty-title">Belum ada hasil lomba</div>
+            <div class="lw-empty-sub">Generate hasil pertama dari penilaian lomba agar operator dapat memverifikasi ranking, juara, dan status final dengan cepat.</div>
+            <a href="{{ route('hasil-lomba.create') }}" class="lw-btn lw-btn--solid"><i class="bi bi-stars"></i> Generate Hasil Pertama</a>
+        </div>
+    @else
+        <div class="hl-grid">
+            @foreach($cards as $card)
+            <article class="hl-card {{ $card['locked'] ? 'locked' : '' }}">
+                <div class="hl-card-top">
+                    <div class="d-flex gap-3 min-w-0">
+                        <span class="hl-avatar c{{ $card['avaIdx'] }}">{{ $card['inisial'] ?: ($card['isIndividu'] ? 'P' : 'K') }}</span>
+                        <div class="min-w-0">
+                            <h3 class="hl-name" title="{{ $card['nama'] }}">{{ $card['nama'] }}</h3>
+                            <div class="hl-meta">
+                                <span class="lw-chip lw-chip--slate"><i class="bi bi-trophy"></i>{{ $card['lomba'] }}</span>
+                                <span class="lw-chip lw-chip--{{ $card['status']['cls'] }}"><i class="bi {{ $card['status']['ic'] }}"></i>{{ $card['status']['label'] }}</span>
+                            </div>
+                        </div>
                     </div>
-                    <span style="font-size:12px;">Entri</span>
+                    <span class="lw-chip lw-chip--{{ $card['isIndividu'] ? 'navy' : 'violet' }}"><i class="bi {{ $card['isIndividu'] ? 'bi-person' : 'bi-people' }}"></i>{{ $card['isIndividu'] ? 'Individu' : 'Kelompok' }}</span>
                 </div>
-                <div class="filter-lomba-wrap">
-                    <i class="fas fa-trophy filter-icon-prepend"></i>
-                    <select name="lomba_id" class="form-select" style="width:160px;font-size:11px;">
-                        <option value="">Semua Lomba</option>
-                        @foreach($lombas as $l)
-                        <option value="{{ $l->id }}" {{ request('lomba_id')==$l->id ? 'selected' : '' }}>{{ $l->nama }}</option>
-                        @endforeach
-                    </select>
+
+                <div class="hl-ranking">
+                    @if($card['podium'])
+                    <div class="hl-podium {{ $card['podium']['cls'] }}">
+                        <div class="icon"><i class="bi {{ $card['podium']['icon'] }}"></i></div>
+                        <div class="rank">{{ $card['podium']['label'] }}</div>
+                        <div class="val">#{{ $card['peringkat'] }}</div>
+                    </div>
+                    @else
+                    <span class="hl-rank-badge">#{{ $card['peringkat'] ?: '-' }}</span>
+                    @endif
+                    <div class="w-100">
+                        <div class="lw-chip lw-chip--green" style="width:max-content;"><i class="bi bi-patch-check"></i>{{ $card['juara'] }}</div>
+                    </div>
                 </div>
-                <div class="filter-lomba-wrap">
-                    <i class="fas fa-medal filter-icon-prepend"></i>
-                    <select name="juara" class="form-select" style="width:140px;font-size:11px;">
-                        <option value="">Semua Juara</option>
-                        @foreach($juaraList as $j)
-                        <option value="{{ $j }}" {{ request('juara')==$j ? 'selected' : '' }}>{{ $j }}</option>
-                        @endforeach
-                    </select>
+
+                <div class="hl-score-panel">
+                    <div class="hl-score-box"><div class="k">Total Nilai</div><div class="v">{{ number_format($card['totalNilai'], 1) }}</div></div>
+                    <div class="hl-score-box"><div class="k">Nilai Penilaian</div><div class="v">{{ number_format($card['nilaiPenilaian'], 1) }}</div></div>
                 </div>
-                <input type="search" name="nama" value="{{ request('nama') }}" class="search-pill" placeholder="cari" style="width:120px;min-width:120px;font-size:11px;">
-            </form>
-            <div class="table-responsive">
-                <table class="table table-ms">
-                    <thead><tr><th>No</th><th>Lomba</th><th>Peserta</th><th>Nilai Penilaian</th><th>Total Nilai</th><th>Peringkat</th><th>Juara</th><th>Aksi</th></tr></thead>
-                    <tbody>
-                        @forelse($hasilLombas as $hasilLomba)
-                        <tr>
-                            <td>{{ $loop->iteration }}</td>
-                            <td>{{ $hasilLomba->lomba->nama ?? '-' }}</td>
-                            <td>
-                                @php $pl = $hasilLomba->pesertaLomba; @endphp
-                                @if($pl->isIndividu())
-                                    {{ $pl->student->user->name ?? '-' }}
-                                @elseif($pl->kelompokLomba)
-                                    <i class="fas fa-users me-1"></i>{{ $pl->kelompokLomba->nama_kelompok }}
-                                @else
-                                    -
-                                @endif
-                            </td>
-                            <td>{{ $hasilLomba->total_dari_penilaian ?? 0 }}</td>
-                            <td>{{ $hasilLomba->total_nilai }}</td>
-                            <td>{{ $hasilLomba->peringkat }}</td>
-                            <td>{{ $hasilLomba->juara ?? '-' }}</td>
-                            <td>
-                                <div class="action-group-ms">
-                                    <a href="{{ route('hasil-lomba.show', $hasilLomba->id) }}" class="btn btn-outline-info" title="Detail"><i class="fas fa-eye"></i></a>
-                                    @if($hasilLomba->is_haflah_selesai)
-                                    <span class="btn btn-outline-secondary" title="Haflah selesai - terkunci" style="cursor:not-allowed;opacity:.5;">
-                                        <i class="fas fa-lock"></i>
-                                    </span>
-                                    @else
-                                    <a href="{{ route('hasil-lomba.edit', $hasilLomba->id) }}" class="btn btn-outline-warning" title="Edit"><i class="fas fa-edit"></i></a>
-                                    <button type="button" class="btn btn-outline-danger" title="Hapus"
-                                        data-bs-toggle="modal" data-bs-target="#hapusModal"
-                                        data-nama="{{ $hasilLomba->pesertaLomba->isIndividu() ? ($hasilLomba->pesertaLomba->student->user->name ?? '-') : ($hasilLomba->pesertaLomba->kelompokLomba->nama_kelompok ?? '-') }}"
-                                        data-url="{{ route('hasil-lomba.destroy', $hasilLomba->id) }}">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                    @endif
-                                </div>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr><td colspan="8" class="text-center">Belum ada data</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+
+                <div class="hl-actions">
+                    <div class="hl-actions-left">
+                        <a href="{{ route('hasil-lomba.show', $card['id']) }}" class="hl-btn-icon" title="Detail Hasil" aria-label="Detail"><i class="bi bi-eye"></i></a>
+                        @if($card['locked'])
+                            <span class="hl-btn-icon warn off" title="Haflah selesai — sinkronisasi terkunci" aria-label="Terkunci"><i class="bi bi-lock-fill"></i></span>
+                            <span class="hl-btn-icon danger off" title="Haflah selesai — hapus dinonaktifkan" aria-label="Terkunci"><i class="bi bi-lock-fill"></i></span>
+                        @else
+                            <a href="{{ route('hasil-lomba.edit', $card['id']) }}" class="hl-btn-icon warn" title="Sinkronisasi Ulang" aria-label="Sinkronisasi"><i class="bi bi-arrow-repeat"></i></a>
+                            <button type="button" class="hl-btn-icon danger" title="Hapus Hasil" aria-label="Hapus"
+                                data-hl-delete
+                                data-nama="{{ $card['nama'] }}"
+                                data-url="{{ route('hasil-lomba.destroy', $card['id']) }}"><i class="bi bi-trash"></i></button>
+                        @endif
+                    </div>
+                    <span class="lw-chip lw-chip--slate"><i class="bi bi-flag"></i>Rank {{ $card['peringkat'] ?: '-' }}</span>
+                </div>
+            </article>
+            @endforeach
+        </div>
+
+        <div class="hl-pager">
+            <div class="hl-pager-info">Menampilkan <b>{{ $hasilLombas->firstItem() }}</b>–<b>{{ $hasilLombas->lastItem() }}</b> dari <b>{{ $hasilLombas->total() }}</b> hasil</div>
             @if($hasilLombas->hasPages())
-            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 pt-3">
-                <span class="text-muted" style="font-size:13px;">
-                    Menampilkan {{ $hasilLombas->firstItem() }}–{{ $hasilLombas->lastItem() }} dari {{ $hasilLombas->total() }} entri
-                </span>
-                <div class="pagination-ms">
-                    {{ $hasilLombas->onEachSide(1)->links() }}
-                </div>
-            </div>
+            <div class="hl-pager-wrap">{{ $hasilLombas->onEachSide(1)->links() }}</div>
             @endif
         </div>
-    </div>
+    @endif
+
+    <form id="hlDeleteForm" method="POST" action="" class="d-none">
+        @csrf @method('DELETE')
+    </form>
+
+    <a href="{{ route('hasil-lomba.create') }}" class="lw-fab" aria-label="Generate hasil lomba"><i class="bi bi-plus-lg"></i></a>
 </div>
 @endsection
-{{-- MODAL HAPUS --}}
-<div class="modal fade" id="hapusModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content">
-            <div class="modal-header-custom border-0 pb-0">
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body-custom text-center px-4">
-                <div class="delete-icon-wrap">
-                    <i class="fas fa-trash-alt"></i>
-                </div>
-                <h5 class="fw-bold mt-3 mb-2">Hapus Hasil Lomba?</h5>
-                <p class="text-muted mb-3" style="font-size:14px">Data yang dihapus tidak dapat dikembalikan.</p>
-                <div class="delete-info-box text-start">
-                    <div class="delete-label">Peserta</div>
-                    <div class="delete-value" id="hapusNama"></div>
-                </div>
-                <form id="hapusForm" action="" method="POST">
-                    @csrf @method('DELETE')
-                    <div class="d-flex justify-content-center gap-2 mt-3">
-                        <button type="button" class="btn btn-cancel-modal" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-delete-final">
-                            <i class="fas fa-trash me-1"></i> Ya, Hapus
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
 
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    var hapusModal = document.getElementById('hapusModal');
-    if (!hapusModal) return;
-
-    hapusModal.addEventListener('show.bs.modal', function(event) {
-        var button = event.relatedTarget;
-        var nama = button.getAttribute('data-nama');
-        var url = button.getAttribute('data-url');
-
-        document.getElementById('hapusNama').textContent = nama;
-        document.getElementById('hapusForm').action = url;
-
-        if (hapusModal.parentNode !== document.body) {
-            document.body.appendChild(hapusModal);
-        }
+    document.querySelectorAll('.hl-mod [data-hl-delete]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var form = document.getElementById('hlDeleteForm');
+            if (!form || !window.LW) return;
+            form.action = btn.getAttribute('data-url');
+            LW.confirmForm(form, 'Hapus Hasil Lomba?', 'Data hasil "' + btn.getAttribute('data-nama') + '" akan dihapus permanen dan tidak dapat dikembalikan.', 'bi-trash3-fill');
+        });
     });
 
-    hapusModal.addEventListener('hidden.bs.modal', function() {
-        var cardBody = document.querySelector('.card-body');
-        if (cardBody && hapusModal.parentNode !== cardBody) {
-            cardBody.appendChild(hapusModal);
-        }
+    setTimeout(function () {
+        document.querySelectorAll('#hlStatusBar span[data-w]').forEach(function (s) { s.style.width = s.dataset.w + '%'; });
+    }, 120);
+
+    document.querySelectorAll('.hl-mod [data-count]').forEach(function (el) {
+        if (window.LW && LW.counter) LW.counter(el);
     });
-});
-</script>
-<script>
-    (function () {
-        var form = document.getElementById('hasilFilter');
-        if (!form) return;
+
+    var form = document.getElementById('hasilFilter');
+    if (form) {
         function applyFilter() {
             var params = new URLSearchParams();
             var data = new FormData(form);
-            for (var _i = 0, _entries = Array.from(data.entries()); _i < _entries.length; _i++) {
-                var _pair = _entries[_i];
-                if (_pair[1]) params.append(_pair[0], _pair[1]);
-            }
+            Array.from(data.entries()).forEach(function(pair) {
+                if (pair[1]) params.append(pair[0], pair[1]);
+            });
             window.location.search = params.toString();
         }
-        form.querySelectorAll('select').forEach(function (el) {
-            el.addEventListener('change', applyFilter);
-        });
+        form.querySelectorAll('select').forEach(function (el) { el.addEventListener('change', applyFilter); });
         var searchInput = form.querySelector('input[type="search"]');
         if (searchInput) {
             var debounce;
             searchInput.addEventListener('input', function () {
                 clearTimeout(debounce);
-                debounce = setTimeout(applyFilter, 400);
+                debounce = setTimeout(applyFilter, 350);
             });
         }
-    })();
+    }
+
+    document.querySelectorAll('.hl-mod .lw-btn, .hl-mod .hl-btn-icon, .hl-mod .lw-fab').forEach(function (btn) {
+        if (btn.classList.contains('off')) return;
+        btn.addEventListener('click', function (e) { if (window.LW) LW.ripple(e); });
+    });
+});
 </script>
 @endpush

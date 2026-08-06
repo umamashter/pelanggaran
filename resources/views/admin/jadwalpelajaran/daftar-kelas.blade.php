@@ -1,252 +1,111 @@
 @extends('layouts.main')
 
-@section('title','Jadwal Per Kelas')
+@section('title', 'Jadwal Per Kelas')
 
 @section('content')
-
+@include('component.admin.jadwal-module')
 <style>
-    .kelas-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 20px;
-    }
+    .page-title-content { display: none !important; }
 
-    @media (max-width: 768px) {
-        .kelas-grid {
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-        }
+    .jd-kelas-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+    @media (max-width: 1200px) { .jd-kelas-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 768px) { .jd-kelas-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; } }
+    @media (max-width: 480px) { .jd-kelas-grid { grid-template-columns: 1fr; } }
 
-        .kelas-card h5 {
-            font-size: 14px;
-        }
+    .jd-kelas-card { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 24px 18px 20px; }
+    .jd-kelas-icon { width: 60px; height: 60px; border-radius: 16px; display: inline-flex; align-items: center; justify-content: center;
+        font-size: 24px; color: #fff; margin-bottom: 14px; transition: all .25s ease; }
+    .jd-kelas-card:hover .jd-kelas-icon { border-radius: 50%; transform: rotate(-6deg) scale(1.05); }
+    .jd-kelas-icon--mi { background: linear-gradient(135deg, #16a34a, #22c55e); box-shadow: 0 10px 20px -8px rgba(22,163,74,.55); }
+    .jd-kelas-icon--mts { background: linear-gradient(135deg, #1d4ed8, #3b82f6); box-shadow: 0 10px 20px -8px rgba(37,99,235,.55); }
+    .jd-kelas-icon--ma { background: linear-gradient(135deg, #b45309, #f59e0b); box-shadow: 0 10px 20px -8px rgba(217,119,6,.55); }
+    .jd-kelas-icon--x { background: linear-gradient(135deg, #4f46e5, #8b5cf6); box-shadow: 0 10px 20px -8px rgba(124,58,237,.55); }
 
-        .kelas-card p {
-            font-size: 11px;
-        }
+    .jd-kelas-name { font-size: 17px; font-weight: 700; color: var(--jd-text); margin: 0 0 3px; }
+    .jd-kelas-meta { font-size: 12px; color: var(--jd-text-3); margin-bottom: 16px; display: inline-flex; align-items: center; gap: 6px; }
+    .jd-kelas-meta i { color: var(--jd-primary); }
 
-        .kelas-icon {
-            width: 50px;
-            height: 50px;
-        }
-
-        .kelas-icon i {
-            font-size: 20px;
-        }
-    }
-
-    .kelas-card,
-    .kelas-card:hover,
-    .kelas-card:focus,
-    .kelas-card:active {
-        text-decoration: none !important;
-        color: inherit;
-    }
-
-    .kelas-card h5,
-    .kelas-card p {
-        text-decoration: none !important;
-    }
-
-    .kelas-card:hover h5,
-    .kelas-card:hover p {
-        text-decoration: none !important;
-    }
-
-    .kelas-card {
-        transition: all .3s ease;
-        border-radius: 16px;
-        text-decoration: none;
-        color: inherit;
-        display: block;
-    }
-
-    .kelas-card .card {
-        transition: all .3s ease;
-        border: 2px solid transparent;
-    }
-
-    .kelas-card:hover .card {
-        transform: translateY(-5px);
-        background: #37C61E;
-        color: white;
-        box-shadow: 0 10px 25px rgba(55, 198, 30, .3);
-    }
-
-    .kelas-card:hover .kelas-icon {
-        background: white;
-    }
-
-    .kelas-card:hover .kelas-icon i {
-        color: #37C61E;
-    }
-
-    .kelas-card:hover .text-muted {
-        color: white !important;
-    }
-
-    .kelas-card:hover .btn-warning {
-        background: white;
-        border-color: white;
-        color: #37C61E;
-    }
-
-    .kelas-card.active .card {
-        background: #37C61E;
-        color: white;
-        border-color: #37C61E;
-    }
-
-    .kelas-card.active .kelas-icon {
-        background: white;
-    }
-
-    .kelas-card.active .kelas-icon i {
-        color: #37C61E;
-    }
-
-    .kelas-card.active .text-muted {
-        color: white !important;
-    }
-
-    .kelas-card.active .btn-warning {
-        background: white;
-        border-color: white;
-        color: #37C61E;
-    }
-
-    .bg-jadwal {
-        background: #37C61E;
-        border-bottom: 3px solid #37C61E;
-    }
-
-    .card {
-        border: none;
-        border-radius: 16px;
-        overflow: hidden;
-    }
-
-    .kelas-card {
-        transition: all .3s ease;
-        border-radius: 16px;
-        text-decoration: none;
-        color: inherit;
-        display: block;
-    }
-
-    .kelas-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, .12);
-        color: inherit;
-    }
-
-    .kelas-icon {
-        width: 70px;
-        height: 70px;
-        background: #EFEE3C;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: auto;
-    }
-
-    .kelas-icon i {
-        font-size: 28px;
-        color: #333;
-    }
-
-    .jumlah-kelas {
-        font-size: 32px;
-        font-weight: 700;
-    }
+    .jd-subtitle { display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 700; color: var(--jd-text);
+        margin: 0 0 14px; }
+    .jd-subtitle i { color: var(--jd-primary); }
 </style>
 
-<div class="card shadow-sm">
+@php
+    $kodeMap = [
+        'MI'  => ['md' => 'mi',  'icon' => 'fa-child'],
+        'MTs' => ['md' => 'mts', 'icon' => 'fa-book-open'],
+        'MA'  => ['md' => 'ma',  'icon' => 'fa-graduation-cap'],
+    ];
+    $kelasCount = $kelas->count();
+@endphp
 
-    <div class="card-header bg-jadwal">
+<div class="jd-mod jd-page-daftarkelas">
 
-        <div class="d-flex justify-content-between align-items-center">
+    <a href="{{ route('jadwal-pelajaran.index') }}" class="jd-back mb-3"><i class="fas fa-arrow-left"></i> Dashboard Jadwal</a>
 
-            <h4 class="mb-0 fw-bold text-white">
-                <i class="fas fa-calendar-week me-2"></i>
-                Jadwal Per Kelas
-            </h4>
-
-            <span class="badge bg-dark fs-6">
-                {{ $kelas->count() }} Kelas
-            </span>
-
-        </div>
-
-    </div>
-
-    <div class="card-body">
-
-        {{-- Daftar Kelas --}}
-        <div class="row">
-
-            @foreach($kelas as $item)
-
-            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
-
-                <a href="{{ route('jadwal-pelajaran.perkelas',$item->id) }}"
-                    class="kelas-card {{ request()->route('id') == $item->id ? 'active' : '' }}">
-
-                    <div class="card shadow-sm h-100">
-
-                        <div class="card-body text-center">
-
-                            <div class="kelas-icon mb-3">
-
-                                <i class="fas fa-school"></i>
-
-                            </div>
-
-                            <h5 class="fw-bold mb-2">
-                                {{ $item->nama_kelas }}
-                            </h5>
-
-                            <p class="text-muted mb-3">
-                                Lihat Jadwal Pelajaran
-                            </p>
-
-                            <span class="btn btn-warning btn-sm">
-
-                                <i class="fas fa-eye me-1"></i>
-                                Buka Jadwal
-
-                            </span>
-
-                        </div>
-
+    {{-- ===== HERO ===== --}}
+    <div class="jd-detail-hero">
+        <div class="jd-detail-hero-grid">
+            <div class="jd-hero-left">
+                <div class="jd-hero-icon"><i class="fas fa-school"></i></div>
+                <div>
+                    <h2 class="jd-hero-title">Jadwal Per Kelas</h2>
+                    <p class="jd-hero-sub">Pilih kelas untuk melihat peta jadwal pelajaran mingguan.</p>
+                    <div class="jd-hero-badges">
+                        <span class="jd-hero-badge"><i class="fas fa-school"></i> {{ $kelasCount }} Kelas</span>
                     </div>
-
-                </a>
-
+                </div>
             </div>
-
-            @endforeach
-
+            <div class="jd-hero-right">
+                <a href="{{ route('jadwal-pelajaran.index') }}" class="jd-btn jd-btn--light"><i class="fas fa-calendar-alt"></i> Kelola Jadwal</a>
+            </div>
         </div>
-
-        {{-- Jika Tidak Ada Data --}}
-        @if($kelas->count() == 0)
-
-        <div class="text-center py-5">
-
-            <i class="fas fa-school fa-4x text-secondary mb-3"></i>
-
-            <h5 class="text-muted">
-                Belum Ada Data Kelas
-            </h5>
-
-        </div>
-
-        @endif
-
     </div>
+
+    @if($kelasCount === 0)
+    {{-- ===== EMPTY ===== --}}
+    <div class="jd-card">
+        <div class="jd-empty">
+            <div class="jd-empty-illus">
+                <div class="ring"></div>
+                <div class="core"><i class="fas fa-school"></i></div>
+            </div>
+            <div class="jd-empty-title">Belum Ada Kelas</div>
+            <div class="jd-empty-sub">Tidak ada data kelas. Tambahkan kelas terlebih dahulu untuk menyusun jadwal pelajaran.</div>
+        </div>
+    </div>
+    @else
+    {{-- ===== GRID KELAS ===== --}}
+    <h3 class="jd-subtitle"><i class="fas fa-layer-group"></i> Pilih Kelas</h3>
+    <div class="jd-kelas-grid">
+        @foreach($kelas as $item)
+            @php
+                $kodeJenjang = optional($item->jenjang)->kode ?? '';
+                $md = $kodeMap[$kodeJenjang]['md'] ?? 'x';
+                $icon = $kodeMap[$kodeJenjang]['icon'] ?? 'fa-school';
+            @endphp
+            <a href="{{ route('jadwal-pelajaran.per-kelas', $item->id) }}" class="jd-card jd-card--lift jd-kelas-card" style="text-decoration:none;">
+                <div class="jd-kelas-icon jd-kelas-icon--{{ $md }}"><i class="fas {{ $icon }}"></i></div>
+                <div class="jd-kelas-name">Kelas {{ $item->nama_kelas }}</div>
+                <div class="jd-kelas-meta"><i class="fas fa-layer-group"></i> {{ optional($item->jenjang)->nama_jenjang ?? '-' }}</div>
+                <span class="jd-btn jd-btn--soft"><i class="fas fa-eye"></i> Buka Jadwal</span>
+            </a>
+        @endforeach
+    </div>
+    @endif
 
 </div>
-
 @endsection
+
+@push('scripts')
+<script>
+$(function() {
+    @if(session('success'))
+    window.JD.toast('ok', 'Berhasil', @json(session('success')));
+    @endif
+    @if(session('error'))
+    window.JD.toast('err', 'Gagal', @json(session('error')));
+    @endif
+});
+</script>
+@endpush

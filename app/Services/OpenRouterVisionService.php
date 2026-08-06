@@ -11,13 +11,15 @@ class OpenRouterVisionService
     protected string $model;
     protected string $baseUrl;
     protected int $timeout;
+    protected AttendanceImportAdapter $adapter;
 
-    public function __construct()
+    public function __construct(AttendanceImportAdapter $adapter)
     {
         $this->apiKey  = config('ocr.openrouter_api_key', '');
         $this->model   = config('ocr.openrouter_model', 'google/gemini-2.5-flash');
         $this->baseUrl = config('ocr.openrouter_base_url', 'https://openrouter.ai/api/v1/chat/completions');
-        $this->timeout = (int) config('ocr.ai_timeout', 60);
+        $this->timeout = (int) config('ocr.openrouter_timeout', config('ocr.ai_timeout', 60));
+        $this->adapter = $adapter;
     }
 
     public function isAvailable(): bool
@@ -31,7 +33,7 @@ class OpenRouterVisionService
      *
      * @return array{success: bool, data?: array, error?: string, source: string}
      */
-    public function parseFromImage(string $imagePath, int $bulan, int $tahun): array
+    public function parseFromImage(string $imagePath, int $bulan, int $tahun, array $context = []): array
     {
         if (!$this->isAvailable()) {
             Log::info('OpenRouter Vision not configured.');
@@ -55,6 +57,7 @@ class OpenRouterVisionService
             $prompt = $this->buildVisionPrompt($bulan, $tahun);
 
             Log::info('OpenRouter Vision request started.', [
+                'stage'    => 'Vision',
                 'provider' => 'openrouter',
                 'model'    => $this->model,
                 'mime'     => $mimeType,
@@ -62,7 +65,7 @@ class OpenRouterVisionService
 
             $startTime = microtime(true);
 
-            $response = Http::timeout(max($this->timeout, 60))
+            $response = Http::timeout(max($this->timeout, 30))
                 ->withHeaders([
                     'Authorization' => 'Bearer ' . $this->apiKey,
                     'Content-Type'  => 'application/json',
@@ -96,12 +99,13 @@ class OpenRouterVisionService
                 $errorObj = $body['error'] ?? [];
 
                 Log::warning('OpenRouter Vision API failed.', [
-                    'provider'   => 'openrouter',
-                    'model'      => $this->model,
+                    'stage'       => 'Vision',
+                    'provider'    => 'openrouter',
+                    'model'       => $this->model,
                     'http_status' => $response->status(),
-                    'elapsed_ms' => $elapsed,
-                    'error'      => $errMsg,
-                    'error_type' => $errorObj['type'] ?? '',
+                    'elapsed_ms'  => $elapsed,
+                    'error'       => $errMsg,
+                    'error_type'  => $errorObj['type'] ?? '',
                 ]);
 
                 return [
@@ -114,14 +118,6 @@ class OpenRouterVisionService
             $body = $response->json();
             $text = $body['choices'][0]['message']['content'] ?? '';
 
-            Log::info('OpenRouter Vision response received.', [
-                'provider'   => 'openrouter',
-                'model'      => $this->model,
-                'http_status' => $response->status(),
-                'elapsed_ms' => $elapsed,
-                'has_content' => !empty($text),
-            ]);
-
             if (empty($text)) {
                 return [
                     'success' => false,
@@ -131,7 +127,6 @@ class OpenRouterVisionService
             }
 
             $parsed = $this->parseAiResponse($text);
-
             if (!$parsed) {
                 Log::warning('OpenRouter Vision: failed to parse response.', ['raw' => mb_substr($text, 0, 500)]);
                 return [
@@ -141,13 +136,51 @@ class OpenRouterVisionService
                 ];
             }
 
+            $universal = $this->adapter->buildUniversalSkeleton([
+                'provider'       => 'openrouter',
+                'provider_model' => $this->model,
+                'kelas'          => $context['kelas'] ?? '',
+                'bulan'          => $bulan,
+                'tahun'          => $tahun,
+                'students'       => $this->mapLegacyStudentsToUniversal($parsed['siswa'] ?? []),
+                'warnings'       => $parsed['warnings'] ?? [],
+                'confidence'     => [
+                    'provider' => 0.92,
+                    'ocr'      => 0.92,
+                    'matching' => 0,
+                    'overall'  => 0.92,
+                ],
+                'pipeline'       => [
+                    'classification' => 'pending',
+                    'quality'        => 'pending',
+                    'preprocess'     => 'pending',
+                    'vision'         => 'success',
+                    'validation'     => 'pending',
+                ],
+                'meta' => array_merge($parsed['meta'] ?? [], [
+                    'raw_response_excerpt' => mb_substr($text, 0, 500),
+                    'elapsed_ms' => $elapsed,
+                ]),
+            ]);
+
+            Log::info('OpenRouter Vision response received.', [
+                'stage'       => 'Vision',
+                'provider'    => 'openrouter',
+                'model'       => $this->model,
+                'http_status' => $response->status(),
+                'elapsed_ms'  => $elapsed,
+                'has_content' => true,
+                'confidence'  => $universal['confidence']['overall'],
+            ]);
+
             return [
-                'success' => true,
-                'data'    => $parsed,
-                'source'  => 'ai',
+                'success'   => true,
+                'data'      => $parsed,
+                'source'    => 'openrouter',
+                'universal' => $universal,
             ];
         } catch (\Exception $e) {
-            Log::error('OpenRouter Vision exception', ['error' => $e->getMessage()]);
+            Log::error('OpenRouter Vision exception', ['stage' => 'Vision', 'error' => $e->getMessage()]);
             return [
                 'success' => false,
                 'error'   => 'Exception OpenRouter Vision: ' . $e->getMessage(),
@@ -325,6 +358,21 @@ HANYA output JSON, langsung mulai dengan { dan tutup dengan }.';
      * Parse and normalize AI response JSON into standard format.
      * Supports both data_absensi (new) and siswa (legacy) formats.
      */
+    protected function mapLegacyStudentsToUniversal(array $students): array
+    {
+        return array_map(function (array $student, int $index) {
+            return [
+                'row_number'    => $student['no'] ?? ($index + 1),
+                'nisn'          => $student['nisn'] ?? null,
+                'nomor_induk'   => $student['nomor_induk'] ?? null,
+                'name'          => $student['nama_ocr'] ?? '',
+                'attendance'    => $student['ketidakhadiran'] ?? [],
+                'warnings'      => $student['warnings'] ?? [],
+                'confidence'    => $student['confidence'] ?? 0.92,
+            ];
+        }, $students, array_keys($students));
+    }
+
     protected function parseAiResponse(string $text): ?array
     {
         $text = trim($text);

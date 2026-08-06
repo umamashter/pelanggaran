@@ -1,347 +1,170 @@
 @extends('layouts.main')
 @section('title', 'Tambah Kelompok Lomba')
-@push('css')
-<style>
-    .create-kelompok-page {
-        font-family: 'Inter', 'Poppins', system-ui, sans-serif;
-        max-width: 680px;
-        margin: 22px auto 0;
-        padding: 0 16px;
-    }
-    .breadcrumb-cu {
-        margin-bottom: 20px;
-    }
-    .breadcrumb-cu .breadcrumb {
-        background: transparent;
-        padding: 0;
-        margin: 0;
-    }
-    .breadcrumb-cu .breadcrumb-item {
-        font-size: 13px;
-    }
-    .breadcrumb-cu .breadcrumb-item a {
-        color: #64748b;
-        text-decoration: none;
-        transition: color .2s;
-    }
-    .breadcrumb-cu .breadcrumb-item a:hover {
-        color: #16a34a;
-    }
-    .breadcrumb-cu .breadcrumb-item.active {
-        color: #1e293b;
-        font-weight: 500;
-    }
-    .breadcrumb-cu .breadcrumb-item+.breadcrumb-item::before {
-        color: #cbd5e1;
-    }
-    .create-card {
-        border: none;
-        border-radius: 18px;
-        box-shadow: 0 4px 16px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.04);
-    }
-    .create-card-header {
-        padding: 24px 28px 20px;
-        border-bottom: 1px solid #f1f5f9;
-    }
-    .create-card-body {
-        padding: 24px 28px 28px;
-    }
-    .form-label-cu {
-        font-weight: 600;
-        font-size: 14px;
-        color: #374151;
-        margin-bottom: 8px;
-        display: block;
-    }
-    .invalid-feedback-cu {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        margin-top: 6px;
-        font-size: 13px;
-        color: #dc2626;
-        font-weight: 500;
-    }
-    .input-group-cu .form-control.is-invalid,
-    .input-group-cu .form-select.is-invalid {
-        border-color: #dc2626;
-        background-image: none;
-    }
-    .input-group-cu .form-control.is-invalid:focus,
-    .input-group-cu .form-select.is-invalid:focus {
-        box-shadow: 0 0 0 3px rgba(220,38,38,.1);
-    }
-    .input-group-cu {
-        position: relative;
-    }
-    .input-group-cu .form-control,
-    .input-group-cu .form-select {
-        height: 46px;
-        padding-left: 42px;
-        border-radius: 10px;
-        border: 1.5px solid #e2e8f0;
-        font-size: 14px;
-        transition: border .2s, box-shadow .2s;
-    }
-    .input-group-cu .form-control:focus,
-    .input-group-cu .form-select:focus {
-        border-color: #16a34a;
-        box-shadow: 0 0 0 3px rgba(22,163,74,.12);
-    }
-    .input-group-cu .form-control::placeholder {
-        color: #94a3b8;
-        font-size: 13px;
-    }
-    .input-group-cu-icon {
-        position: absolute;
-        left: 14px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #94a3b8;
-        font-size: 15px;
-        z-index: 4;
-        pointer-events: none;
-    }
-    .alert-cu {
-        border: none;
-        border-radius: 12px;
-        padding: 14px 20px;
-        font-size: 14px;
-        margin-bottom: 20px;
-    }
-    .alert-cu.alert-success {
-        background: #f0fdf4;
-        color: #16a34a;
-        border-left: 4px solid #16a34a;
-    }
-    .alert-cu.alert-danger {
-        background: #fef2f2;
-        color: #991b1b;
-        border-left: 4px solid #dc2626;
-    }
-    .alert-cu.alert-danger ul {
-        padding-left: 20px;
-        margin: 0;
-    }
-    .alert-cu.alert-danger ul li {
-        list-style: disc;
-    }
-    .btn-cu {
-        height: 44px;
-        padding: 0 28px;
-        border-radius: 10px;
-        font-size: 14px;
-        font-weight: 600;
-        transition: all .25s;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        white-space: nowrap;
-        border: none;
-        gap: 8px;
-    }
-    .btn-cu-secondary {
-        background: #f1f5f9;
-        color: #475569;
-        border: 1.5px solid #e2e8f0;
-    }
-    .btn-cu-secondary:hover {
-        background: #e2e8f0;
-        color: #334155;
-        transform: translateY(-1px);
-        box-shadow: 0 3px 8px rgba(0,0,0,.08);
-    }
-    .btn-cu-primary {
-        background: linear-gradient(135deg, #16a34a, #22c55e);
-        color: #fff;
-        box-shadow: 0 2px 8px rgba(22,163,74,.25);
-    }
-    .btn-cu-primary:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 6px 20px rgba(22,163,74,.35);
-        color: #fff;
-    }
-    .btn-cu:active {
-        transform: translateY(0);
-    }
-    .form-actions-cu {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 12px;
-        margin-top: 32px;
-        padding-top: 20px;
-        border-top: 1px solid #f1f5f9;
-    }
-    @media (max-width: 768px) {
-        .create-kelompok-page {
-            margin-top: 16px;
-            padding: 0 12px;
-        }
-        .create-card-header {
-            padding: 18px 20px 16px;
-        }
-        .create-card-body {
-            padding: 18px 20px 22px;
-        }
-        .form-actions-cu {
-            flex-direction: column;
-        }
-        .form-actions-cu .btn-cu {
-            width: 100%;
-        }
-    }
-    @media (max-width: 480px) {
-        .create-card-header {
-            padding: 14px 16px 12px;
-        }
-        .create-card-body {
-            padding: 14px 16px 18px;
-        }
-        .input-group-cu .form-control,
-        .input-group-cu .form-select {
-            height: 42px;
-            font-size: 13px;
-        }
-        .btn-cu {
-            height: 40px;
-            padding: 0 20px;
-            font-size: 13px;
-        }
-    }
-</style>
-@endpush
 @section('content')
-@include('component.admin.ms-style')
-<div class="create-kelompok-page">
+@include('component.admin.lomba-workspace')
 
-    <nav aria-label="breadcrumb" class="breadcrumb-cu">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item">
-                <a href="/home"><i class="fas fa-home me-1"></i>Dashboard</a>
-            </li>
-            <li class="breadcrumb-item">
-                <a href="{{ route('kelompok-lomba.index') }}">Kelompok Lomba</a>
-            </li>
-            <li class="breadcrumb-item active" aria-current="page">Tambah Kelompok Lomba</li>
-        </ol>
-    </nav>
+<style>
+    .page-title-content { display: none !important; }
+    .lw-field-label { display: block; margin-bottom: 6px; font-size: 12.5px; font-weight: 700; color: var(--lw-text); }
+    .lw-field-label.required::after { content: ' *'; color: var(--lw-red); }
+    .lw-field-wrap { position: relative; }
+    .lw-field-wrap input, .lw-field-wrap select {
+        min-height: 44px; border-radius: 12px; border: 1.5px solid var(--lw-border); background: var(--lw-card);
+        color: var(--lw-text); padding-left: 40px; font-size: 13px; width: 100%; transition: all .2s ease; box-shadow: none;
+    }
+    .lw-field-wrap input:focus, .lw-field-wrap select:focus { border-color: var(--lw-primary); box-shadow: 0 0 0 4px var(--lw-primary-soft); outline: none; }
+    .lw-field-wrap input.is-invalid, .lw-field-wrap select.is-invalid { border-color: var(--lw-red); }
+    .lw-field-icon { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--lw-text-3); font-size: 14px; z-index: 2; pointer-events: none; }
+    .lw-help-text { margin-top: 5px; font-size: 11px; color: var(--lw-text-3); }
+    .lw-inline-error { margin-top: 5px; font-size: 12px; font-weight: 600; color: var(--lw-red); display: flex; align-items: center; gap: 6px; }
+    .lw-error-banner { border: none; border-radius: 14px; background: var(--lw-red-soft); color: #991b1b; border-left: 4px solid var(--lw-red); padding: 14px 18px; font-size: 13px; font-weight: 600; margin-bottom: 20px; }
+    .lw-error-banner ul { margin: 8px 0 0; padding-left: 18px; }
+    .lw-form-actions { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--lw-border); }
+    .lw-info-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+    .lw-info-cell { background: var(--lw-bg); border: 1px solid var(--lw-border); border-radius: 12px; padding: 12px 14px; }
+    .lw-info-cell .lbl { font-size: 10px; font-weight: 700; color: var(--lw-text-3); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 3px; display: flex; align-items: center; gap: 5px; }
+    .lw-info-cell .val { font-size: 14px; font-weight: 600; color: var(--lw-text); }
+    @media (max-width: 767.98px) { .lw-form-actions { flex-direction: column-reverse; } .lw-form-actions .lw-btn { width: 100%; justify-content: center; } }
+</style>
 
-    <div class="card create-card">
-        <div class="create-card-header">
-            <div class="d-flex align-items-center gap-3">
-                <div class="header-icon" style="width:48px;height:48px;font-size:22px;">
-                    <i class="fas fa-users"></i>
-                </div>
-                <div>
-                    <h4 class="mb-0 fw-bold" style="color: #1e293b; font-size: 18px;">Tambah Kelompok Lomba</h4>
-                    <span style="font-size: 13px; color: #64748b;">Buat kelompok baru untuk lomba tim.</span>
-                </div>
-            </div>
-        </div>
+<div class="lw-mod lw-page-kl-create">
+<div style="max-width:620px;margin:18px auto 0;padding:0 16px 32px;">
 
-        <div class="create-card-body">
-
-            @if(session('success'))
-                <div class="alert alert-cu alert-success">
-                    <i class="fas fa-check-circle me-1"></i> {{ session('success') }}
-                </div>
-            @endif
-
-            @if ($errors->any())
-                <div class="alert alert-cu alert-danger">
-                    <i class="fas fa-exclamation-triangle me-1"></i> Terdapat kesalahan pada form:
-                    <ul class="mt-2">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-
-            <form action="{{ route('kelompok-lomba.store') }}" method="POST">
-                @csrf
-
-                <div class="mb-4">
-                    <label class="form-label-cu">Lomba</label>
-                    <div class="input-group-cu">
-                        <i class="fas fa-trophy input-group-cu-icon"></i>
-                        <select name="lomba_id" id="lomba_id" class="form-select @error('lomba_id') is-invalid @enderror">
-                            <option value="">-- Pilih Lomba --</option>
-                            @foreach($lombas as $l)
-                            <option value="{{ $l->id }}" data-kelas-min="{{ $l->kelas_min }}" data-kelas-max="{{ $l->kelas_max }}" {{ old('lomba_id')==$l->id ? 'selected' : '' }}>{{ $l->nama }}</option>
-                            @endforeach
-                        </select>
-                        @error('lomba_id')
-                        <div class="invalid-feedback-cu"><i class="fas fa-exclamation-circle"></i> {{ $message }}</div>
-                        @enderror
-                    </div>
-                    <div id="infoAturan" style="display:none;margin-top:8px;font-size:13px;color:#c2410c;"><i class="fas fa-info-circle me-1"></i> Lomba ini hanya untuk <strong><span id="infoKelasRange"></span></strong></div>
-                </div>
-
-                <div class="row g-4">
-                    <div class="col-md-6">
-                        <div class="mb-4">
-                            <label class="form-label-cu">Nama Kelompok</label>
-                            <div class="input-group-cu">
-                                <i class="fas fa-tag input-group-cu-icon"></i>
-                                <input type="text" name="nama_kelompok" class="form-control @error('nama_kelompok') is-invalid @enderror" value="{{ old('nama_kelompok') }}" placeholder="Masukkan nama kelompok">
-                                @error('nama_kelompok')
-                                <div class="invalid-feedback-cu"><i class="fas fa-exclamation-circle"></i> {{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="mb-4">
-                            <label class="form-label-cu">Kode Kelompok</label>
-                            <div class="input-group-cu">
-                                <i class="fas fa-barcode input-group-cu-icon"></i>
-                                <input type="text" class="form-control" value="Otomatis" disabled style="background:#f1f5f9;color:#64748b;">
-                            </div>
-                            <small style="font-size:12px;color:#94a3b8;margin-top:4px;display:block;">
-                                <i class="fas fa-info-circle"></i> Kode akan dibuat otomatis setelah disimpan
-                            </small>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-actions-cu">
-                    <a href="{{ route('kelompok-lomba.index') }}" class="btn btn-cu btn-cu-secondary">
-                        <i class="fas fa-arrow-left"></i> Kembali
-                    </a>
-                    <button type="submit" class="btn btn-cu btn-cu-primary">
-                        <i class="fas fa-save"></i> Simpan
-                    </button>
-                </div>
-
-            </form>
-
-        </div>
+<div class="lw-card" style="overflow:hidden;">
+    <div class="lw-card-pad" style="border-bottom:1px solid var(--lw-border);background:var(--lw-grad-soft);">
+        <span class="lw-chip lw-chip--green" style="margin-bottom:8px;"><i class="bi bi-people-fill"></i> Team Builder</span>
+        <h1 style="font-size:clamp(22px,2.6vw,28px);font-weight:800;letter-spacing:-.03em;color:var(--lw-text);margin:6px 0 4px;">Tambah Kelompok</h1>
+        <p style="color:var(--lw-text-3);font-size:13px;margin:0;">Buat kelompok untuk lomba tim. Kode akan dibuat otomatis dan peserta didaftarkan ke sistem.</p>
     </div>
 
+    <div class="lw-card-pad">
+        @if ($errors->any())
+            <div class="lw-error-banner">
+                <strong class="d-block"><i class="bi bi-exclamation-triangle-fill me-1"></i>Terdapat kesalahan pada form</strong>
+                <ul>@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+            </div>
+        @endif
+
+        <form action="{{ route('kelompok-lomba.store') }}" method="POST" id="klCreateForm" novalidate>
+            @csrf
+
+            <div class="mb-4">
+                <label class="lw-field-label required" for="lomba_id">Pilih Lomba</label>
+                <div class="lw-field-wrap">
+                    <i class="bi bi-trophy-fill lw-field-icon"></i>
+                    <select id="lomba_id" name="lomba_id" class="@error('lomba_id') is-invalid @enderror">
+                        <option value="">-- Pilih Lomba Tim --</option>
+                        @foreach($lombas as $lmb)
+                            <option value="{{ $lmb->id }}" data-kelas-min="{{ $lmb->kelas_min }}" data-kelas-max="{{ $lmb->kelas_max }}" {{ old('lomba_id') == $lmb->id ? 'selected' : '' }}>{{ $lmb->nama }}</option>
+                        @endforeach
+                    </select>
+                    @error('lomba_id')<div class="lw-inline-error"><i class="bi bi-exclamation-circle-fill"></i>{{ $message }}</div>@enderror
+                </div>
+                <div class="lw-help-text" id="kelasInfo" style="display:none;"></div>
+            </div>
+
+            <div class="mb-4">
+                <label class="lw-field-label required" for="nama_kelompok">Nama Kelompok</label>
+                <div class="lw-field-wrap">
+                    <i class="bi bi-tag-fill lw-field-icon"></i>
+                    <input type="text" id="nama_kelompok" name="nama_kelompok" class="@error('nama_kelompok') is-invalid @enderror" value="{{ old('nama_kelompok') }}" placeholder="Contoh: Tim Al-Fatih" maxlength="255">
+                    @error('nama_kelompok')<div class="lw-inline-error"><i class="bi bi-exclamation-circle-fill"></i>{{ $message }}</div>@enderror
+                </div>
+                <div class="lw-help-text">Nama unik yang mudah dikenali oleh panitia.</div>
+            </div>
+
+            <div class="mb-4">
+                <label class="lw-field-label">Kode Kelompok</label>
+                <div class="lw-field-wrap">
+                    <i class="bi bi-hash lw-field-icon"></i>
+                    <input type="text" class="@error('kode_kelompok') is-invalid @enderror" value="Otomatis" disabled>
+                </div>
+                <div class="lw-help-text"><i class="bi bi-info-circle-fill me-1" style="color:var(--lw-primary);"></i>Kode akan dibuat otomatis dengan format <strong>KLP-XXXX</strong> setelah disimpan.</div>
+            </div>
+
+            {{-- SUMMARY PREVIEW --}}
+            <div class="lw-card lw-card-pad" style="margin-bottom:16px;">
+                <div class="lw-section-title"><i class="bi bi-clipboard-check-fill"></i> Ringkasan</div>
+                <div class="lw-info-grid mt-2" style="grid-template-columns:1fr 1fr;">
+                    <div class="lw-info-cell"><div class="lbl"><i class="bi bi-trophy-fill"></i>Lomba</div><div class="val" id="summaryLomba">-</div></div>
+                    <div class="lw-info-cell"><div class="lbl"><i class="bi bi-tag-fill"></i>Nama</div><div class="val" id="summaryNama">-</div></div>
+                    <div class="lw-info-cell"><div class="lbl"><i class="bi bi-mortarboard-fill"></i>Range Kelas</div><div class="val" id="summaryKelas">-</div></div>
+                    <div class="lw-info-cell"><div class="lbl"><i class="bi bi-hash"></i>Kode</div><div class="val" style="color:var(--lw-text-3);">Otomatis (KLP-XXXX)</div></div>
+                </div>
+                <div style="font-size:11px;color:var(--lw-text-3);font-weight:600;margin-top:8px;padding:8px 10px;border-radius:8px;background:var(--lw-primary-soft);color:var(--lw-primary);">
+                    <i class="bi bi-check-circle-fill me-1"></i>Peserta lomba otomatis didaftarkan ke sistem setelah kelompok disimpan.
+                </div>
+            </div>
+
+            <div class="lw-form-actions">
+                <a href="{{ route('kelompok-lomba.index') }}" class="lw-btn lw-btn--ghost" style="border:1px solid var(--lw-border);"><i class="bi bi-arrow-left"></i> Kembali</a>
+                <button type="submit" class="lw-btn lw-btn--solid" data-submit-button>
+                    <span class="btn-label"><i class="bi bi-save-fill"></i> Simpan Kelompok</span>
+                    <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
-@endsection
+
+</div>
+</div>
+
 @push('scripts')
 <script>
-$(document).ready(function () {
-    var $lomba = $('#lomba_id');
-    var $infoAturan = $('#infoAturan');
-    var $infoRange = $('#infoKelasRange');
+(function() {
+    var form = document.getElementById('klCreateForm');
+    var submitBtn = document.querySelector('[data-submit-button]');
+    var lombaSelect = document.getElementById('lomba_id');
+    var kelasInfo = document.getElementById('kelasInfo');
+    var summaryLomba = document.getElementById('summaryLomba');
+    var summaryNama = document.getElementById('summaryNama');
+    var summaryKelas = document.getElementById('summaryKelas');
+    var namaInput = document.getElementById('nama_kelompok');
 
-    $lomba.on('change', function () {
-        var opt = $(this).find(':selected');
-        var min = opt.data('kelas-min');
-        var max = opt.data('kelas-max');
+    function updateInfo() {
+        var opt = lombaSelect.options[lombaSelect.selectedIndex];
+        var min = opt.dataset.kelasMin || null;
+        var max = opt.dataset.kelasMax || null;
+        var lombaNama = opt.text || '-';
+
+        if (!opt.value) { kelasInfo.style.display = 'none'; if (summaryKelas) summaryKelas.textContent = '-'; return; }
+
         if (min && max) {
-            $infoRange.text(min === max ? 'Kelas ' + min : 'Kelas ' + min + ' - ' + max);
-            $infoAturan.show();
+            kelasInfo.innerHTML = '<i class="bi bi-funnel-fill"></i> Lomba ini untuk <strong>Kelas ' + min + ' - ' + max + '</strong>.';
+            if (summaryKelas) summaryKelas.textContent = 'Kelas ' + min + ' - ' + max;
+        } else if (min) {
+            kelasInfo.innerHTML = '<i class="bi bi-funnel-fill"></i> Lomba ini untuk <strong>Kelas ' + min + ' ke atas</strong>.';
+            if (summaryKelas) summaryKelas.textContent = 'Kelas ' + min + '+';
+        } else if (max) {
+            kelasInfo.innerHTML = '<i class="bi bi-funnel-fill"></i> Lomba ini untuk <strong>sampai Kelas ' + max + '</strong>.';
+            if (summaryKelas) summaryKelas.textContent = 's/d Kelas ' + max;
         } else {
-            $infoAturan.hide();
+            kelasInfo.innerHTML = '<i class="bi bi-check-circle-fill" style="color:var(--lw-green);"></i> Lomba ini terbuka untuk <strong>semua kelas</strong>.';
+            if (summaryKelas) summaryKelas.textContent = 'Semua Kelas';
         }
-    });
+        kelasInfo.style.display = 'block';
+        if (summaryLomba) summaryLomba.textContent = lombaNama;
+    }
 
-    $lomba.trigger('change');
-});
+    function syncSummary() {
+        if (summaryNama) summaryNama.textContent = namaInput?.value.trim() || '-';
+        updateInfo();
+    }
+
+    if (lombaSelect) { lombaSelect.addEventListener('change', syncSummary); updateInfo(); }
+    if (namaInput) { namaInput.addEventListener('input', syncSummary); }
+    syncSummary();
+
+    if (form && submitBtn) {
+        form.addEventListener('submit', function() {
+            submitBtn.disabled = true;
+            submitBtn.querySelector('.btn-label')?.classList.add('d-none');
+            var spinner = submitBtn.querySelector('.spinner-border');
+            if (spinner) spinner.classList.remove('d-none');
+        });
+    }
+})();
 </script>
 @endpush
+@endsection

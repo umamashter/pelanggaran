@@ -89,10 +89,18 @@ def configure_tesseract(tesseract_path=None):
 
 def preprocess_image(img):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    gray = cv2.fastNlMeansDenoising(gray, None, 10, 7, 21)
+    gray = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8)).apply(gray)
+
+    blur = cv2.GaussianBlur(gray, (5, 5), 0)
     binary = cv2.adaptiveThreshold(
-        gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-        cv2.THRESH_BINARY_INV, 15, 5
+        blur, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+        cv2.THRESH_BINARY_INV, 21, 7
     )
+
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+    binary = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, kernel, iterations=1)
+    binary = cv2.medianBlur(binary, 3)
     return gray, binary
 
 
@@ -525,7 +533,7 @@ def detect_table_grid_with_fallback(img, gray, binary):
     h_lines, v_lines = detect_lines(binary)
     h_pos, v_pos = detect_grid_structure(h_lines, v_lines, img.shape)
     if len(h_pos) >= 2 and len(v_pos) >= 2:
-        return h_pos, v_pos
+        return h_pos, v_pos, 'morphology'
     for scale_div in [10, 20, 30]:
         h_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (img.shape[1] // scale_div, 1))
         v_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, img.shape[0] // scale_div))
@@ -533,7 +541,7 @@ def detect_table_grid_with_fallback(img, gray, binary):
         v_l = cv2.morphologyEx(binary, cv2.MORPH_OPEN, v_kernel)
         h_p, v_p = detect_grid_structure(h_l, v_l, img.shape)
         if len(h_p) >= 2 and len(v_p) >= 2:
-            return h_p, v_p
+            return h_p, v_p, f'morphology_scale_{scale_div}'
     edges = cv2.Canny(gray, 50, 150)
     lines = cv2.HoughLinesP(edges, 1, np.pi / 180, 100, minLineLength=img.shape[1] // 10, maxLineGap=10)
     if lines is not None:
@@ -549,7 +557,7 @@ def detect_table_grid_with_fallback(img, gray, binary):
         h_pos = cluster_points([(0, y) for y in h_lines_list], 1, threshold=20)
         v_pos = cluster_points([(x, 0) for x in v_lines_list], 0, threshold=20)
         if len(h_pos) >= 2 and len(v_pos) >= 2:
-            return h_pos, v_pos
+            return h_pos, v_pos, 'hough'
     raise ValueError("Tidak dapat mendeteksi struktur tabel pada gambar.")
 
 
@@ -573,25 +581,7 @@ def parse_status_text(text, expected_days):
     return results
 
 
-def main():
-    global DEBUG
-
-    if len(sys.argv) < 2:
-        print(json.dumps({"success": False, "error": "Usage: python ocr_attendance.py <image_path> [tesseract_path] [--debug]"}))
-        sys.exit(1)
-
-    image_path = sys.argv[1]
-    tesseract_path = None
-    for arg in sys.argv[2:]:
-        if arg == '--debug':
-            DEBUG = True
-        elif not tesseract_path:
-            tesseract_path = arg
-
-    if not os.path.isfile(image_path):
-        print(json.dumps({"success": False, "error": f"Image file not found: {image_path}"}))
-        sys.exit(1)
-
+def run_full_mode(image_path, tesseract_path=None):
     configure_tesseract(tesseract_path)
 
     img = cv2.imread(image_path)
@@ -607,7 +597,7 @@ def main():
     gray, binary = preprocess_image(img)
 
     try:
-        h_lines_pos, v_lines_pos = detect_table_grid_with_fallback(img, gray, binary)
+        h_lines_pos, v_lines_pos, grid_method = detect_table_grid_with_fallback(img, gray, binary)
     except ValueError as e:
         print(json.dumps({"success": False, "error": str(e), "fallback": True}))
         sys.exit(1)
@@ -641,25 +631,14 @@ def main():
         date_cols = all_status_cols
         recap_cols = []
 
-    debug_log(f"All status cols: {all_status_cols}")
-    debug_log(f"Date cols: {date_cols}")
-    debug_log(f"Recap cols: {recap_cols}")
-
     metadata = extract_title_metadata(cells, h_lines_pos, v_lines_pos, img)
     libur_dates_computed = compute_libur_dates(metadata['bulan'], metadata['tahun'])
-
     date_mapping = build_sequential_date_mapping(date_cols)
     libur_cols = set()
     for j in date_cols:
         tanggal = date_mapping.get(j, 0)
         if tanggal in libur_dates_computed:
             libur_cols.add(j)
-            debug_log(f"Col {j} = tanggal {tanggal} = LIBUR (Jumat)")
-
-    debug_log(f"Date mapping (sequential): {date_mapping}")
-    debug_log(f"Libur cols: {sorted(libur_cols)}")
-
-    header_numbers = read_header_for_validation(cells, h_lines_pos, v_lines_pos, date_cols, img)
 
     data_start_row = 3
     data_end_row = len(cells) - 2
@@ -667,7 +646,6 @@ def main():
 
     siswa_list = []
     row_counter = 0
-
     row_heights = [(i, h_lines_pos[i + 1] - h_lines_pos[i]) for i in range(len(h_lines_pos) - 1)]
     data_heights = [h for _, h in row_heights[1:] if h > 20]
     if data_heights:
@@ -703,28 +681,6 @@ def main():
             raw = re.sub(r'\s+', ' ', raw)
             nama = raw
 
-        if not nama and len(row) > 2:
-            try:
-                left_x = v_lines_pos[0] if v_lines_pos else 0
-                right_col = min(nisn_col if nisn_col is not None else 3, 3)
-                right_x = v_lines_pos[right_col + 1] if right_col + 1 < len(v_lines_pos) else img.shape[1] // 3
-                name_region = img[h_lines_pos[i] + 2:h_lines_pos[i + 1] - 2, left_x:right_x]
-                raw = ocr_cell_text(name_region)
-                raw = re.sub(r'[^\w\s]', '', raw).strip()
-                raw = re.sub(r'\s+', ' ', raw)
-                parts = raw.split()
-                if parts:
-                    for p in parts:
-                        if re.match(r'^\d{6,}$', p) and not nisn:
-                            nisn = p
-                        elif len(p) > 1 and not re.match(r'^\d+$', p):
-                            if nama:
-                                nama += ' ' + p
-                            else:
-                                nama = p
-            except Exception:
-                pass
-
         if not nisn:
             nama_upper = nama.upper()
             header_keywords = ['NAMA', 'SISWA', 'NO', 'NOMOR', 'NISN', 'KELAS', 'JURUSAN', 'ABSENSI']
@@ -740,52 +696,27 @@ def main():
         for col_idx in date_cols:
             if col_idx >= len(row):
                 continue
-
             tanggal = date_mapping.get(col_idx, 0)
             if tanggal == 0:
                 continue
-
             is_libur = col_idx in libur_cols
             cell = row[col_idx]
-
             if is_libur:
-                ketidakhadiran.append({
-                    "tanggal": tanggal,
-                    "status": "LIBUR",
-                    "confidence": 1.0
-                })
+                ketidakhadiran.append({"tanggal": tanggal, "status": "LIBUR", "confidence": 1.0})
                 continue
-
             if cell is None or cell.size == 0:
-                ketidakhadiran.append({
-                    "tanggal": tanggal,
-                    "status": "H",
-                    "confidence": 0.5
-                })
+                warnings.append(f"Tanggal {tanggal} sel tidak berhasil diekstrak")
+                ketidakhadiran.append({"tanggal": tanggal, "status": "UNKNOWN", "confidence": 0.0})
                 continue
-
             status, conf = classify_status_cell(cell, is_libur=False)
-
             if status == 'UNKNOWN':
                 warnings.append(f"Tanggal {tanggal} status tidak terdeteksi dengan pasti")
-                ketidakhadiran.append({
-                    "tanggal": tanggal,
-                    "status": "UNKNOWN",
-                    "confidence": round(conf, 2)
-                })
+                ketidakhadiran.append({"tanggal": tanggal, "status": "UNKNOWN", "confidence": round(conf, 2)})
             elif status in ('I', 'S', 'A'):
                 ocr_counts[status] += 1
-                ketidakhadiran.append({
-                    "tanggal": tanggal,
-                    "status": status,
-                    "confidence": round(conf, 2)
-                })
+                ketidakhadiran.append({"tanggal": tanggal, "status": status, "confidence": round(conf, 2)})
             else:
-                ketidakhadiran.append({
-                    "tanggal": tanggal,
-                    "status": status,
-                    "confidence": round(conf, 2)
-                })
+                ketidakhadiran.append({"tanggal": tanggal, "status": status, "confidence": round(conf, 2)})
 
         if recap_values:
             recap_a = recap_values.get('A', [])
@@ -826,6 +757,8 @@ def main():
             "recap_cols": recap_cols,
             "nisn_col": nisn_col,
             "nama_col": nama_col,
+            "grid_method": grid_method,
+            "preprocess_steps": ["denoise", "clahe", "adaptive_threshold", "morph_close", "median_blur"],
         },
         "metadata": {
             "bulan": metadata['bulan'],
@@ -839,6 +772,190 @@ def main():
     }
 
     print(json.dumps(result, ensure_ascii=False))
+
+
+def run_cell_mode(image_path, tesseract_path=None, payload=None):
+    configure_tesseract(tesseract_path)
+    img = cv2.imread(image_path)
+    if img is None:
+        print(json.dumps({"success": False, "error": "Cannot read image"}))
+        sys.exit(1)
+
+    bbox = (payload or {}).get('bbox') or {}
+    x = max(0, int(bbox.get('x', 0)))
+    y = max(0, int(bbox.get('y', 0)))
+    w = max(1, int(bbox.get('width', 1)))
+    h = max(1, int(bbox.get('height', 1)))
+    crop = img[y:y+h, x:x+w]
+    if crop is None or crop.size == 0:
+        print(json.dumps({"success": False, "error": "Empty crop"}))
+        sys.exit(0)
+
+    raw = ocr_cell_text(crop, config='--psm 10 --oem 3', whitelist='HISA.,/-')
+    text = raw.strip() if raw else ''
+    normalized = text[:1].upper() if text else None
+    conf = 0 if not text else 85
+
+    print(json.dumps({
+        "success": True,
+        "raw": raw,
+        "text": text,
+        "normalized": normalized,
+        "confidence": conf,
+        "bbox": {"x": x, "y": y, "width": w, "height": h},
+        "provider": "tesseract",
+        "warnings": [] if text else ["unreadable_cell"]
+    }, ensure_ascii=False))
+
+
+def run_batch_mode(image_path, tesseract_path=None, payload=None):
+    configure_tesseract(tesseract_path)
+    img = cv2.imread(image_path)
+    if img is None:
+        print(json.dumps({"success": False, "error": "Cannot read image"}))
+        sys.exit(1)
+
+    queue = (payload or {}).get('queue') or []
+    cells = []
+    success = 0
+    failed = 0
+    retry_count = 0
+    confidences = []
+    start = cv2.getTickCount()
+
+    for item in queue:
+        coordinate = item.get('coordinate') or {}
+        bbox = {
+            'x': max(0, int(coordinate.get('x', 0))),
+            'y': max(0, int(coordinate.get('y', 0))),
+            'width': max(1, int(coordinate.get('width', 1))),
+            'height': max(1, int(coordinate.get('height', 1))),
+        }
+        crop = img[bbox['y']:bbox['y']+bbox['height'], bbox['x']:bbox['x']+bbox['width']]
+        duration_start = cv2.getTickCount()
+        if crop is None or crop.size == 0:
+            cells.append({
+                'cell_id': item.get('cell_id'),
+                'logical_type': item.get('logical_type', 'unknown'),
+                'raw': None,
+                'text': None,
+                'normalized': None,
+                'confidence': 0,
+                'bbox': bbox,
+                'provider': 'tesseract',
+                'warnings': ['unreadable_cell'],
+                'geometry_source': 'fallback',
+                'duration_ms': 0,
+                'retried': False,
+            })
+            failed += 1
+            continue
+
+        raw = ocr_cell_text(crop, config='--psm 10 --oem 3', whitelist='HISA.,/-')
+        text = raw.strip() if raw else ''
+        conf = 0 if not text else 85
+        retried = False
+        if conf < 25:
+            retried = True
+            retry_count += 1
+            raw_retry = ocr_cell_text(crop, config='--psm 10 --oem 3', whitelist='HISA.,/-')
+            text_retry = raw_retry.strip() if raw_retry else ''
+            conf_retry = 0 if not text_retry else 85
+            if conf_retry > conf:
+                raw = raw_retry
+                text = text_retry
+                conf = conf_retry
+
+        duration_ms = round((cv2.getTickCount() - duration_start) / cv2.getTickFrequency() * 1000)
+        normalized = text[:1].upper() if text else None
+        cells.append({
+            'cell_id': item.get('cell_id'),
+            'logical_type': item.get('logical_type', 'unknown'),
+            'raw': raw,
+            'text': text,
+            'normalized': normalized,
+            'confidence': conf,
+            'bbox': bbox,
+            'provider': 'tesseract',
+            'warnings': [] if text else ['unreadable_cell'],
+            'geometry_source': 'ocr' if text else 'fallback',
+            'duration_ms': duration_ms,
+            'retried': retried,
+        })
+        if text:
+            success += 1
+            confidences.append(conf)
+        else:
+            failed += 1
+
+    total_duration = round((cv2.getTickCount() - start) / cv2.getTickFrequency() * 1000)
+    average_confidence = round(sum(confidences) / len(confidences), 2) if confidences else 0
+
+    print(json.dumps({
+        'success': True,
+        'provider': 'local',
+        'cells_processed': len(queue),
+        'cells_success': success,
+        'cells_failed': failed,
+        'average_confidence': average_confidence,
+        'duration_ms': total_duration,
+        'fallback_used': failed > 0,
+        'retry_count': retry_count,
+        'cells': cells,
+    }, ensure_ascii=False))
+
+
+def main():
+    global DEBUG
+
+    if len(sys.argv) < 2:
+        print(json.dumps({"success": False, "error": "Usage: python ocr_attendance.py <image_path> [tesseract_path] [--debug] [--mode full|cell|batch] [--payload json] [--payload-file file]"}))
+        sys.exit(1)
+
+    image_path = sys.argv[1]
+    tesseract_path = None
+    mode = 'full'
+    payload = None
+    payload_file = None
+    i = 2
+    while i < len(sys.argv):
+        arg = sys.argv[i]
+        if arg == '--debug':
+            DEBUG = True
+        elif arg == '--mode' and i + 1 < len(sys.argv):
+            mode = sys.argv[i + 1]
+            i += 1
+        elif arg == '--payload' and i + 1 < len(sys.argv):
+            try:
+                payload = json.loads(sys.argv[i + 1])
+            except Exception:
+                payload = None
+            i += 1
+        elif arg == '--payload-file' and i + 1 < len(sys.argv):
+            payload_file = sys.argv[i + 1]
+            i += 1
+        elif not tesseract_path:
+            tesseract_path = arg
+        i += 1
+
+    if not os.path.isfile(image_path):
+        print(json.dumps({"success": False, "error": f"Image file not found: {image_path}"}))
+        sys.exit(1)
+
+    if payload_file:
+        try:
+            with open(payload_file, 'r', encoding='utf-8') as f:
+                payload = json.load(f)
+        except Exception as e:
+            print(json.dumps({"success": False, "error": f"Invalid payload file: {e}"}))
+            sys.exit(0)
+
+    if mode == 'cell':
+        run_cell_mode(image_path, tesseract_path, payload)
+    elif mode == 'batch':
+        run_batch_mode(image_path, tesseract_path, payload)
+    else:
+        run_full_mode(image_path, tesseract_path)
 
 
 if __name__ == "__main__":
